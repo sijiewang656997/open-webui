@@ -6,7 +6,6 @@
 	import SensitiveInput from '$lib/components/common/SensitiveInput.svelte';
 	import Cog6 from '$lib/components/icons/Cog6.svelte';
 	import AddConnectionModal from '$lib/components/AddConnectionModal.svelte';
-	import ConfirmDialog from '$lib/components/common/ConfirmDialog.svelte';
 
 	import { connect } from 'socket.io-client';
 
@@ -20,15 +19,7 @@
 	export let config = {};
 
 	let showConfigModal = false;
-	let showDeleteConfirmDialog = false;
 </script>
-
-<ConfirmDialog
-	bind:show={showDeleteConfirmDialog}
-	on:confirm={() => {
-		onDelete();
-	}}
-/>
 
 <AddConnectionModal
 	edit
@@ -38,9 +29,7 @@
 		key,
 		config
 	}}
-	onDelete={() => {
-		showDeleteConfirmDialog = true;
-	}}
+	{onDelete}
 	onSubmit={(connection) => {
 		url = connection.url;
 		key = connection.key;
@@ -95,11 +84,11 @@
 				{/if}
 			</div>
 
-			<SensitiveInput
+			<!-- <SensitiveInput
 				inputClassName=" outline-hidden bg-transparent w-full"
 				placeholder={$i18n.t('API Key')}
 				bind:value={key}
-			/>
+			/> -->
 		</div>
 	</Tooltip>
 

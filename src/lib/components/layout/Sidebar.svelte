@@ -77,7 +77,6 @@
 	let allChatsLoaded = false;
 
 	let folders = {};
-	let newFolderId = null;
 
 	const initFolders = async () => {
 		const folderList = await getFolders(localStorage.token).catch((error) => {
@@ -91,11 +90,6 @@
 		for (const folder of folderList) {
 			// Ensure folder is added to folders with its data
 			folders[folder.id] = { ...(folders[folder.id] || {}), ...folder };
-
-			if (newFolderId && folder.id === newFolderId) {
-				folders[folder.id].new = true;
-				newFolderId = null;
-			}
 		}
 
 		// Second pass: Tie child folders to their parents
@@ -156,7 +150,6 @@
 		});
 
 		if (res) {
-			newFolderId = res.id;
 			await initFolders();
 		}
 	};
@@ -473,7 +466,7 @@
 		? 'md:relative w-[260px] max-w-[260px]'
 		: '-translate-x-[260px] w-[0px]'} {$isApp
 		? `ml-[4.5rem] md:ml-0 `
-		: 'transition-width duration-200 ease-in-out'}  shrink-0 bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-200 text-sm fixed z-50 top-0 left-0 overflow-x-hidden
+		: 'transition-width duration-200 ease-in-out'}  shrink-0 bg-blue-200 text-gray-900 dark:bg-gray-950 dark:text-gray-200 text-sm fixed z-50 top-0 left-0 overflow-x-hidden
         "
 	data-state={$showSidebar}
 >
@@ -570,7 +563,7 @@
 			</div>
 		{/if} -->
 
-		{#if $user?.role === 'admin' || $user?.permissions?.workspace?.models || $user?.permissions?.workspace?.knowledge || $user?.permissions?.workspace?.prompts || $user?.permissions?.workspace?.tools}
+		<!-- {#if $user?.role === 'admin' || $user?.permissions?.workspace?.models || $user?.permissions?.workspace?.knowledge || $user?.permissions?.workspace?.prompts || $user?.permissions?.workspace?.tools}
 			<div class="px-1.5 flex justify-center text-gray-800 dark:text-gray-200">
 				<a
 					class="grow flex items-center space-x-3 rounded-lg px-2 py-[7px] hover:bg-gray-100 dark:hover:bg-gray-900 transition"
@@ -607,7 +600,7 @@
 					</div>
 				</a>
 			</div>
-		{/if}
+		{/if} -->
 
 		<div class="relative {$temporaryChatEnabled ? 'opacity-20' : ''}">
 			{#if $temporaryChatEnabled}
@@ -618,7 +611,6 @@
 				bind:value={search}
 				on:input={searchDebounceHandler}
 				placeholder={$i18n.t('Search')}
-				showClearButton={true}
 			/>
 		</div>
 

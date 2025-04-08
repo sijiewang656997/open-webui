@@ -7,6 +7,8 @@ import isToday from 'dayjs/plugin/isToday';
 import isYesterday from 'dayjs/plugin/isYesterday';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 
+import * as excelUtils from './excelUtils';
+
 dayjs.extend(relativeTime);
 dayjs.extend(isToday);
 dayjs.extend(isYesterday);
@@ -26,50 +28,43 @@ function escapeRegExp(string: string): string {
 }
 
 export const replaceTokens = (content, sourceIds, char, user) => {
-	const tokens = [
-		{ regex: /{{char}}/gi, replacement: char },
-		{ regex: /{{user}}/gi, replacement: user },
-		{
-			regex: /{{VIDEO_FILE_ID_([a-f0-9-]+)}}/gi,
-			replacement: (_, fileId) =>
-				`<video src="${WEBUI_BASE_URL}/api/v1/files/${fileId}/content" controls></video>`
-		},
-		{
-			regex: /{{HTML_FILE_ID_([a-f0-9-]+)}}/gi,
-			replacement: (_, fileId) =>
-				`<iframe src="${WEBUI_BASE_URL}/api/v1/files/${fileId}/content/html" width="100%" frameborder="0" onload="this.style.height=(this.contentWindow.document.body.scrollHeight+20)+'px';"></iframe>`
-		}
-	];
+	const charToken = /{{char}}/gi;
+	const userToken = /{{user}}/gi;
+	const videoIdToken = /{{VIDEO_FILE_ID_([a-f0-9-]+)}}/gi; // Regex to capture the video ID
+	const htmlIdToken = /{{HTML_FILE_ID_([a-f0-9-]+)}}/gi; // Regex to capture the HTML ID
 
-	// Replace tokens outside code blocks only
-	const processOutsideCodeBlocks = (text, replacementFn) => {
-		return text
-			.split(/(```[\s\S]*?```|`[\s\S]*?`)/)
-			.map((segment) => {
-				return segment.startsWith('```') || segment.startsWith('`')
-					? segment
-					: replacementFn(segment);
-			})
-			.join('');
-	};
+	// Replace {{char}} if char is provided
+	if (char !== undefined && char !== null) {
+		content = content.replace(charToken, char);
+	}
 
-	// Apply replacements
-	content = processOutsideCodeBlocks(content, (segment) => {
-		tokens.forEach(({ regex, replacement }) => {
-			if (replacement !== undefined && replacement !== null) {
-				segment = segment.replace(regex, replacement);
-			}
-		});
+	// Replace {{user}} if user is provided
+	if (user !== undefined && user !== null) {
+		content = content.replace(userToken, user);
+	}
 
-		if (Array.isArray(sourceIds)) {
-			sourceIds.forEach((sourceId, idx) => {
-				const regex = new RegExp(`\\[${idx + 1}\\]`, 'g');
-				segment = segment.replace(regex, `<source_id data="${idx + 1}" title="${sourceId}" />`);
-			});
-		}
-
-		return segment;
+	// Replace video ID tags with corresponding <video> elements
+	content = content.replace(videoIdToken, (match, fileId) => {
+		const videoUrl = `${WEBUI_BASE_URL}/api/v1/files/${fileId}/content`;
+		return `<video src="${videoUrl}" controls></video>`;
 	});
+
+	// Replace HTML ID tags with corresponding HTML content
+	content = content.replace(htmlIdToken, (match, fileId) => {
+		const htmlUrl = `${WEBUI_BASE_URL}/api/v1/files/${fileId}/content/html`;
+		return `<iframe src="${htmlUrl}" width="100%" frameborder="0" onload="this.style.height=(this.contentWindow.document.body.scrollHeight+20)+'px';"></iframe>`;
+	});
+
+	// Remove sourceIds from the content and replace them with <source_id>...</source_id>
+	if (Array.isArray(sourceIds)) {
+		sourceIds.forEach((sourceId, idx) => {
+			// Create a token based on the exact `[sourceId]` string
+			const sourceToken = `\\[${idx}\\]`; // Escape special characters for RegExp
+			const sourceRegex = new RegExp(sourceToken, 'g'); // Match all occurrences of [sourceId]
+
+			content = content.replace(sourceRegex, `<source_id data="${idx}" title="${sourceId}" />`);
+		});
+	}
 
 	return content;
 };
@@ -608,7 +603,7 @@ export const convertOpenAIChats = (_chats) => {
 				user_id: '',
 				title: convo['title'],
 				chat: chat,
-				timestamp: convo['create_time']
+				timestamp: convo['timestamp']
 			});
 		} else {
 			failed++;
@@ -752,7 +747,7 @@ export const extractSentencesForAudio = (text: string) => {
 };
 
 export const getMessageContentParts = (content: string, split_on: string = 'punctuation') => {
-	content = removeDetails(content, ['reasoning', 'code_interpreter', 'tool_calls']);
+	content = removeDetails(content, ['reasoning', 'code_interpreter']);
 	const messageContentParts: string[] = [];
 
 	switch (split_on) {
@@ -1071,112 +1066,4 @@ export const getLineCount = (text) => {
 	return text ? text.split('\n').length : 0;
 };
 
-// Helper function to recursively resolve OpenAPI schema into JSON schema format
-function resolveSchema(schemaRef, components, resolvedSchemas = new Set()) {
-	if (!schemaRef) return {};
-
-	if (schemaRef['$ref']) {
-		const refPath = schemaRef['$ref'];
-		const schemaName = refPath.split('/').pop();
-
-		if (resolvedSchemas.has(schemaName)) {
-			// Avoid infinite recursion on circular references
-			return {};
-		}
-		resolvedSchemas.add(schemaName);
-		const referencedSchema = components.schemas[schemaName];
-		return resolveSchema(referencedSchema, components, resolvedSchemas);
-	}
-
-	if (schemaRef.type) {
-		const schemaObj = { type: schemaRef.type };
-
-		if (schemaRef.description) {
-			schemaObj.description = schemaRef.description;
-		}
-
-		switch (schemaRef.type) {
-			case 'object':
-				schemaObj.properties = {};
-				schemaObj.required = schemaRef.required || [];
-				for (const [propName, propSchema] of Object.entries(schemaRef.properties || {})) {
-					schemaObj.properties[propName] = resolveSchema(propSchema, components);
-				}
-				break;
-
-			case 'array':
-				schemaObj.items = resolveSchema(schemaRef.items, components);
-				break;
-
-			default:
-				// for primitive types (string, integer, etc.), just use as is
-				break;
-		}
-		return schemaObj;
-	}
-
-	// fallback for schemas without explicit type
-	return {};
-}
-
-// Main conversion function
-export const convertOpenApiToToolPayload = (openApiSpec) => {
-	const toolPayload = [];
-
-	for (const [path, methods] of Object.entries(openApiSpec.paths)) {
-		for (const [method, operation] of Object.entries(methods)) {
-			const tool = {
-				type: 'function',
-				name: operation.operationId,
-				description: operation.summary || 'No description available.',
-				parameters: {
-					type: 'object',
-					properties: {},
-					required: []
-				}
-			};
-
-			// Extract path and query parameters
-			if (operation.parameters) {
-				operation.parameters.forEach((param) => {
-					tool.parameters.properties[param.name] = {
-						type: param.schema.type,
-						description: param.schema.description || ''
-					};
-
-					if (param.required) {
-						tool.parameters.required.push(param.name);
-					}
-				});
-			}
-
-			// Extract and recursively resolve requestBody if available
-			if (operation.requestBody) {
-				const content = operation.requestBody.content;
-				if (content && content['application/json']) {
-					const requestSchema = content['application/json'].schema;
-					const resolvedRequestSchema = resolveSchema(requestSchema, openApiSpec.components);
-
-					if (resolvedRequestSchema.properties) {
-						tool.parameters.properties = {
-							...tool.parameters.properties,
-							...resolvedRequestSchema.properties
-						};
-
-						if (resolvedRequestSchema.required) {
-							tool.parameters.required = [
-								...new Set([...tool.parameters.required, ...resolvedRequestSchema.required])
-							];
-						}
-					} else if (resolvedRequestSchema.type === 'array') {
-						tool.parameters = resolvedRequestSchema; // special case when root schema is an array
-					}
-				}
-			}
-
-			toolPayload.push(tool);
-		}
-	}
-
-	return toolPayload;
-};
+export { readExcelFile, downloadExcel, updateCell, addSheet, csvToExcel } from './excelUtils';

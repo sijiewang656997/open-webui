@@ -55,7 +55,7 @@
 		if (updatedUser) {
 			// Get Session User Info
 			const sessionUser = await getSessionUser(localStorage.token).catch((error) => {
-				toast.error(`${error}`);
+				// toast.error(`${error}`);
 				return null;
 			});
 
@@ -245,23 +245,21 @@
 				</div>
 			</div>
 
-			{#if $config?.features?.enable_user_webhooks}
-				<div class="pt-2">
-					<div class="flex flex-col w-full">
-						<div class=" mb-1 text-xs font-medium">{$i18n.t('Notification Webhook')}</div>
+			<div class="pt-2">
+				<div class="flex flex-col w-full">
+					<div class=" mb-1 text-xs font-medium">{$i18n.t('Notification Webhook')}</div>
 
-						<div class="flex-1">
-							<input
-								class="w-full rounded-lg py-2 px-4 text-sm dark:text-gray-300 dark:bg-gray-850 outline-hidden"
-								type="url"
-								placeholder={$i18n.t('Enter your webhook URL')}
-								bind:value={webhookUrl}
-								required
-							/>
-						</div>
+					<div class="flex-1">
+						<input
+							class="w-full rounded-lg py-2 px-4 text-sm dark:text-gray-300 dark:bg-gray-850 outline-hidden"
+							type="url"
+							placeholder={$i18n.t('Enter your webhook URL')}
+							bind:value={webhookUrl}
+							required
+						/>
 					</div>
 				</div>
-			{/if}
+			</div>
 		</div>
 
 		<div class="py-0.5">

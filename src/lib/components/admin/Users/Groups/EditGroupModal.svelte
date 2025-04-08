@@ -9,7 +9,6 @@
 	import Users from './Users.svelte';
 	import UserPlusSolid from '$lib/components/icons/UserPlusSolid.svelte';
 	import WrenchSolid from '$lib/components/icons/WrenchSolid.svelte';
-	import ConfirmDialog from '$lib/components/common/ConfirmDialog.svelte';
 
 	export let onSubmit: Function = () => {};
 	export let onDelete: Function = () => {};
@@ -26,7 +25,6 @@
 
 	let selectedTab = 'general';
 	let loading = false;
-	let showDeleteConfirmDialog = false;
 
 	export let name = '';
 	export let description = '';
@@ -89,14 +87,6 @@
 		init();
 	});
 </script>
-
-<ConfirmDialog
-	bind:show={showDeleteConfirmDialog}
-	on:confirm={() => {
-		onDelete();
-		show = false;
-	}}
-/>
 
 <Modal size="md" bind:show>
 	<div>
@@ -273,19 +263,18 @@
 						{/if}
 					</div> -->
 
-					<div class="flex justify-between pt-3 text-sm font-medium gap-1.5">
+					<div class="flex justify-end pt-3 text-sm font-medium gap-1.5">
 						{#if edit}
 							<button
 								class="px-3.5 py-1.5 text-sm font-medium dark:bg-black dark:hover:bg-gray-900 dark:text-white bg-white text-black hover:bg-gray-100 transition rounded-full flex flex-row space-x-1 items-center"
 								type="button"
 								on:click={() => {
-									showDeleteConfirmDialog = true;
+									onDelete();
+									show = false;
 								}}
 							>
 								{$i18n.t('Delete')}
 							</button>
-						{:else}
-							<div></div>
 						{/if}
 
 						<button

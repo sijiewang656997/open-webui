@@ -11,7 +11,6 @@
 	import Tooltip from '$lib/components/common/Tooltip.svelte';
 	import LockClosed from '$lib/components/icons/LockClosed.svelte';
 	import AccessControlModal from '../common/AccessControlModal.svelte';
-	import { user } from '$lib/stores';
 
 	let formElement = null;
 	let loading = false;
@@ -184,7 +183,6 @@ class Tools:
 	bind:show={showAccessControlModal}
 	bind:accessControl
 	accessRoles={['read', 'write']}
-	allowPublic={$user?.permissions?.sharing?.public_tools || $user?.role === 'admin'}
 />
 
 <div class=" flex flex-col justify-between w-full overflow-y-auto h-full">
@@ -200,7 +198,7 @@ class Tools:
 				}
 			}}
 		>
-			<div class="flex flex-col flex-1 overflow-auto h-0 rounded-lg">
+			<div class="flex flex-col flex-1 overflow-auto h-0">
 				<div class="w-full mb-2 flex flex-col gap-0.5">
 					<div class="flex w-full items-center">
 						<div class=" shrink-0 mr-2">
@@ -220,7 +218,7 @@ class Tools:
 						<div class="flex-1">
 							<Tooltip content={$i18n.t('e.g. My Tools')} placement="top-start">
 								<input
-									class="w-full text-2xl font-medium bg-transparent outline-hidden font-primary"
+									class="w-full text-2xl font-semibold bg-transparent outline-hidden"
 									type="text"
 									placeholder={$i18n.t('Tool Name')}
 									bind:value={name}
@@ -284,12 +282,12 @@ class Tools:
 					<CodeEditor
 						bind:this={codeEditor}
 						value={content}
-						lang="python"
 						{boilerplate}
+						lang="python"
 						onChange={(e) => {
 							_content = e;
 						}}
-						onSave={async () => {
+						onSave={() => {
 							if (formElement) {
 								formElement.requestSubmit();
 							}

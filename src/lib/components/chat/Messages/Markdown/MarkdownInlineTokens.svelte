@@ -31,7 +31,7 @@
 		{:else if token.text.includes(`<source_id`)}
 			<Source {id} {token} onClick={onSourceClick} />
 		{:else}
-			{@html html}
+			{token.text}
 		{/if}
 	{:else if token.type === 'link'}
 		{#if token.tokens}

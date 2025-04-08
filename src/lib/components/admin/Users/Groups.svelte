@@ -52,19 +52,12 @@
 			prompts: false,
 			tools: false
 		},
-		sharing: {
-			public_models: false,
-			public_knowledge: false,
-			public_prompts: false,
-			public_tools: false
-		},
 		chat: {
 			controls: true,
 			file_upload: true,
 			delete: true,
 			edit: true,
-			temporary: true,
-			temporary_enforced: true
+			temporary: true
 		},
 		features: {
 			web_search: true,

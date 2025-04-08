@@ -46,8 +46,7 @@
 							model: model
 						}))}
 						showTemporaryChatControl={$user.role === 'user'
-							? ($user?.permissions?.chat?.temporary ?? true) &&
-								!($user?.permissions?.chat?.temporary_enforced ?? false)
+							? ($user?.permissions?.chat?.temporary ?? true)
 							: true}
 						bind:value={selectedModel}
 					/>

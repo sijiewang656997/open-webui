@@ -191,15 +191,11 @@
 			}
 
 			if (config.comfyui.COMFYUI_WORKFLOW) {
-				try {
-					config.comfyui.COMFYUI_WORKFLOW = JSON.stringify(
-						JSON.parse(config.comfyui.COMFYUI_WORKFLOW),
-						null,
-						2
-					);
-				} catch (e) {
-					console.log(e);
-				}
+				config.comfyui.COMFYUI_WORKFLOW = JSON.stringify(
+					JSON.parse(config.comfyui.COMFYUI_WORKFLOW),
+					null,
+					2
+				);
 			}
 
 			requiredWorkflowNodes = requiredWorkflowNodes.map((node) => {

@@ -1,7 +1,7 @@
 <script>
 	import { toast } from 'svelte-sonner';
 
-	import { onMount, getContext, tick } from 'svelte';
+	import { onMount, getContext } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 
@@ -103,7 +103,7 @@
 			return;
 		}
 		const sessionUser = await getSessionUser(token).catch((error) => {
-			toast.error(`${error}`);
+			// toast.error(`${error}`);
 			return null;
 		});
 		if (!sessionUser) {
@@ -115,39 +115,13 @@
 
 	let onboarding = false;
 
-	async function setLogoImage() {
-		await tick();
-		const logo = document.getElementById('logo');
-
-		if (logo) {
-			const isDarkMode = document.documentElement.classList.contains('dark');
-
-			if (isDarkMode) {
-				const darkImage = new Image();
-				darkImage.src = '/static/favicon-dark.png';
-
-				darkImage.onload = () => {
-					logo.src = '/static/favicon-dark.png';
-					logo.style.filter = ''; // Ensure no inversion is applied if favicon-dark.png exists
-				};
-
-				darkImage.onerror = () => {
-					logo.style.filter = 'invert(1)'; // Invert image if favicon-dark.png is missing
-				};
-			}
-		}
-	}
-
 	onMount(async () => {
 		if ($user !== undefined) {
-			const redirectPath = querystringValue('redirect') || '/';
-			goto(redirectPath);
+			await goto('/');
 		}
 		await checkOauthCallback();
 
 		loaded = true;
-		setLogoImage();
-
 		if (($config?.features.auth_trusted_header ?? false) || $config?.features.auth === false) {
 			await signInHandler();
 		} else {
@@ -180,10 +154,9 @@
 			<div class="flex space-x-2">
 				<div class=" self-center">
 					<img
-						id="logo"
 						crossorigin="anonymous"
-						src="{WEBUI_BASE_URL}/static/splash.png"
-						class=" w-6 rounded-full"
+						src="{WEBUI_BASE_URL}/static/splash-500x200.png"
+						class="rounded-full dark:invert"
 						alt="logo"
 					/>
 				</div>
@@ -224,7 +197,13 @@
 									{:else if mode === 'ldap'}
 										{$i18n.t(`Sign in to {{WEBUI_NAME}} with LDAP`, { WEBUI_NAME: $WEBUI_NAME })}
 									{:else if mode === 'signin'}
-										{$i18n.t(`Sign in to {{WEBUI_NAME}}`, { WEBUI_NAME: $WEBUI_NAME })}
+										<!-- {$i18n.t(`Sign in to {{WEBUI_NAME}}`, { WEBUI_NAME: $WEBUI_NAME })} -->
+										<div class=" text-2xl font-medium">
+											{$i18n.t(`Sign in`)}
+										</div>
+										<div class=" text-2xl font-medium">
+											{$WEBUI_NAME}
+										</div>
 									{:else}
 										{$i18n.t(`Sign up to {{WEBUI_NAME}}`, { WEBUI_NAME: $WEBUI_NAME })}
 									{/if}

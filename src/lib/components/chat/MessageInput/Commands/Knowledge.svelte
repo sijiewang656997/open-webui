@@ -210,7 +210,7 @@
 									{/if}
 
 									<div class="line-clamp-1">
-										{decodeURIComponent(item?.name)}
+										{item?.name}
 									</div>
 								</div>
 

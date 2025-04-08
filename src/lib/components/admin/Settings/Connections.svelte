@@ -19,6 +19,7 @@
 	import OpenAIConnection from './Connections/OpenAIConnection.svelte';
 	import AddConnectionModal from '$lib/components/AddConnectionModal.svelte';
 	import OllamaConnection from './Connections/OllamaConnection.svelte';
+	import KneronDevices from './Connections/KneronDevices.svelte';
 
 	const i18n = getContext('i18n');
 
@@ -280,11 +281,15 @@
 								{/each}
 							</div>
 						</div>
+
+						<hr class=" border-gray-100 dark:border-gray-850" />
+
+						<KneronDevices />
 					{/if}
 				</div>
 			</div>
 
-			<hr class=" border-gray-100 dark:border-gray-850" />
+			<!-- <hr class=" border-gray-100 dark:border-gray-850" />
 
 			<div class="pr-1.5 my-2">
 				<div class="flex justify-between items-center text-sm mb-2">
@@ -383,7 +388,7 @@
 						)}
 					</div>
 				</div>
-			</div>
+			</div> -->
 		{:else}
 			<div class="flex h-full justify-center">
 				<div class="my-auto">

@@ -198,19 +198,6 @@
 	});
 
 	let showDeleteConfirm = false;
-
-	const chatTitleInputKeydownHandler = (e) => {
-		if (e.key === 'Enter') {
-			e.preventDefault();
-			editChatTitle(id, chatTitle);
-			confirmEdit = false;
-			chatTitle = '';
-		} else if (e.key === 'Escape') {
-			e.preventDefault();
-			confirmEdit = false;
-			chatTitle = '';
-		}
-	};
 </script>
 
 <ShareChatModal bind:show={showShareChatModal} chatId={id} />
@@ -240,11 +227,7 @@
 	</DragGhost>
 {/if}
 
-<div
-	bind:this={itemElement}
-	class=" w-full {className} relative group"
-	draggable={draggable && !confirmEdit}
->
+<div bind:this={itemElement} class=" w-full {className} relative group" {draggable}>
 	{#if confirmEdit}
 		<div
 			class=" w-full flex justify-between rounded-lg px-[11px] py-[6px] {id === $chatId ||
@@ -259,7 +242,6 @@
 				bind:value={chatTitle}
 				id="chat-title-input-{id}"
 				class=" bg-transparent w-full outline-hidden mr-10"
-				on:keydown={chatTitleInputKeydownHandler}
 			/>
 		</div>
 	{:else}

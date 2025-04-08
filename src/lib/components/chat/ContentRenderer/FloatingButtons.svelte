@@ -121,8 +121,7 @@
 			toast.error('Model not selected');
 			return;
 		}
-		const explainText = $i18n.t('Explain this section to me in more detail');
-		prompt = `${explainText}\n\n\`\`\`\n${selectedText}\n\`\`\``;
+		prompt = `Explain this section to me in more detail\n\n\`\`\`\n${selectedText}\n\`\`\``;
 
 		responseContent = '';
 		const [res, controller] = await chatCompletion(localStorage.token, {
@@ -247,7 +246,7 @@
 				>
 					<ChatBubble className="size-3 shrink-0" />
 
-					<div class="shrink-0">{$i18n.t('Ask')}</div>
+					<div class="shrink-0">Ask</div>
 				</button>
 				<button
 					class="px-1 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-sm flex items-center gap-1 min-w-fit"
@@ -258,12 +257,12 @@
 				>
 					<LightBlub className="size-3 shrink-0" />
 
-					<div class="shrink-0">{$i18n.t('Explain')}</div>
+					<div class="shrink-0">Explain</div>
 				</button>
 			</div>
 		{:else}
 			<div
-				class="py-1 flex dark:text-gray-100 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-850 w-72 rounded-full shadow-xl"
+				class="py-1 flex dark:text-gray-100 bg-gray-50 dark:bg-gray-800 border dark:border-gray-850 w-72 rounded-full shadow-xl"
 			>
 				<input
 					type="text"

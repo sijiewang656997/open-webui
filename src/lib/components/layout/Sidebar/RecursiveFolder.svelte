@@ -201,7 +201,7 @@
 		dragged = false;
 	};
 
-	onMount(async () => {
+	onMount(() => {
 		open = folders[folderId].is_expanded;
 		if (folderElement) {
 			folderElement.addEventListener('dragover', onDragOver);
@@ -214,13 +214,6 @@
 			folderElement.addEventListener('drag', onDrag);
 			// Event listener for when dragging ends
 			folderElement.addEventListener('dragend', onDragEnd);
-		}
-
-		if (folders[folderId]?.new) {
-			delete folders[folderId].new;
-
-			await tick();
-			editHandler();
 		}
 	});
 
@@ -304,15 +297,15 @@
 		console.log('Edit');
 		await tick();
 		name = folders[folderId].name;
-
 		edit = true;
+
 		await tick();
 
-		const input = document.getElementById(`folder-${folderId}-input`);
-
-		if (input) {
+		// focus on the input
+		setTimeout(() => {
+			const input = document.getElementById(`folder-${folderId}-input`);
 			input.focus();
-		}
+		}, 100);
 	};
 
 	const exportHandler = async () => {
@@ -401,9 +394,6 @@
 							id="folder-{folderId}-input"
 							type="text"
 							bind:value={name}
-							on:focus={(e) => {
-								e.target.select();
-							}}
 							on:blur={() => {
 								nameUpdateHandler();
 								edit = false;
@@ -437,10 +427,7 @@
 				>
 					<FolderMenu
 						on:rename={() => {
-							// Requires a timeout to prevent the click event from closing the dropdown
-							setTimeout(() => {
-								editHandler();
-							}, 200);
+							editHandler();
 						}}
 						on:delete={() => {
 							showDeleteConfirm = true;

@@ -176,7 +176,7 @@
 		<div>
 			<div class=" mb-1 text-sm font-medium">{$i18n.t('STT Settings')}</div>
 
-			{#if $config.audio.stt.engine !== 'web'}
+			<!-- {#if $config.audio.stt.engine !== 'web'}
 				<div class=" py-0.5 flex w-full justify-between">
 					<div class=" self-center text-xs font-medium">{$i18n.t('Speech-to-Text Engine')}</div>
 					<div class="flex items-center relative">
@@ -190,7 +190,7 @@
 						</select>
 					</div>
 				</div>
-			{/if}
+			{/if} -->
 
 			<div class=" py-0.5 flex w-full justify-between">
 				<div class=" self-center text-xs font-medium">
@@ -216,7 +216,7 @@
 		<div>
 			<div class=" mb-1 text-sm font-medium">{$i18n.t('TTS Settings')}</div>
 
-			<div class=" py-0.5 flex w-full justify-between">
+			<!-- <div class=" py-0.5 flex w-full justify-between">
 				<div class=" self-center text-xs font-medium">{$i18n.t('Text-to-Speech Engine')}</div>
 				<div class="flex items-center relative">
 					<select
@@ -228,7 +228,7 @@
 						<option value="browser-kokoro">{$i18n.t('Kokoro.js (Browser)')}</option>
 					</select>
 				</div>
-			</div>
+			</div> -->
 
 			{#if TTSEngine === 'browser-kokoro'}
 				<div class=" py-0.5 flex w-full justify-between">

@@ -10,7 +10,6 @@
 	import PencilSolid from '$lib/components/icons/PencilSolid.svelte';
 	import { toast } from 'svelte-sonner';
 	import AccessControl from '$lib/components/workspace/common/AccessControl.svelte';
-	import ConfirmDialog from '$lib/components/common/ConfirmDialog.svelte';
 
 	export let show = false;
 	export let edit = false;
@@ -45,7 +44,6 @@
 
 	let imageInputElement;
 	let loading = false;
-	let showDeleteConfirmDialog = false;
 
 	const addModelHandler = () => {
 		if (selectedModelId) {
@@ -116,14 +114,6 @@
 		initModel();
 	});
 </script>
-
-<ConfirmDialog
-	bind:show={showDeleteConfirmDialog}
-	on:confirm={() => {
-		dispatch('delete', model);
-		show = false;
-	}}
-/>
 
 <Modal size="sm" bind:show>
 	<div>
@@ -388,7 +378,8 @@
 								class="px-3.5 py-1.5 text-sm font-medium dark:bg-black dark:hover:bg-gray-950 dark:text-white bg-white text-black hover:bg-gray-100 transition rounded-full flex flex-row space-x-1 items-center"
 								type="button"
 								on:click={() => {
-									showDeleteConfirmDialog = true;
+									dispatch('delete', model);
+									show = false;
 								}}
 							>
 								{$i18n.t('Delete')}

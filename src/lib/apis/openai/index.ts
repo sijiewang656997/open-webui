@@ -420,3 +420,58 @@ export const synthesizeOpenAISpeech = async (
 
 	return res;
 };
+
+export const addKneronDevice = async (token: string = '', device_ip: string = '') => {
+	let error = null;
+
+	const res = await fetch(`${OPENAI_API_BASE_URL}/lb_add_device`, {
+		method: 'POST',
+		headers: {
+			Authorization: `Bearer ${token}`,
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			device_ip: device_ip
+		})
+	})
+		.then(async (res) => {
+			if (!res.ok) throw await res.json();
+			return res.json();
+		})
+		.catch((err) => {
+			error = `${err?.detail ?? err}`;
+			return null;
+		});
+
+	if (error) {
+		throw error;
+	}
+
+	return res;
+};
+
+export const getKneronDevices = async (token: string = '') => {
+	let error = null;
+
+	const res = await fetch(`${OPENAI_API_BASE_URL}/lb_get_devices`, {
+		method: 'GET',
+		headers: {
+			Authorization: `Bearer ${token}`,
+			'Content-Type': 'application/json'
+		}
+	})
+		.then(async (res) => {
+			if (!res.ok) throw await res.json();
+			return res.json();
+		})
+		.catch((err) => {
+			error = `${err?.detail ?? err}`;
+			return null;
+		});
+
+	if (error) {
+		throw error;
+	}
+
+	return res;
+};

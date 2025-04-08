@@ -71,7 +71,7 @@
 		</button>
 
 		<button
-			class="px-0.5 py-1 min-w-fit rounded-lg flex-1 md:flex-none flex text-left transition {selectedTab ===
+			class="px-0.5 py-1 min-w-fit rounded-lg flex-1 md:flex-none flex text-right transition {selectedTab ===
 			'connections'
 				? ''
 				: ' text-gray-300 dark:text-gray-600 hover:text-gray-700 dark:hover:text-white'}"
@@ -94,8 +94,8 @@
 			<div class=" self-center">{$i18n.t('Connections')}</div>
 		</button>
 
-		<button
-			class="px-0.5 py-1 min-w-fit rounded-lg flex-1 md:flex-none flex text-left transition {selectedTab ===
+		<!-- <button
+			class="px-0.5 py-1 min-w-fit rounded-lg flex-1 md:flex-none flex text-right transition {selectedTab ===
 			'models'
 				? ''
 				: ' text-gray-300 dark:text-gray-600 hover:text-gray-700 dark:hover:text-white'}"
@@ -118,10 +118,10 @@
 				</svg>
 			</div>
 			<div class=" self-center">{$i18n.t('Models')}</div>
-		</button>
+		</button> -->
 
-		<button
-			class="px-0.5 py-1 min-w-fit rounded-lg flex-1 md:flex-none flex text-left transition {selectedTab ===
+		<!-- <button
+			class="px-0.5 py-1 min-w-fit rounded-lg flex-1 md:flex-none flex text-right transition {selectedTab ===
 			'evaluations'
 				? ''
 				: ' text-gray-300 dark:text-gray-600 hover:text-gray-700 dark:hover:text-white'}"
@@ -133,10 +133,10 @@
 				<DocumentChartBar />
 			</div>
 			<div class=" self-center">{$i18n.t('Evaluations')}</div>
-		</button>
+		</button> -->
 
-		<button
-			class="px-0.5 py-1 min-w-fit rounded-lg flex-1 md:flex-none flex text-left transition {selectedTab ===
+		<!-- <button
+			class="px-0.5 py-1 min-w-fit rounded-lg flex-1 md:flex-none flex text-right transition {selectedTab ===
 			'documents'
 				? ''
 				: ' text-gray-300 dark:text-gray-600 hover:text-gray-700 dark:hover:text-white'}"
@@ -163,10 +163,10 @@
 				</svg>
 			</div>
 			<div class=" self-center">{$i18n.t('Documents')}</div>
-		</button>
+		</button> -->
 
-		<button
-			class="px-0.5 py-1 min-w-fit rounded-lg flex-1 md:flex-none flex text-left transition {selectedTab ===
+		<!-- <button
+			class="px-0.5 py-1 min-w-fit rounded-lg flex-1 md:flex-none flex text-right transition {selectedTab ===
 			'web'
 				? ''
 				: ' text-gray-300 dark:text-gray-600 hover:text-gray-700 dark:hover:text-white'}"
@@ -187,10 +187,10 @@
 				</svg>
 			</div>
 			<div class=" self-center">{$i18n.t('Web Search')}</div>
-		</button>
+		</button> -->
 
-		<button
-			class="px-0.5 py-1 min-w-fit rounded-lg flex-1 md:flex-none flex text-left transition {selectedTab ===
+		<!-- <button
+			class="px-0.5 py-1 min-w-fit rounded-lg flex-1 md:flex-none flex text-right transition {selectedTab ===
 			'code-execution'
 				? ''
 				: ' text-gray-300 dark:text-gray-600 hover:text-gray-700 dark:hover:text-white'}"
@@ -213,10 +213,10 @@
 				</svg>
 			</div>
 			<div class=" self-center">{$i18n.t('Code Execution')}</div>
-		</button>
+		</button> -->
 
-		<button
-			class="px-0.5 py-1 min-w-fit rounded-lg flex-1 md:flex-none flex text-left transition {selectedTab ===
+		<!-- <button
+			class="px-0.5 py-1 min-w-fit rounded-lg flex-1 md:flex-none flex text-right transition {selectedTab ===
 			'interface'
 				? ''
 				: ' text-gray-300 dark:text-gray-600 hover:text-gray-700 dark:hover:text-white'}"
@@ -239,10 +239,10 @@
 				</svg>
 			</div>
 			<div class=" self-center">{$i18n.t('Interface')}</div>
-		</button>
+		</button> -->
 
 		<button
-			class="px-0.5 py-1 min-w-fit rounded-lg flex-1 md:flex-none flex text-left transition {selectedTab ===
+			class="px-0.5 py-1 min-w-fit rounded-lg flex-1 md:flex-none flex text-right transition {selectedTab ===
 			'audio'
 				? ''
 				: ' text-gray-300 dark:text-gray-600 hover:text-gray-700 dark:hover:text-white'}"
@@ -268,8 +268,8 @@
 			<div class=" self-center">{$i18n.t('Audio')}</div>
 		</button>
 
-		<button
-			class="px-0.5 py-1 min-w-fit rounded-lg flex-1 md:flex-none flex text-left transition {selectedTab ===
+		<!-- <button
+			class="px-0.5 py-1 min-w-fit rounded-lg flex-1 md:flex-none flex text-right transition {selectedTab ===
 			'images'
 				? ''
 				: ' text-gray-300 dark:text-gray-600 hover:text-gray-700 dark:hover:text-white'}"
@@ -292,10 +292,10 @@
 				</svg>
 			</div>
 			<div class=" self-center">{$i18n.t('Images')}</div>
-		</button>
+		</button> -->
 
-		<button
-			class="px-0.5 py-1 min-w-fit rounded-lg flex-1 md:flex-none flex text-left transition {selectedTab ===
+		<!-- <button
+			class="px-0.5 py-1 min-w-fit rounded-lg flex-1 md:flex-none flex text-right transition {selectedTab ===
 			'pipelines'
 				? ''
 				: ' text-gray-300 dark:text-gray-600 hover:text-gray-700 dark:hover:text-white'}"
@@ -322,10 +322,10 @@
 				</svg>
 			</div>
 			<div class=" self-center">{$i18n.t('Pipelines')}</div>
-		</button>
+		</button> -->
 
 		<button
-			class="px-0.5 py-1 min-w-fit rounded-lg flex-1 md:flex-none flex text-left transition {selectedTab ===
+			class="px-0.5 py-1 min-w-fit rounded-lg flex-1 md:flex-none flex text-right transition {selectedTab ===
 			'db'
 				? ''
 				: ' text-gray-300 dark:text-gray-600 hover:text-gray-700 dark:hover:text-white'}"

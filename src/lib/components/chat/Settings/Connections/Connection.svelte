@@ -6,7 +6,6 @@
 	import SensitiveInput from '$lib/components/common/SensitiveInput.svelte';
 	import Cog6 from '$lib/components/icons/Cog6.svelte';
 	import AddConnectionModal from '$lib/components/AddConnectionModal.svelte';
-	import ConfirmDialog from '$lib/components/common/ConfirmDialog.svelte';
 
 	export let onDelete = () => {};
 	export let onSubmit = () => {};
@@ -18,7 +17,6 @@
 	export let config = {};
 
 	let showConfigModal = false;
-	let showDeleteConfirmDialog = false;
 </script>
 
 <AddConnectionModal
@@ -30,22 +28,12 @@
 		key,
 		config
 	}}
-	onDelete={() => {
-		showDeleteConfirmDialog = true;
-	}}
+	{onDelete}
 	onSubmit={(connection) => {
 		url = connection.url;
 		key = connection.key;
 		config = connection.config;
 		onSubmit(connection);
-	}}
-/>
-
-<ConfirmDialog
-	bind:show={showDeleteConfirmDialog}
-	on:confirm={() => {
-		onDelete();
-		showConfigModal = false;
 	}}
 />
 

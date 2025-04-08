@@ -76,6 +76,7 @@ from open_webui.routers import (
     tools,
     users,
     utils,
+    excel,  # Add your Excel router here
 )
 
 from open_webui.routers.retrieval import (
@@ -911,6 +912,8 @@ app.include_router(audio.router, prefix="/api/v1/audio", tags=["audio"])
 app.include_router(retrieval.router, prefix="/api/v1/retrieval", tags=["retrieval"])
 
 app.include_router(configs.router, prefix="/api/v1/configs", tags=["configs"])
+
+app.include_router(excel.router, prefix="/api/v1/excel", tags=["excel"])
 
 app.include_router(auths.router, prefix="/api/v1/auths", tags=["auths"])
 app.include_router(users.router, prefix="/api/v1/users", tags=["users"])

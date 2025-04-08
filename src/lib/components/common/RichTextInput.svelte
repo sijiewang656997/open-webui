@@ -27,9 +27,6 @@
 
 	import { PASTED_TEXT_CHARACTER_LIMIT } from '$lib/constants';
 
-	export let oncompositionstart = (e) => {};
-	export let oncompositionend = (e) => {};
-
 	// create a lowlight instance with all languages loaded
 	const lowlight = createLowlight(all);
 
@@ -229,14 +226,6 @@
 			editorProps: {
 				attributes: { id },
 				handleDOMEvents: {
-					compositionstart: (view, event) => {
-						oncompositionstart(event);
-						return false;
-					},
-					compositionend: (view, event) => {
-						oncompositionend(event);
-						return false;
-					},
 					focus: (view, event) => {
 						eventDispatch('focus', { event });
 						return false;

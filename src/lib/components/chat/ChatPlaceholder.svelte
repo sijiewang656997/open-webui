@@ -121,10 +121,13 @@
 						</div>
 					{/if}
 				</div>
+				<span class="text-lg">
+					{$i18n.t("I'm your virtual nurse assistant. I'll ask a few questions about your symptoms to help the doctor provide personalized care. All information will remain confidential. First, could you briefly describe your health concern?")}
+				</span>
 			</div>
 		</div>
 
-		<div class=" w-full font-primary" in:fade={{ duration: 200, delay: 300 }}>
+		<!-- <div class=" w-full font-primary" in:fade={{ duration: 200, delay: 300 }}>
 			<Suggestions
 				className="grid grid-cols-2"
 				suggestionPrompts={atSelectedModel?.info?.meta?.suggestion_prompts ??
@@ -135,6 +138,6 @@
 					submitPrompt(e.detail);
 				}}
 			/>
-		</div>
+		</div> -->
 	</div>
 {/key}

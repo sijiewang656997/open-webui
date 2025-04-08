@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
-	import panzoom, { type PanZoom } from 'panzoom';
 
 	export let show = false;
 	export let src = '';
@@ -9,25 +8,6 @@
 	let mounted = false;
 
 	let previewElement = null;
-
-	let instance: PanZoom;
-
-	let sceneParentElement: HTMLElement;
-	let sceneElement: HTMLElement;
-
-	$: if (sceneElement) {
-		instance = panzoom(sceneElement, {
-			bounds: true,
-			boundsPadding: 0.1,
-
-			zoomSpeed: 0.065
-		});
-	}
-	const resetPanZoomViewport = () => {
-		instance.moveTo(0, 0);
-		instance.zoomAbs(0, 0, 1);
-		console.log(instance.getTransform());
-	};
 
 	const downloadImage = (url, filename, prefixName = '') => {
 		fetch(url)
@@ -82,16 +62,11 @@
 		bind:this={previewElement}
 		class="modal fixed top-0 right-0 left-0 bottom-0 bg-black text-white w-full min-h-screen h-screen flex justify-center z-9999 overflow-hidden overscroll-contain"
 	>
-		<div class=" absolute left-0 w-full flex justify-between select-none z-10">
+		<div class=" absolute left-0 w-full flex justify-between select-none">
 			<div>
 				<button
 					class=" p-5"
-					on:pointerdown={(e) => {
-						e.stopImmediatePropagation();
-						e.preventDefault();
-						show = false;
-					}}
-					on:click={(e) => {
+					on:click={() => {
 						show = false;
 					}}
 				>
@@ -111,12 +86,7 @@
 			<div>
 				<button
 					class=" p-5"
-					on:pointerdown={(e) => {
-						e.stopImmediatePropagation();
-						e.preventDefault();
-						downloadImage(src, src.substring(src.lastIndexOf('/') + 1), alt);
-					}}
-					on:click={(e) => {
+					on:click={() => {
 						downloadImage(src, src.substring(src.lastIndexOf('/') + 1), alt);
 					}}
 				>
@@ -136,8 +106,6 @@
 				</button>
 			</div>
 		</div>
-		<div bind:this={sceneElement} class="flex h-full max-h-full justify-center items-center">
-			<img {src} {alt} class=" mx-auto h-full object-scale-down select-none" draggable="false" />
-		</div>
+		<img {src} {alt} class=" mx-auto h-full object-scale-down select-none" draggable="false" />
 	</div>
 {/if}

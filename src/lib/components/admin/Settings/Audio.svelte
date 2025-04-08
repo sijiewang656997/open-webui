@@ -25,19 +25,19 @@
 
 	// Audio
 	let TTS_OPENAI_API_BASE_URL = '';
-	let TTS_OPENAI_API_KEY = '';
+	let TTS_OPENAI_API_KEY = '1';
 	let TTS_API_KEY = '';
-	let TTS_ENGINE = '';
-	let TTS_MODEL = '';
+	let TTS_ENGINE = 'openai';
+	let TTS_MODEL = 'tts_v_1_1_0';
 	let TTS_VOICE = '';
 	let TTS_SPLIT_ON: TTS_RESPONSE_SPLIT = TTS_RESPONSE_SPLIT.PUNCTUATION;
 	let TTS_AZURE_SPEECH_REGION = '';
 	let TTS_AZURE_SPEECH_OUTPUT_FORMAT = '';
 
 	let STT_OPENAI_API_BASE_URL = '';
-	let STT_OPENAI_API_KEY = '';
-	let STT_ENGINE = '';
-	let STT_MODEL = '';
+	let STT_OPENAI_API_KEY = '1';
+	let STT_ENGINE = 'openai';
+	let STT_MODEL = 'wsp_v_1_1_0';
 	let STT_WHISPER_MODEL = '';
 	let STT_DEEPGRAM_API_KEY = '';
 
@@ -194,7 +194,7 @@
 								required
 							/>
 
-							<SensitiveInput placeholder={$i18n.t('API Key')} bind:value={STT_OPENAI_API_KEY} />
+							<!-- <SensitiveInput placeholder={$i18n.t('API Key')} bind:value={STT_OPENAI_API_KEY} /> -->
 						</div>
 					</div>
 
@@ -218,11 +218,11 @@
 						</div>
 					</div>
 				{:else if STT_ENGINE === 'deepgram'}
-					<div>
+					<!-- <div>
 						<div class="mt-1 flex gap-2 mb-1">
 							<SensitiveInput placeholder={$i18n.t('API Key')} bind:value={STT_DEEPGRAM_API_KEY} />
 						</div>
-					</div>
+					</div> -->
 
 					<hr class="border-gray-100 dark:border-gray-850 my-2" />
 
@@ -378,7 +378,7 @@
 								required
 							/>
 
-							<SensitiveInput placeholder={$i18n.t('API Key')} bind:value={TTS_OPENAI_API_KEY} />
+							<!-- <SensitiveInput placeholder={$i18n.t('API Key')} bind:value={TTS_OPENAI_API_KEY} /> -->
 						</div>
 					</div>
 				{:else if TTS_ENGINE === 'elevenlabs'}

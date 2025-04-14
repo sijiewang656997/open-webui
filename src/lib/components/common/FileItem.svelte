@@ -1,4 +1,5 @@
 <script lang="ts">
+	// FileItem.svelte 修改
 	import { createEventDispatcher, getContext } from 'svelte';
 	import { formatFileSize } from '$lib/utils';
 
@@ -6,6 +7,7 @@
 	import GarbageBin from '../icons/GarbageBin.svelte';
 	import Spinner from './Spinner.svelte';
 	import Tooltip from './Tooltip.svelte';
+	import { WEBUI_API_BASE_URL } from '$lib/constants';
 
 	const i18n = getContext('i18n');
 	const dispatch = createEventDispatcher();
@@ -35,6 +37,11 @@
 		return excelExtensions.some(ext => fileName.toLowerCase().endsWith(ext));
 	}
 	
+	// Function to check if this is a PDF file
+	function isPdfFile(fileName: string) {
+		return fileName.toLowerCase().endsWith('.pdf');
+	}
+	
 	// Determine the file type for icon display
 	const fileType = isExcelFile(name) ? 'excel' : type;
 </script>
@@ -49,9 +56,16 @@
 		: 'rounded-2xl'} text-left"
 	type="button"
 	on:click={async () => {
-		if (item?.file?.data?.content) {
+		if (isExcelFile(name) && item?.id) {
+			// Excel文件打开专用的Excel预览页面，而不是直接打开文件
+			// 假设预览页面的路径是 /excel-viewer，并通过查询参数传递文件ID
+			const viewerUrl = `/excel-viewer?fileId=${item.id}&fileName=${encodeURIComponent(name)}`;
+			window.open(viewerUrl, '_blank').focus();
+		} else if (item?.file?.data?.content || isPdfFile(name)) {
+			// PDF文件或有内容的文件使用modal打开
 			showModal = !showModal;
 		} else {
+			// 其他文件如果有URL则在新标签页打开
 			if (url) {
 				if (type === 'file') {
 					window.open(`${url}/content`, '_blank').focus();

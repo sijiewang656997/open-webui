@@ -21,6 +21,9 @@
 	let multiFileMode = false;
     let openFiles = [];
     let activeFileIndex = 0;
+    // 新增变量，用于跟踪Excel数据的变化
+    let excelData = null;
+    let isExcelModified = false;
 
 	$: isPDF =
 		item?.meta?.content_type === 'application/pdf' ||
@@ -68,6 +71,50 @@
         show = false;
     }
 
+    // 新增函数：处理Excel数据变更
+    function handleExcelDataChange(event) {
+        excelData = event.detail.data;
+        isExcelModified = true;
+    }
+
+    // 新增函数：保存Excel文件
+    async function saveExcelFile() {
+        if (!excelData || !item || !item.id) return;
+
+        try {
+            // 显示保存中状态
+            const isSaving = true;
+            
+            // 使用FormData将Excel数据发送到服务器
+            const formData = new FormData();
+            
+            // 假设excelData是一个Blob对象或可以转换为Blob的数据
+            // 如果excelData是其他格式，需要根据ExcelViewer组件的实现来调整
+            const excelBlob = new Blob([excelData], { 
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+            });
+            
+            formData.append('file', excelBlob, item.name);
+            
+            // 发送到服务器的API端点
+            const response = await fetch(`${WEBUI_API_BASE_URL}/files/${item.id}/update`, {
+                method: 'PUT',
+                body: formData
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to save file');
+            }
+            
+            // 保存成功
+            isExcelModified = false;
+            alert('Excel file saved successfully!');
+        } catch (error) {
+            console.error('Error saving Excel file:', error);
+            alert('Failed to save Excel file: ' + error.message);
+        }
+    }
+
 	onMount(() => {
 		console.log(item);
 		if (item?.context === 'full') {
@@ -104,10 +151,29 @@
                     </div>
                 </div>
                 
+                <!-- 添加保存按钮 -->
+                {#if isExcel && isExcelModified}
+                <div class="ml-auto mr-2">
+                    <button 
+                        class="px-3 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
+                        on:click={saveExcelFile}
+                    >
+                        Save
+                    </button>
+                </div>
+                {/if}
+                
                 <div>
                     <button
                         on:click={() => {
-                            show = false;
+                            // 添加未保存提示
+                            if (isExcel && isExcelModified) {
+                                if (confirm('You have unsaved changes. Do you want to leave without saving?')) {
+                                    show = false;
+                                }
+                            } else {
+                                show = false;
+                            }
                         }}
                     >
                         <XMark />
@@ -179,9 +245,12 @@
                     class="w-full h-[70vh] border-0 rounded-lg mt-4"
                 />
             {:else if isExcel}
+                <!-- 修改ExcelViewer组件，添加编辑功能和事件监听 -->
                 <ExcelViewer 
                     src={`${WEBUI_API_BASE_URL}/files/${item.id}/content`}
                     fileName={item.name}
+                    editable={true}
+                    on:datachange={handleExcelDataChange}
                 />
             {:else}
                 <div class="max-h-96 overflow-scroll scrollbar-hidden text-xs whitespace-pre-wrap">

@@ -36,16 +36,6 @@
                 {fileName || 'Excel Viewer'}
             </h1>
             
-            <!-- 添加下载按钮 -->
-            {#if fileId}
-                <a 
-                    href="{WEBUI_API_BASE_URL}/files/{fileId}/content" 
-                    download="{fileName}"
-                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                    Download
-                </a>
-            {/if}
         </div>
     </header>
     

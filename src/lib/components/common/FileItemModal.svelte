@@ -11,17 +11,15 @@
 	import Switch from './Switch.svelte';
 	import Tooltip from './Tooltip.svelte';
 	import ExcelViewer from './ExcelViewer.svelte';
-	import MultiFileViewer from './MultiFileViewer.svelte';
+	// 移除 MultiFileViewer 导入
 
 	export let item;
 	export let show = false;
 	export let edit = false;
 
 	let enableFullContent = false;
-	let multiFileMode = false;
-    let openFiles = [];
-    let activeFileIndex = 0;
-    // 新增变量，用于跟踪Excel数据的变化
+	// 移除多文件相关变量
+    // 保留 Excel 相关变量
     let excelData = null;
     let isExcelModified = false;
 
@@ -35,41 +33,7 @@
 		item?.meta?.content_type?.includes('ms-excel') ||
 		(item?.name && /\.(xlsx|xls|xlsm|xlsb|xltx|xlt|csv|ods)$/i.test(item?.name));
 
-	$: {
-        if (item && show) {
-            addFileToViewer(item);
-        }
-    }
-
-	function addFileToViewer(fileItem) {
-        // 检查文件是否已经打开
-        const existingIndex = openFiles.findIndex(f => f.id === fileItem.id);
-        
-        if (existingIndex >= 0) {
-            // 如果已存在，切换到对应标签
-            activeFileIndex = existingIndex;
-        } else {
-            // 创建新的文件对象
-            const newFile = {
-                id: fileItem.id,
-                name: fileItem.name || 'Untitled',
-                type: isPDF ? 'pdf' : isExcel ? 'excel' : 'text',
-                src: `${WEBUI_API_BASE_URL}/files/${fileItem.id}/content`,
-                content: fileItem?.file?.data?.content,
-                size: fileItem.size,
-                item: fileItem  // 保存原始item引用，以便需要时使用
-            };
-            
-            // 添加到已打开文件列表
-            openFiles = [...openFiles, newFile];
-            multiFileMode = openFiles.length > 1; // 当有多个文件时启用多文件模式
-            activeFileIndex = openFiles.length - 1; // 设置新添加的文件为活动文件
-        }
-    }
-
-	function handleEmptyFileViewer() {
-        show = false;
-    }
+	// 移除文件变化监听和相关添加处理
 
     // 新增函数：处理Excel数据变更
     function handleExcelDataChange(event) {
@@ -77,7 +41,7 @@
         isExcelModified = true;
     }
 
-    // 新增函数：保存Excel文件
+    // 保留Excel文件保存功能
     async function saveExcelFile() {
         if (!excelData || !item || !item.id) return;
 
@@ -89,7 +53,6 @@
             const formData = new FormData();
             
             // 假设excelData是一个Blob对象或可以转换为Blob的数据
-            // 如果excelData是其他格式，需要根据ExcelViewer组件的实现来调整
             const excelBlob = new Blob([excelData], { 
                 type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
             });
@@ -123,35 +86,31 @@
 	});
 </script>
 
-<!-- 修改了这里：添加了 draggable={true} 启用拖动功能 -->
+<!-- 保持Modal可拖动功能 -->
 <Modal bind:show size="lg" draggable={true} className="bg-gray-50 dark:bg-gray-900 rounded-2xl">
     <div class="font-primary px-6 py-5 w-full flex flex-col justify-center dark:text-gray-400">
         <div class="pb-2">
             <div class="flex items-start justify-between">
                 <div>
                     <div class="font-medium text-lg dark:text-gray-100">
-                        {#if multiFileMode}
-                            <span>File Viewer</span>
-                        {:else}
-                            <a
-                                href="#"
-                                class="hover:underline line-clamp-1"
-                                on:click|preventDefault={() => {
-                                    if (!isPDF && !isExcel && item.url) {
-                                        window.open(
-                                            item.type === 'file' ? `${item.url}/content` : `${item.url}`,
-                                            '_blank'
-                                        );
-                                    }
-                                }}
-                            >
-                                {item?.name ?? 'File'}
-                            </a>
-                        {/if}
+                        <a
+                            href="#"
+                            class="hover:underline line-clamp-1"
+                            on:click|preventDefault={() => {
+                                if (!isPDF && !isExcel && item.url) {
+                                    window.open(
+                                        item.type === 'file' ? `${item.url}/content` : `${item.url}`,
+                                        '_blank'
+                                    );
+                                }
+                            }}
+                        >
+                            {item?.name ?? 'File'}
+                        </a>
                     </div>
                 </div>
                 
-                <!-- 添加保存按钮 -->
+                <!-- 保留Excel保存按钮 -->
                 {#if isExcel && isExcelModified}
                 <div class="ml-auto mr-2">
                     <button 
@@ -166,7 +125,7 @@
                 <div>
                     <button
                         on:click={() => {
-                            // 添加未保存提示
+                            // 保留未保存提示
                             if (isExcel && isExcelModified) {
                                 if (confirm('You have unsaved changes. Do you want to leave without saving?')) {
                                     show = false;
@@ -181,7 +140,6 @@
                 </div>
             </div>
             
-            {#if !multiFileMode}
             <div>
                 <div class="flex flex-col items-center md:flex-row gap-1 justify-between w-full">
                     <div class="flex flex-wrap text-sm gap-1 text-gray-500">
@@ -227,25 +185,17 @@
                     {/if}
                 </div>
             </div>
-            {/if}
         </div>
         
         <div class="max-h-[75vh] overflow-auto">
-            {#if multiFileMode}
-                <!-- 使用多文件查看器 -->
-                <MultiFileViewer 
-                    bind:files={openFiles}
-                    bind:activeFileIndex={activeFileIndex}
-                    on:empty={handleEmptyFileViewer}
-                />
-            {:else if isPDF}
+            {#if isPDF}
                 <iframe
                     title={item?.name}
                     src={`${WEBUI_API_BASE_URL}/files/${item.id}/content`}
                     class="w-full h-[70vh] border-0 rounded-lg mt-4"
                 />
             {:else if isExcel}
-                <!-- 修改ExcelViewer组件，添加编辑功能和事件监听 -->
+                <!-- 保留Excel编辑功能 -->
                 <ExcelViewer 
                     src={`${WEBUI_API_BASE_URL}/files/${item.id}/content`}
                     fileName={item.name}

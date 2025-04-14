@@ -465,7 +465,9 @@
 			name: fileData.name,
 			url: fileData.url,
 			headers: {
-				Authorization: `Bearer ${token}`
+				Authorization: `Bearer ${token}`,
+				'Content-Type': 'application/json',
+    			'Accept-Language': 'zh-CN'
 			}
 		});
 

@@ -59,10 +59,17 @@
 	import PencilSquare from '../icons/PencilSquare.svelte';
 	import Home from '../icons/Home.svelte';
 
+	import FileManagementModal from '../common/FileManagementModal.svelte';
+
 	const BREAKPOINT = 768;
 
 	let navElement;
 	let search = '';
+	let isSyncing = false; // 添加同步状态变量
+	let syncLastTime = null; // 最后同步时间
+
+	let showFileManager = false;
+
 
 	let shiftKey = false;
 
@@ -296,6 +303,36 @@
 		}
 
 		draggedOver = false; // Reset draggedOver status after drop
+	};
+
+	// 添加在其他函数附近
+	const syncHandler = async () => {
+		try {
+			isSyncing = true;
+			
+			// 这里添加同步逻辑，比如：
+			toast.info($i18n.t('Syncing chats...'));
+			
+			// 示例：重新获取聊天列表、标签、文件夹等数据
+			await initChannels();
+			await initChatList();
+			await initFolders();
+			
+			// 更新同步时间
+			syncLastTime = new Date().toISOString();
+			localStorage.setItem('lastSyncTime', syncLastTime);
+			
+			toast.success($i18n.t('Sync completed'));
+		} catch (error) {
+			console.error('Sync error:', error);
+			toast.error($i18n.t('Sync failed') + ': ' + error.message);
+		} finally {
+			isSyncing = false;
+		}
+	};
+
+	const manageFilesHandler = () => {
+		showFileManager = true;
 	};
 
 	let touchstart;
@@ -614,6 +651,76 @@
 			/>
 		</div>
 
+		<Tooltip content={$i18n.t('Sync')}>
+			<button 
+				class="flex-none p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 transition flex items-center space-x-2"
+				on:click={syncHandler}
+				disabled={isSyncing}
+				aria-label="Sync"
+			>
+			  	<div class="self-center">
+					{#if isSyncing}
+				  		<svg
+							xmlns="http://www.w3.org/2000/svg"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke-width="2"
+							stroke="currentColor"
+							class="size-5 animate-spin"
+				  		>
+							<path
+					  			stroke-linecap="round"
+					  			stroke-linejoin="round"
+					  			d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
+							/>
+				  		</svg>
+					{:else}
+				  		<svg
+							xmlns="http://www.w3.org/2000/svg"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke-width="2"
+							stroke="currentColor"
+							class="size-5"
+				  		>
+							<path
+					  			stroke-linecap="round"
+					  			stroke-linejoin="round"
+					  			d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
+							/>
+				  		</svg>
+					{/if}
+			  	</div>
+			  	<span class="font-medium text-sm">{$i18n.t('Sync')}</span>
+			</button>
+		</Tooltip>
+
+		<Tooltip content={$i18n.t('Manage Files')}>
+			<button 
+				class="flex-none p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 transition flex items-center space-x-2"
+				on:click={manageFilesHandler}
+				aria-label="Manage Files"
+			>
+			  	<div class="self-center">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke-width="2"
+						stroke="currentColor"
+						class="size-5"
+					>
+				  		<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776"
+						/>
+					</svg>
+			  	</div>
+			  	<span class="font-medium text-sm">{$i18n.t('Manage Files')}</span>
+			</button>
+		</Tooltip>
+
 		<div
 			class="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden {$temporaryChatEnabled
 				? 'opacity-20'
@@ -912,6 +1019,12 @@
 			</div>
 		</div>
 	</div>
+	<FileManagementModal
+		bind:show={showFileManager}
+		on:change={() => {
+			// 可以在这里添加文件变更后的处理逻辑
+		}}
+	/>
 </div>
 
 <style>

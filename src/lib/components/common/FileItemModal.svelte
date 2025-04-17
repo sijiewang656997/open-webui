@@ -18,8 +18,6 @@
 	export let edit = false;
 
 	let enableFullContent = false;
-	// 移除多文件相关变量
-    // 保留 Excel 相关变量
     let excelData = null;
     let isExcelModified = false;
 
@@ -33,9 +31,6 @@
 		item?.meta?.content_type?.includes('ms-excel') ||
 		(item?.name && /\.(xlsx|xls|xlsm|xlsb|xltx|xlt|csv|ods)$/i.test(item?.name));
 
-	// 移除文件变化监听和相关添加处理
-
-    // 新增函数：处理Excel数据变更
     function handleExcelDataChange(event) {
         excelData = event.detail.data;
         isExcelModified = true;
@@ -46,12 +41,13 @@
         if (!excelData || !item || !item.id) return;
 
         try {
-            // 显示保存中状态
             const isSaving = true;
             
-            // 使用FormData将Excel数据发送到服务器
             const formData = new FormData();
             
+            
+            // 假设excelData是一个Blob对象或可以转换为Blob的数据
+
             // 假设excelData是一个Blob对象或可以转换为Blob的数据
             const excelBlob = new Blob([excelData], { 
                 type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 

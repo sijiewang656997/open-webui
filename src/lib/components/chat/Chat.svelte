@@ -476,6 +476,8 @@
 			throw new Error('Invalid file data provided');
 		}
 
+		const isExcel = fileData.name.match(/\.(xlsx|xls|xlsm|xlsb|csv)$/i);
+
 		const tempItemId = uuidv4();
 		const fileItem = {
 			type: 'file',
@@ -564,6 +566,28 @@
 
 			files = files;
 			toast.success($i18n.t('File uploaded successfully'));
+
+			if (isExcel) {
+				// 从files数组中移除该文件，这样就不会显示在聊天中
+				files = files.filter(f => f.itemId !== tempItemId);
+				
+				// 打开文件管理界面
+				showArtifacts.set(true);
+				showControls.set(true);
+				
+				// 如果有特定的函数或事件需要触发来打开文件管理，调用它
+				// 例如:
+				// openFileManagement();
+				
+				// 发送事件以通知其他组件
+				eventTarget.dispatchEvent(
+					new CustomEvent('artifacts:file:open', {
+						detail: {
+							fileId: uploadedFile.id
+						}
+					})
+				);
+			}
 		} catch (e) {
 			console.error('Error uploading file:', e);
 			files = files.filter((f) => f.itemId !== tempItemId);

@@ -122,7 +122,7 @@
 					{/if}
 				</div>
 				<span class="text-lg">
-					{$i18n.t("I'm your virtual nurse assistant. I'll ask a few questions about your symptoms to help the doctor provide personalized care. All information will remain confidential. First, could you briefly describe your health concern?")}
+					{$i18n.t("Hi! I'm Kneron Analytics Agent, your financial analysis assistant. I can analyze statements, identify trends, calculate metrics and generate reports. What financial data would you like to examine - balance sheets, income statements, cash flows, or other information?")}
 				</span>
 			</div>
 		</div>

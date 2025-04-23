@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { toast } from 'svelte-sonner';
 	import { v4 as uuidv4 } from 'uuid';
+	import * as XLSX from 'xlsx';
 	import { createPicker, getAuthToken } from '$lib/utils/google-drive-picker';
 	import { pickAndDownloadFile } from '$lib/utils/onedrive-file-picker';
 
@@ -202,8 +203,29 @@
 		files = [...files, fileItem];
 
 		try {
-			// During the file upload, file content is automatically extracted.
-			const uploadedFile = await uploadFile(localStorage.token, file);
+			// For Excel files, extract metadata before upload
+			let excelMetadata = null;
+			if (isExcel) {
+				excelMetadata = await extractExcelMetadata(file);
+			}
+
+			// Create form data for the upload
+			const formData = new FormData();
+			formData.append('file', file);
+			
+			// Add Excel metadata to the request if available
+			if (isExcel && excelMetadata) {
+				formData.append('metadata', JSON.stringify({
+					sheetNames: excelMetadata.sheetNames,
+					rowCount: excelMetadata.rowCount,
+					columnCount: excelMetadata.columnCount,
+					headers: excelMetadata.headers,
+					previewData: excelMetadata.previewData
+				}));
+			}
+
+			// Use the existing uploadFile function with the additional metadata
+			const uploadedFile = await uploadFile(localStorage.token, file, formData);
 
 			if (uploadedFile) {
 				console.log('File upload completed:', {
@@ -223,6 +245,11 @@
 				fileItem.collection_name =
 					uploadedFile?.meta?.collection_name || uploadedFile?.collection_name;
 				fileItem.url = `${WEBUI_API_BASE_URL}/files/${uploadedFile.id}`;
+				
+				// Store the Excel metadata with the file item if available
+				if (isExcel && excelMetadata) {
+					fileItem.excelMetadata = excelMetadata;
+				}
 
 				files = files;
 			} else {
@@ -232,6 +259,41 @@
 			toast.error(`${e}`);
 			files = files.filter((item) => item?.itemId !== tempItemId);
 		}
+	};
+
+	// Add this function to extract Excel metadata
+	const extractExcelMetadata = async (file) => {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.onload = async (event) => {
+			try {
+				// You'll need to include a library like SheetJS/xlsx
+				const workbook = XLSX.read(event.target.result, { type: 'array' });
+				const firstSheetName = workbook.SheetNames[0];
+				const worksheet = workbook.Sheets[firstSheetName];
+				
+				// Get column names (assuming first row contains headers)
+				const headers = XLSX.utils.sheet_to_json(worksheet, { header: 1 })[0];
+				
+				// Get total row count
+				const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+				const rowCount = jsonData.length - 1; // Subtract header row
+				
+				// Get 3 sample rows (excluding header)
+				const sampleRows = jsonData.slice(1, 4);
+				
+				resolve({
+				columnNames: headers,
+				rowCount: rowCount,
+				sampleRows: sampleRows
+				});
+			} catch (error) {
+				reject(error);
+			}
+			};
+			reader.onerror = (error) => reject(error);
+			reader.readAsArrayBuffer(file);
+		});
 	};
 
 	const inputFilesHandler = async (inputFiles) => {
@@ -302,8 +364,31 @@
 			} else if (isExcel) {
 				// Handle Excel files with custom preview if needed
 				console.log('Excel file detected:', file.name);
-				uploadFileHandler(file, true); // Set fullContext to true for Excel files
-			}else {
+				(async () => {
+					try {
+						// Extract metadata before uploading
+						const excelMetadata = await extractExcelMetadata(file);
+						console.log('Excel metadata:', excelMetadata);
+
+						// Create a file object with the metadata
+						const fileWithMetadata = new File(
+							[file], 
+							file.name, 
+							{ type: file.type }
+						);
+
+						// Add the metadata and SQL to the file object
+						fileWithMetadata.excelMetadata = excelMetadata;
+
+						uploadFileHandler(file, true); // Set fullContext to true for Excel files
+					} catch (error) {
+						console.error('Error extracting Excel metadata:', error);
+						toast.error($i18n.t('Error processing Excel file: {{error}}', {
+							error: error.message
+						}));
+					}
+				})();
+			} else {
 				uploadFileHandler(file);
 			}
 		});

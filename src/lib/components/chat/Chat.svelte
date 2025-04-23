@@ -14,6 +14,8 @@
 	import type { i18n as i18nType } from 'i18next';
 	import { WEBUI_BASE_URL } from '$lib/constants';
 
+	import * as XLSX from 'xlsx';
+
 	import {
 		chatId,
 		chats,
@@ -207,6 +209,114 @@
 			);
 		}
 	};
+
+	function isExcelFile(file) {
+		const excelTypes = [
+			'application/vnd.ms-excel',
+			'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+			'application/vnd.oasis.opendocument.spreadsheet',
+			'text/csv'
+		];
+		
+		const excelExtensions = ['.xls', '.xlsx', '.csv', '.ods'];
+		
+		return (
+			(file.file && excelTypes.includes(file.file.type)) ||
+			(file.name && excelExtensions.some(ext => file.name.toLowerCase().endsWith(ext)))
+		);
+	}
+
+	async function processExcelFile(file) {
+		try {
+			// Read the file as ArrayBuffer
+			const arrayBuffer = await file.file.arrayBuffer();
+			// Parse the workbook
+			const workbook = XLSX.read(arrayBuffer);
+			
+			// Get basic workbook info
+			const sheetNames = workbook.SheetNames;
+			let summaryInfo = {
+				fileName: file.name,
+				sheets: [],
+				totalSheets: sheetNames.length
+			};
+			
+			// Process each sheet to get summary (limit to first 3 sheets for performance)
+			const processLimit = Math.min(3, sheetNames.length);
+			for (let i = 0; i < processLimit; i++) {
+				const sheetName = sheetNames[i];
+				const worksheet = workbook.Sheets[sheetName];
+				
+				// Convert to JSON to analyze
+				const jsonData = XLSX.utils.sheet_to_json(worksheet);
+				
+				// Get the range to determine dimensions
+				const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
+				
+				summaryInfo.sheets.push({
+					name: sheetName,
+					rowCount: range.e.r + 1,
+					columnCount: range.e.c + 1,
+					sampleRows: jsonData.slice(0, 5) // Get first 5 rows as sample
+				});
+			}
+			
+			// If there are more sheets than we processed, note that
+			if (sheetNames.length > processLimit) {
+				summaryInfo.note = `Only showing details for ${processLimit} of ${sheetNames.length} sheets`;
+			}
+			
+			return summaryInfo;
+		} catch (error) {
+			console.error("Error processing Excel file:", error);
+			return { error: "Failed to process Excel file", details: error.message };
+		}
+	}
+
+	function createExcelSummaryText(excelSummaries) {
+		let summaryText = "## Excel File Analysis\n\n";
+		
+		excelSummaries.forEach((summary, index) => {
+			summaryText += `### File ${index + 1}: ${summary.fileName}\n`;
+			summaryText += `- Sheets: ${summary.sheetNames.join(', ')}\n`;
+			summaryText += `- Dimensions: ${summary.rowCount} rows × ${summary.columnCount} columns\n`;
+			
+			if (summary.headers && summary.headers.length > 0) {
+				summaryText += `- Headers: ${summary.headers.join(', ')}\n`;
+			}
+			
+			if (summary.previewData && summary.previewData.length > 0) {
+				summaryText += "- Preview of data:\n```\n";
+				// Format preview data as a table
+				const previewTable = formatPreviewDataAsTable(summary.previewData, summary.headers);
+				summaryText += previewTable;
+				summaryText += "\n```\n";
+			}
+			
+			summaryText += "\n";
+		});
+		
+		return summaryText;
+	}
+
+	// Helper function to format preview data as a table
+	function formatPreviewDataAsTable(previewData, headers) {
+		// Simple implementation - can be enhanced for better formatting
+		let table = "";
+		
+		// Add headers
+		if (headers && headers.length > 0) {
+			table += headers.join("\t") + "\n";
+			table += headers.map(() => "--------").join("\t") + "\n";
+		}
+		
+		// Add data rows
+		previewData.forEach(row => {
+			table += row.join("\t") + "\n";
+		});
+		
+		return table;
+	}
 
 	const showMessage = async (message) => {
 		const _chatId = JSON.parse(JSON.stringify($chatId));
@@ -567,27 +677,6 @@
 			files = files;
 			toast.success($i18n.t('File uploaded successfully'));
 
-			if (isExcel) {
-				// 从files数组中移除该文件，这样就不会显示在聊天中
-				files = files.filter(f => f.itemId !== tempItemId);
-				
-				// 打开文件管理界面
-				showArtifacts.set(true);
-				showControls.set(true);
-				
-				// 如果有特定的函数或事件需要触发来打开文件管理，调用它
-				// 例如:
-				// openFileManagement();
-				
-				// 发送事件以通知其他组件
-				eventTarget.dispatchEvent(
-					new CustomEvent('artifacts:file:open', {
-						detail: {
-							fileId: uploadedFile.id
-						}
-					})
-				);
-			}
 		} catch (e) {
 			console.error('Error uploading file:', e);
 			files = files.filter((f) => f.itemId !== tempItemId);
@@ -1362,6 +1451,33 @@
 	) => {
 		let _chatId = JSON.parse(JSON.stringify($chatId));
 		_history = JSON.parse(JSON.stringify(_history));
+
+		let excelSummaries = [];
+		for (const file of files) {
+			if (isExcelFile(file)) {
+				const summary = await processExcelFile(file);
+				excelSummaries.push(summary);
+			}
+		}
+
+		// If Excel summaries exist, add them to the message content
+		if (excelSummaries.length > 0) {
+			// Create a formatted summary to prepend to the user's message
+			const excelSummaryText = createExcelSummaryText(excelSummaries);
+			
+			// Add the Excel summary to the message
+			const userMessageId = uuidv4();
+			history.messages[userMessageId] = {
+				id: userMessageId,
+				role: 'user',
+				content: prompt,
+				files: files,
+				excelSummaries: excelSummaries, // Store the summaries for UI display
+				timestamp: Math.floor(Date.now() / 1000),
+				childrenIds: [],
+				parentId: history.currentId
+			};
+		}
 
 		const responseMessageIds: Record<PropertyKey, string> = {};
 		// If modelId is provided, use it, else use selected model

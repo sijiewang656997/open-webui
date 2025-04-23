@@ -57,6 +57,13 @@ localhost {
 		reverse_proxy localhost:11434
 	}
 
+	handle /static/* {
+        import cors-api
+        header Cache-Control "public, max-age=604800"
+        root * ./build/static  # 指向实际静态文件目录
+        file_server
+    }
+
 	# Same-Origin Static Web Server
 	file_server {
 		root ./build/

@@ -11,7 +11,6 @@
 	import Switch from './Switch.svelte';
 	import Tooltip from './Tooltip.svelte';
 	import ExcelViewer from './ExcelViewer.svelte';
-	// 移除 MultiFileViewer 导入
 
 	export let item;
 	export let show = false;

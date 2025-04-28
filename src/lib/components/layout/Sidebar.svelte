@@ -695,11 +695,11 @@
 			</button>
 		</Tooltip>
 
-		<Tooltip content={$i18n.t('Manage Files')}>
+		<Tooltip content={$i18n.t('Excel Management')}>
 			<button 
 				class="flex-none p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 transition flex items-center space-x-2"
 				on:click={manageFilesHandler}
-				aria-label="Manage Files"
+				aria-label="Excel Management"
 			>
 			  	<div class="self-center">
 					<svg
@@ -717,7 +717,7 @@
 						/>
 					</svg>
 			  	</div>
-			  	<span class="font-medium text-sm">{$i18n.t('Manage Files')}</span>
+			  	<span class="font-medium text-sm">{$i18n.t('Excel Management')}</span>
 			</button>
 		</Tooltip>
 

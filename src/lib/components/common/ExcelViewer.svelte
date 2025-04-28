@@ -1,4 +1,3 @@
-<!-- ExcelViewer.svelte -->
 <script>
     import { onMount, createEventDispatcher } from 'svelte';
     import * as XLSX from 'xlsx';
@@ -271,7 +270,6 @@
         </div>
     </div>
 {:else if sheets.length}
-    <!-- 工具栏 -->
     <div class="mb-3 flex justify-between items-center">
         <div>
             {#if sheets.length > 1}
@@ -279,7 +277,6 @@
             {/if}
         </div>
         <div class="flex gap-2">
-            <!-- 新增: 保存按钮 -->
             {#if editable && isModified}
                 <button 
                     class="px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 
@@ -314,7 +311,6 @@
         </div>
     </div>
 
-    <!-- 保存成功提示 -->
     {#if saveSuccess}
         <div class="mb-3 px-3 py-2 bg-green-100 dark:bg-green-900/20 border border-green-300 
                   dark:border-green-800 rounded-md text-green-700 dark:text-green-400 text-sm">
@@ -322,7 +318,6 @@
         </div>
     {/if}
 
-    <!-- Sheet Tabs -->
     {#if sheets.length > 1}
         <div class="mb-2 border-b dark:border-gray-700 overflow-x-auto">
             <div class="flex">
@@ -340,7 +335,6 @@
         </div>
     {/if}
     
-    <!-- Excel Table -->
     {#if activeSheet?.data?.length}
         <div class="overflow-x-auto border dark:border-gray-700 rounded-lg">
             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">

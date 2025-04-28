@@ -1,7 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { WEBUI_API_BASE_URL } from '$lib/constants';
-    // 根据您项目中 ExcelViewer 组件的实际位置导入
     import ExcelViewer from '$lib/components/common/ExcelViewer.svelte';
     
     let fileId: string;

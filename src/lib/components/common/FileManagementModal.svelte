@@ -237,7 +237,7 @@
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60" on:click|self={() => (show = false)}>
         <div class="w-full max-w-3xl bg-white dark:bg-gray-900 rounded-xl p-6 max-h-[80vh] overflow-auto file-modal-content">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold">{$i18n.t('File Management')}</h2>
+                <h2 class="text-xl font-bold">{$i18n.t('Excel Management')}</h2>
                 <button 
                     class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
                     on:click={() => (show = false)}

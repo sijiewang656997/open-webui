@@ -5,7 +5,6 @@ from fnmatch import fnmatch
 from pathlib import Path
 from typing import Optional
 from urllib.parse import quote
-import requests
 
 from fastapi import (
     APIRouter,
@@ -37,9 +36,6 @@ from pydantic import BaseModel
 
 log = logging.getLogger(__name__)
 log.setLevel(SRC_LOG_LEVELS["MODELS"])
-
-API_BASE_URL = "https://192.168.200.118:5002"
-API_ENDPOINT = "/api/excel_to_sql"
 
 
 router = APIRouter()
@@ -95,46 +91,11 @@ def upload_file(
         unsanitized_filename = file.filename
         filename = os.path.basename(unsanitized_filename)
 
-        is_excel = file.content_type in [
-            "application/vnd.ms-excel",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "application/octet-stream"
-        ] or filename.lower().endswith(('.xls', '.xlsx'))
-
         # replace filename with uuid
         id = str(uuid.uuid4())
         name = filename
         filename = f"{id}_{filename}"
-        with file.file as upload_file:
-            upload_file.seek(0)
-            contents, file_path = Storage.upload_file(upload_file, filename)
-
-        if is_excel:
-            try:
-                saved_file = Storage.get_file(file_path)
-                
-                headers = {
-                    "Accept-Language": "en",
-                    "Authorization": "Bearer token_test_sw"
-                }
-
-                with open(saved_file, 'rb') as f:
-                    files = {'file': (filename, f, file.content_type)}
-                    response = requests.post(
-                        url=f"{API_BASE_URL}{API_ENDPOINT}",
-                        files=files,
-                        headers=headers,
-                        verify=False,
-                    )
-                    response.raise_for_status()
-                    
-                log.info(f"Excel API调用成功: {response.status_code}")
-            except Exception as api_error:
-                log.error(f"Excel API调用失败: {str(api_error)}")
-
-                if os.path.exists(saved_file):
-                    os.remove(saved_file)
-                raise
+        contents, file_path = Storage.upload_file(file.file, filename)
 
         file_item = Files.insert_new_file(
             user.id,

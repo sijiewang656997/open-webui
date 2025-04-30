@@ -78,6 +78,8 @@ from open_webui.routers import (
     utils,
 )
 
+from open_webui.routers.proxy_api import router as proxy_router 
+
 from open_webui.routers.retrieval import (
     get_embedding_function,
     get_ef,
@@ -933,6 +935,8 @@ app.include_router(
     evaluations.router, prefix="/api/v1/evaluations", tags=["evaluations"]
 )
 app.include_router(utils.router, prefix="/api/v1/utils", tags=["utils"])
+
+app.include_router(proxy_router, prefix="/api", tags=["proxy"])
 
 
 try:

@@ -182,7 +182,7 @@
 
 		const tempItemId = uuidv4();
 		const fileItem = {
-			type: isExcel ? 'excel' : 'file', // Set type to 'excel' for Excel files
+			type: isExcel ? 'excel' : 'file',
 			file: '',
 			id: null,
 			url: '',
@@ -192,6 +192,7 @@
 			size: file.size,
 			error: '',
 			itemId: tempItemId,
+			conversionResult: null, 
 			...(fullContext ? { context: 'full' } : {})
 		};
 
@@ -203,61 +204,72 @@
 		files = [...files, fileItem];
 
 		try {
-			// For Excel files, extract metadata before upload
-			let excelMetadata = null;
+			// 新增：处理 Excel 文件转换
 			if (isExcel) {
-				excelMetadata = await extractExcelMetadata(file);
-			}
+				// 1. 调用代理接口转换 Excel
+				const formData = new FormData();
+				formData.append('file', file);
 
-			// Create form data for the upload
-			const formData = new FormData();
-			formData.append('file', file);
-			
-			// Add Excel metadata to the request if available
-			if (isExcel && excelMetadata) {
-				formData.append('metadata', JSON.stringify({
-					sheetNames: excelMetadata.sheetNames,
-					rowCount: excelMetadata.rowCount,
-					columnCount: excelMetadata.columnCount,
-					headers: excelMetadata.headers,
-					previewData: excelMetadata.previewData
-				}));
-			}
-
-			// Use the existing uploadFile function with the additional metadata
-			const uploadedFile = await uploadFile(localStorage.token, file, formData);
-
-			if (uploadedFile) {
-				console.log('File upload completed:', {
-					id: uploadedFile.id,
-					name: fileItem.name,
-					collection: uploadedFile?.meta?.collection_name
+				const conversionResponse = await fetch('/api/proxy/excel-to-sql', {
+					method: 'POST',
+					headers: {
+						'Authorization': 'Bearer token_59b8b43a_aiurmmm0_upload',
+						'Accept-Language': 'en'
+					},
+					body: formData
 				});
 
-				if (uploadedFile.error) {
-					console.warn('File upload warning:', uploadedFile.error);
-					toast.warning(uploadedFile.error);
+				if (!conversionResponse.ok) {
+					const error = await conversionResponse.json();
+					throw new Error(error.detail || 'Excel conversion failed');
 				}
 
-				fileItem.status = 'uploaded';
-				fileItem.file = uploadedFile;
-				fileItem.id = uploadedFile.id;
-				fileItem.collection_name =
-					uploadedFile?.meta?.collection_name || uploadedFile?.collection_name;
-				fileItem.url = `${WEBUI_API_BASE_URL}/files/${uploadedFile.id}`;
-				
-				// Store the Excel metadata with the file item if available
-				if (isExcel && excelMetadata) {
-					fileItem.excelMetadata = excelMetadata;
-				}
-
-				files = files;
-			} else {
-				files = files.filter((item) => item?.itemId !== tempItemId);
+				// 2. 存储转换结果
+				const conversionResult = await conversionResponse.json();
+				fileItem.conversionResult = conversionResult;
 			}
+
+			if (!isExcel) {
+				const formData = new FormData();
+				formData.append('file', file);
+
+				let excelMetadata = null;
+				if (isExcel) {
+					excelMetadata = await extractExcelMetadata(file);
+					formData.append('metadata', JSON.stringify({
+						sheetNames: excelMetadata.sheetNames,
+						rowCount: excelMetadata.rowCount,
+						columnCount: excelMetadata.columnCount,
+						headers: excelMetadata.headers,
+						previewData: excelMetadata.previewData
+					}));
+				}
+
+				const uploadedFile = await uploadFile(localStorage.token, file, formData);
+
+				if (uploadedFile) {
+					fileItem.status = 'uploaded';
+					fileItem.file = uploadedFile;
+					fileItem.id = uploadedFile.id;
+					fileItem.url = `${WEBUI_API_BASE_URL}/files/${uploadedFile.id}`;
+				}
+			}
+
+			// 4. 统一更新状态
+			files = files.map(item => 
+				item.itemId === tempItemId ? {...fileItem, status: 'processed'} : item
+			);
+
 		} catch (e) {
-			toast.error(`${e}`);
-			files = files.filter((item) => item?.itemId !== tempItemId);
+			// 错误处理增强
+			files = files.map(item => 
+				item.itemId === tempItemId ? {
+					...item, 
+					status: 'error',
+					error: e.message
+				} : item
+			);
+			toast.error($i18n.t('File processing failed: {{error}}', { error: e.message }));
 		}
 	};
 
@@ -462,6 +474,33 @@
 			dropzoneElement?.removeEventListener('dragleave', onDragLeave);
 		}
 	});
+
+	// 新增：调用代理接口处理 Excel
+	async function processExcelViaProxy(file) {
+		try {
+			const formData = new FormData();
+			formData.append("file", file);
+
+			const response = await fetch("/api/proxy/excel-to-sql", {
+				method: "POST",
+				headers: {
+					"Accept-Language": "en",
+					"Authorization": "Bearer token_test_sw"
+				},
+				body: formData
+			});
+
+			if (!response.ok) {
+				const error = await response.json();
+				throw new Error(error.detail || "Excel 转换失败");
+			}
+
+			return await response.json();
+		} catch (error) {
+			console.error("Proxy API 错误:", error);
+			throw error;
+		}
+	}
 </script>
 
 <FilesOverlay show={dragged} />

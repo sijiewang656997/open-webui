@@ -210,7 +210,7 @@
 				const formData = new FormData();
 				formData.append('file', file);
 
-				const conversionResponse = await fetch('/api/proxy/excel-to-sql', {
+				const conversionResponse = await fetch('/proxy/excel-to-sql', {
 					method: 'POST',
 					headers: {
 						'Authorization': 'Bearer token_59b8b43a_aiurmmm0_upload',
@@ -481,7 +481,7 @@
 			const formData = new FormData();
 			formData.append("file", file);
 
-			const response = await fetch("/api/proxy/excel-to-sql", {
+			const response = await fetch("/proxy/excel-to-sql", {
 				method: "POST",
 				headers: {
 					"Accept-Language": "en",

@@ -10,7 +10,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-router = APIRouter(tags=["Proxy"])
+router = APIRouter(prefix="/excel-to-sql", tags=["excel"])
 
 @router.post("/proxy/excel-to-sql")
 async def proxy_external_api(request: Request):
@@ -18,7 +18,7 @@ async def proxy_external_api(request: Request):
         data = await request.json()
         logger.info(f"Received request data: {data}")
         
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(verify=False) as client:
             # 发送请求
             response = await client.post(
                 "https://192.168.200.118:5002/api/excel_to_sql",

@@ -1,6 +1,6 @@
 <script>
     import { createEventDispatcher } from 'svelte';
-    import { performSync, getSyncState } from '$lib/api/syncService';
+    import { performSync, getSyncState } from '$lib/apis/syncService';
     
     const dispatch = createEventDispatcher();
     let isSyncing = false;

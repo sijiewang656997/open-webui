@@ -204,9 +204,7 @@
 		files = [...files, fileItem];
 
 		try {
-			// 新增：处理 Excel 文件转换
 			if (isExcel) {
-				// 1. 调用代理接口转换 Excel
 				const formData = new FormData();
 				formData.append('file', file);
 
@@ -474,33 +472,6 @@
 			dropzoneElement?.removeEventListener('dragleave', onDragLeave);
 		}
 	});
-
-	// 新增：调用代理接口处理 Excel
-	async function processExcelViaProxy(file) {
-		try {
-			const formData = new FormData();
-			formData.append("file", file);
-
-			const response = await fetch("/proxy/excel-to-sql", {
-				method: "POST",
-				headers: {
-					"Accept-Language": "en",
-					"Authorization": "Bearer token_test_sw"
-				},
-				body: formData
-			});
-
-			if (!response.ok) {
-				const error = await response.json();
-				throw new Error(error.detail || "Excel 转换失败");
-			}
-
-			return await response.json();
-		} catch (error) {
-			console.error("Proxy API 错误:", error);
-			throw error;
-		}
-	}
 </script>
 
 <FilesOverlay show={dragged} />

@@ -83,6 +83,91 @@
       // 格式化为 mm/dd/yyyy 格式
       return `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}/${date.getFullYear()} ${date.toLocaleTimeString()}`;
   }
+
+  const isExcelFile = (file: File) => {
+    const excelMimeTypes = [
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.oasis.opendocument.spreadsheet',
+      'text/csv'
+    ];
+    const excelExtensions = ['.xls', '.xlsx', '.csv', '.ods'];
+    const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+    return excelMimeTypes.includes(file.type) || excelExtensions.includes(extension);
+  };
+
+  const handleFileProcessing = async (file: File) => {
+    const tempId = Date.now().toString();
+    try {
+      // 创建临时文件项
+      files = [...files, {
+        id: tempId,
+        filename: file.name,
+        type: file.type,
+        size: file.size,
+        status: 'uploading',
+        conversionResult: null,
+        error: null,
+        updated_at: new Date().toISOString()
+      }];
+
+      // 并行处理操作
+      const operations = [uploadFile(localStorage.token, file)];
+      
+      if (isExcelFile(file)) {
+        // Excel 双通道处理
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('metadata', JSON.stringify({
+          filename: file.name,
+          size: file.size,
+          uploadedAt: new Date().toISOString()
+        }));
+
+        operations.push(
+          fetch('http://localhost:8080/proxy/excel-to-sql', {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Bearer token_59b8b43a_aiurmmm0',
+              'Accept-Language': 'en'
+            },
+            body: formData
+          }).then(async res => {
+            if (!res.ok) throw await res.json();
+            return res.json();
+          })
+        );
+      }
+
+      // 等待所有操作完成
+      const [uploadResult, conversionResult] = await Promise.all(operations);
+      
+      // 更新文件状态
+      files = files.map(f => 
+        f.id === tempId ? {
+          ...f,
+          status: 'processed',
+          conversionResult: conversionResult || null,
+          id: uploadResult.id, // 使用服务器返回的真实ID
+          url: `/files/${uploadResult.id}`
+        } : f
+      );
+
+      toast.success($i18n.t('File processed: {0}', [file.name]));
+      dispatch('change');
+
+    } catch (error) {
+      // 错误处理
+      files = files.map(f => 
+        f.id === tempId ? {
+          ...f,
+          status: 'error',
+          error: error.message || $i18n.t('Processing failed')
+        } : f
+      );
+      toast.error($i18n.t('Failed to process {0}: {1}', [file.name, error.message]));
+    }
+  };
   
   async function loadFiles() {
       try {
@@ -420,25 +505,17 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
               </svg>
               {$i18n.t('Upload File')}
-              <input 
-                type="file" 
+              <input
+                type="file"
                 class="hidden"
-                multiple 
-                on:change={(e) => {
+                multiple
+                on:change={async (e) => {
                   const files = e.target.files;
-                  if (files && files.length > 0) {
-                    [...files].forEach(async (file) => {
-                      try {
-                        toast.info($i18n.t('Uploading {0}...', [file.name]));
-                        await uploadFile(localStorage.token, file);
-                        toast.success($i18n.t('File uploaded successfully'));
-                        await loadFiles();
-                        dispatch('change');
-                      } catch (error) {
-                        console.error('Error uploading file:', error);
-                        toast.error($i18n.t('Failed to upload file'));
-                      }
-                    });
+                  if (files) {
+                    for (const file of files) {
+                      await handleFileProcessing(file);
+                      await loadFiles(); // 刷新文件列表
+                    }
                   }
                 }}
               />

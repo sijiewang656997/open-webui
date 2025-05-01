@@ -430,15 +430,6 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-@app.on_event("startup")
-async def print_registered_routes():
-    print("\n===== Registered Routes =====")
-    for route in app.routes:
-        if hasattr(route, "path"):
-            methods = route.methods or ["*"]
-            print(f"{', '.join(methods)} {route.path}")
-    print("=============================\n")
-
 oauth_manager = OAuthManager(app)
 
 app.state.config = AppConfig(
@@ -944,9 +935,9 @@ app.include_router(
     evaluations.router, prefix="/api/v1/evaluations", tags=["evaluations"]
 )
 app.include_router(utils.router, prefix="/api/v1/utils", tags=["utils"])
-
-app.include_router(proxy_router, prefix="/proxy", tags=["proxy"])
-
+print("add router")
+app.include_router(proxy_router, prefix="/proxy", tags=["utils"])
+print("======")
 
 try:
     audit_level = AuditLevel(AUDIT_LOG_LEVEL)

@@ -165,6 +165,7 @@
 		}
 	};
 
+	/**
 	const uploadFileHandler = async (file, fullContext: boolean = false) => {
 		if ($_user?.role !== 'admin' && !($_user?.permissions?.chat?.file_upload ?? true)) {
 			toast.error($i18n.t('You do not have permission to upload files.'));
@@ -173,13 +174,13 @@
 
 		const excelExtensions = ['.xls', '.xlsx', '.csv', '.ods'];
 		const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
-		const isExcel = 
-			['application/vnd.ms-excel',
-			'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-			'application/vnd.oasis.opendocument.spreadsheet',
-			'text/csv'].includes(file.type) || 
-			excelExtensions.includes(fileExtension);
-
+		const isExcel = (
+			file.type.startsWith('application/vnd.ms-excel') || 
+			file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+			fileExtension === '.xls' || 
+			fileExtension === '.xlsx' || 
+			fileExtension === '.csv'
+		);
 		const tempItemId = uuidv4();
 		const fileItem = {
 			type: isExcel ? 'excel' : 'file',
@@ -207,11 +208,16 @@
 			if (isExcel) {
 				const formData = new FormData();
 				formData.append('file', file);
+				console.log('FormData 内容:', Array.from(formData.entries()).map(([k, v]) => ({
+						key: k,
+						value: v instanceof File ? v.name : v
+					})));
 
-				const conversionResponse = await fetch('/proxy/excel-to-sql', {
+
+				const conversionResponse = await fetch('http://localhost:8080/proxy/excel-to-sql', {
 					method: 'POST',
 					headers: {
-						'Authorization': 'Bearer token_59b8b43a_aiurmmm0_upload',
+						'Authorization': 'Bearer token_59b8b43a_aiurmmm0',
 						'Accept-Language': 'en'
 					},
 					body: formData
@@ -270,6 +276,126 @@
 			toast.error($i18n.t('File processing failed: {{error}}', { error: e.message }));
 		}
 	};
+	*/
+
+	// Modified code for uploadFileHandler
+	const uploadFileHandler = async (file, fullContext = false) => {
+		// Permission check remains the same
+		
+		// Determine if file is Excel
+		const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+		const isExcel = (
+			file.type.startsWith('application/vnd.ms-excel') || 
+			file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+			fileExtension === '.xlsx' || 
+			fileExtension === '.xls' || 
+			fileExtension === '.csv'
+		);
+		
+		// Create file item
+		const tempItemId = uuidv4();
+		const fileItem = {
+			type: isExcel ? 'excel' : 'file',
+			file: '',
+			id: null,
+			url: '',
+			name: file.name,
+			collection_name: '',
+			status: 'uploading',
+			size: file.size,
+			error: '',
+			itemId: tempItemId,
+			conversionResult: null, 
+			...(fullContext ? { context: 'full' } : {})
+		};
+
+		if (fileItem.size == 0) {
+			toast.error($i18n.t('You cannot upload an empty file.'));
+			return null;
+		}
+
+		files = [...files, fileItem];
+
+		try {
+			const formData = new FormData();
+			formData.append('file', file);
+			
+			// Process Excel files
+			if (isExcel) {
+				console.log('Processing Excel file:', file.name, 'Size:', file.size);
+				console.log('FormData 内容:', Array.from(formData.entries()).map(([k, v]) => ({
+						key: k,
+						value: v instanceof File ? v.name : v
+					})));
+				
+				// Extract Excel metadata first
+				let excelMetadata = null;
+				try {
+					excelMetadata = await extractExcelMetadata(file);
+					formData.append('metadata', JSON.stringify({
+						sheetNames: excelMetadata.sheetNames,
+						rowCount: excelMetadata.rowCount,
+						columnCount: excelMetadata.columnCount,
+						headers: excelMetadata.headers,
+						previewData: excelMetadata.previewData
+					}));
+					console.log('Excel metadata extracted successfully', excelMetadata);
+				} catch (metadataError) {
+					console.error('Failed to extract Excel metadata:', metadataError);
+				}
+
+				// Convert Excel to SQL
+				const conversionResponse = await fetch('http://localhost:8080/proxy/excel-to-sql', {
+					method: 'POST',
+					headers: {
+						'Authorization': 'Bearer token_59b8b43a_aiurmmm0',
+						'Accept-Language': 'en'
+					},
+					body: formData
+				});
+
+				if (!conversionResponse.ok) {
+					const error = await conversionResponse.json();
+					throw new Error(error.detail || 'Excel conversion failed');
+				}
+
+				// Store conversion result
+				const conversionResult = await conversionResponse.json();
+				fileItem.conversionResult = conversionResult;
+				
+				// IMPORTANT: Also upload the original Excel file
+				const uploadedFile = await uploadFile(localStorage.token, file, formData);
+				if (uploadedFile) {
+					fileItem.file = uploadedFile;
+					fileItem.id = uploadedFile.id;
+					fileItem.url = `${WEBUI_API_BASE_URL}/files/${uploadedFile.id}`;
+				}
+			} else {
+				// Process non-Excel files
+				const uploadedFile = await uploadFile(localStorage.token, file, formData);
+				if (uploadedFile) {
+					fileItem.file = uploadedFile;
+					fileItem.id = uploadedFile.id;
+					fileItem.url = `${WEBUI_API_BASE_URL}/files/${uploadedFile.id}`;
+				}
+			}
+
+			// Update status
+			files = files.map(item => 
+				item.itemId === tempItemId ? {...fileItem, status: 'processed'} : item
+			);
+
+		} catch (e) {
+			files = files.map(item => 
+				item.itemId === tempItemId ? {
+					...item, 
+					status: 'error',
+					error: e.message
+				} : item
+			);
+			toast.error($i18n.t('File processing failed: {{error}}', { error: e.message }));
+		}
+	}
 
 	// Add this function to extract Excel metadata
 	const extractExcelMetadata = async (file) => {

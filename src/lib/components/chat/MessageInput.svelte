@@ -323,11 +323,6 @@
 			// Process Excel files
 			if (isExcel) {
 				console.log('Processing Excel file:', file.name, 'Size:', file.size);
-				console.log('FormData 内容:', Array.from(formData.entries()).map(([k, v]) => ({
-						key: k,
-						value: v instanceof File ? v.name : v
-					})));
-				
 				// Extract Excel metadata first
 				let excelMetadata = null;
 				try {
@@ -344,7 +339,11 @@
 					console.error('Failed to extract Excel metadata:', metadataError);
 				}
 
-				// Convert Excel to SQL
+				console.log('FormData 内容:', Array.from(formData.entries()).map(([k, v]) => ({
+						key: k,
+						value: v instanceof File ? v.name : v
+					})));
+
 				const conversionResponse = await fetch('http://localhost:8080/proxy/excel-to-sql', {
 					method: 'POST',
 					headers: {

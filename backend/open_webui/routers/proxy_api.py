@@ -1,51 +1,97 @@
-from fastapi import APIRouter, File, UploadFile, HTTPException
+from fastapi import APIRouter, File, UploadFile, HTTPException, Query
 from fastapi.responses import JSONResponse
 import httpx
 import chardet
 
 router = APIRouter()
 
+EXTERNAL_API_BASE = "http://192.168.200.118:5002/api/excel_to_sql"
+AUTH_HEADER = {"Authorization": "Bearer token_59b8b43a_aiurmmm0"}
+
+async def call_external_api(
+    method: str,
+    endpoint: str,
+    params: dict = None,
+    files: dict = None
+):
+    url = f"{EXTERNAL_API_BASE}{endpoint}"
+    async with httpx.AsyncClient(timeout=60) as client:
+        try:
+            if method == "GET":
+                response = await client.get(
+                    url,
+                    params=params,
+                    headers=AUTH_HEADER
+                )
+            elif method == "POST":
+                response = await client.post(
+                    url,
+                    files=files,
+                    headers=AUTH_HEADER
+                )
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            error_detail = f"External API error: {e.response.status_code} - {e.response.text}"
+            print(f"[ERROR] API request failed: {error_detail}")
+            raise HTTPException(
+                status_code=e.response.status_code,
+                detail=error_detail
+            )
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Internal server error: {str(e)}"
+            )
+
 @router.post("/excel-to-sql")
 async def proxy_external_api(file: UploadFile = File(...)):
     try:
-        # 1. 读取并检测文件编码
         raw_data = await file.read()
         encoding = chardet.detect(raw_data)['encoding'] or 'utf-8'
         
-        # 2. 编码转换 (示例仅处理 CSV)
         if file.filename.lower().endswith('.csv'):
             try:
                 decoded = raw_data.decode(encoding)
             except UnicodeDecodeError:
-                decoded = raw_data.decode('gb18030')  # 中文编码兜底
+                decoded = raw_data.decode('gb18030')
             raw_data = decoded.encode('utf-8')
         
-        # 3. 构造 multipart 数据
         form_data = {
             "file": (file.filename, raw_data, file.content_type)
         }
         
-        # 4. 转发请求
-        async with httpx.AsyncClient(timeout=60) as client:
-            response = await client.post(
-                "http://192.168.200.118:5002/api/excel_to_sql",
-                files=form_data,
-                headers={"Authorization": "Bearer token_59b8b43a_aiurmmm0"}
-            )
-            response.raise_for_status()
-            
-        return JSONResponse(response.json())
+        return await call_external_api(
+            "POST",
+            "",
+            files=form_data
+        )
 
-    except httpx.HTTPStatusError as e:
-        error_detail = f"外部API错误: {e.response.status_code} - {e.response.text}"
-        print(f"[ERROR] API 请求失败: {error_detail}")
-        raise HTTPException(status_code=502, detail=error_detail)
-        
     except UnicodeDecodeError as e:
         raise HTTPException(
             status_code=415,
-            detail=f"文件编码错误: 请使用 UTF-8 或 GBK 编码保存文件 ({str(e)})"
+            detail=f"File encoding error: Please save file with UTF-8 or GBK encoding ({str(e)})"
         )
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"服务器内部错误: {str(e)}")
+
+@router.get("/list-files")
+async def list_files(
+    page: int = Query(1, ge=1),
+    per_page: int = Query(50, ge=1, le=200),
+    file_type: str = Query(None, description="Filter by file type (excel/csv)"),
+    search: str = Query(None, description="Search by filename")
+):
+    """
+    Get paginated list of processed files with optional filters
+    """
+    params = {
+        "page": page,
+        "per_page": per_page,
+        "file_type": file_type,
+        "search": search
+    }
+    
+    return await call_external_api(
+        "GET",
+        "/list_files",
+        params=params
+    )

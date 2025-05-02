@@ -2,6 +2,7 @@
 	import { io } from 'socket.io-client';
 	import { spring } from 'svelte/motion';
 	import PyodideWorker from '$lib/workers/pyodide.worker?worker';
+	import { userAPIKey } from '$lib/stores';
 
 	let loadingProgress = spring(0, {
 		stiffness: 0.05
@@ -32,7 +33,7 @@
 	import { Toaster, toast } from 'svelte-sonner';
 
 	import { getBackendConfig } from '$lib/apis';
-	import { getSessionUser } from '$lib/apis/auths';
+	import { getSessionUser , createAPIKey} from '$lib/apis/auths';
 
 	import '../tailwind.css';
 	import '../app.css';
@@ -499,6 +500,18 @@
 
 						await user.set(sessionUser);
 						await config.set(await getBackendConfig());
+
+						// Get the user's API key
+						const apiKey = await createAPIKey(localStorage.token).catch(error => {
+							console.log('Error fetching API key:', error);
+							return null;
+						});
+						
+						// Store it in the userAPIKey store
+						if (apiKey) {
+							userAPIKey.set(apiKey);
+							console.log('API key loaded for user:', $user?.name);
+						}
 					} else {
 						// Redirect Invalid Session User to /auth Page
 						localStorage.removeItem('token');

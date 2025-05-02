@@ -25,6 +25,8 @@ export const socket: Writable<null | Socket> = writable(null);
 export const activeUserIds: Writable<null | string[]> = writable(null);
 export const USAGE_POOL: Writable<null | string[]> = writable(null);
 
+export const userAPIKey: Writable<string | null> = writable(null);
+
 export const theme = writable('system');
 
 export const shortCodesToEmojis = writable(

@@ -79,7 +79,7 @@
 		profileImageUrl = $user.profile_image_url;
 		webhookUrl = $settings?.notifications?.webhook_url ?? '';
 
-		APIKey = await getAPIKey(localStorage.token).catch((error) => {
+		APIKey = await createAPIKey(localStorage.token).catch((error) => {
 			console.log(error);
 			return '';
 		});

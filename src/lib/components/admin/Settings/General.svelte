@@ -149,11 +149,11 @@
 						<Switch bind:state={adminConfig.SHOW_ADMIN_DETAILS} />
 					</div>
 
-					<!-- <div class="mb-2.5 flex w-full justify-between pr-2">
+					<div class="mb-2.5 flex w-full justify-between pr-2">
 						<div class=" self-center text-xs font-medium">{$i18n.t('Enable API Key')}</div>
 
 						<Switch bind:state={adminConfig.ENABLE_API_KEY} />
-					</div> -->
+					</div>
 
 					<!-- <div class=" mb-2.5 w-full justify-between">
 						<div class="flex w-full justify-between">

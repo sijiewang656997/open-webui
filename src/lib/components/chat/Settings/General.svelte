@@ -82,7 +82,7 @@
 	onMount(async () => {
 		selectedTheme = localStorage.theme ?? 'system';
 
-		languages = await getLanguages();
+		languages = await gets();
 
 		notificationEnabled = $settings.notificationEnabled ?? false;
 		system = $settings.system ?? '';

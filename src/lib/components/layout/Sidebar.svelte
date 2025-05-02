@@ -60,6 +60,8 @@
 	import Home from '../icons/Home.svelte';
 
 	import FileManagementModal from '../common/FileManagementModal.svelte';
+	import AccountAnalysisModal from '../common/AccountAnalysisModal.svelte';
+	import UploadAnalysisModal from '../common/UploadAnalysisModal.svelte';
 
 	const BREAKPOINT = 768;
 
@@ -69,7 +71,8 @@
 	let syncLastTime = null; // 最后同步时间
 
 	let showFileManager = false;
-
+	let showAccountAnalysis = false;
+	let showUploadAnalysis = false;
 
 	let shiftKey = false;
 
@@ -331,8 +334,16 @@
 		}
 	};
 
+	const uploadAnalysisFileHandler = () => {
+		showUploadAnalysis = true;
+	};
+
 	const manageFilesHandler = () => {
 		showFileManager = true;
+	};
+
+	const accountAnalysisHandler = () => {
+		goto('/analysis');
 	};
 
 	let touchstart;
@@ -721,6 +732,58 @@
 			</button>
 		</Tooltip>
 
+		<Tooltip content={$i18n.t('Upload Analysis File')}>
+			<button 
+				class="flex-none p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 transition flex items-center space-x-2"
+				on:click={uploadAnalysisFileHandler}
+				aria-label="Upload Analysis File"
+			>
+				<div class="self-center">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke-width="2"
+						stroke="currentColor"
+						class="size-5"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+						/>
+					</svg>
+				</div>
+				<span class="font-medium text-sm">{$i18n.t('Upload Analysis File')}</span>
+			</button>
+		</Tooltip>
+
+		<Tooltip content={$i18n.t('Account Analysis')}>
+			<button 
+				class="flex-none p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 transition flex items-center space-x-2"
+				on:click={accountAnalysisHandler}
+				aria-label="Account Analysis"
+			>
+				<div class="self-center">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke-width="2"
+						stroke="currentColor"
+						class="size-5"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z"
+						/>
+					</svg>
+				</div>
+				<span class="font-medium text-sm">{$i18n.t('Account Analysis')}</span>
+			</button>
+		</Tooltip>
+
 		<div
 			class="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden {$temporaryChatEnabled
 				? 'opacity-20'
@@ -1018,11 +1081,58 @@
 				{/if}
 			</div>
 		</div>
+
+		{#if $user?.role?.toLowerCase() === 'admin' || $user?.role?.toLowerCase() === 'manager' || $config?.analysis_enabled}
+			<div
+				class="flex w-full py-1 px-1 mt-1"
+				title={$i18n.t('Account Analysis')}
+			>
+				<a
+					href="/analysis"
+					class="flex items-center w-full px-2 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						class="size-5 mr-2"
+						aria-hidden="true"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="1.5"
+							d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z"
+						/>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="1.5"
+							d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z"
+						/>
+					</svg>
+					<span>{$i18n.t('Account Analysis')}</span>
+				</a>
+			</div>
+		{/if}
 	</div>
 	<FileManagementModal
 		bind:show={showFileManager}
 		on:change={() => {
 			// 可以在这里添加文件变更后的处理逻辑
+		}}
+	/>
+	<AccountAnalysisModal
+		bind:show={showAccountAnalysis}
+		on:change={() => {
+			// Handle any updates after analysis changes
+		}}
+	/>
+	<UploadAnalysisModal
+		bind:show={showUploadAnalysis}
+		on:change={() => {
+			// Handle any updates after analysis changes
 		}}
 	/>
 </div>

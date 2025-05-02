@@ -20,6 +20,9 @@
 
   let selectedFile = null;
   let showFilePreview = false;
+
+  let listingFiles = false;
+  let listedFiles = [];
   
   onMount(() => {
     if (show) {
@@ -153,6 +156,8 @@
         } : f
       );
 
+      await loadFiles();
+
       toast.success($i18n.t('File processed: {0}', [file.name]));
       dispatch('change');
 
@@ -168,6 +173,34 @@
       toast.error($i18n.t('Failed to process {0}: {1}', [file.name, error.message]));
     }
   };
+
+  async function handleListFiles() {
+      try {
+        listingFiles = true;
+        const response = await fetch('http://localhost:8080/proxy/list-files', {
+          method: 'GET',
+          headers: {
+            'Authorization': 'Bearer token_59b8b43a_aiurmmm0',
+            'Accept-Language': 'en'
+          }
+        });
+
+        if (!response.ok) throw await response.json();
+        
+        const data = await response.json();
+        listedFiles = data; // 存储返回的列表数据
+        toast.success($i18n.t('Files listed successfully'));
+        
+        // 如果需要可以更新主文件列表
+        // files = data.map(convertFileFormat); 
+        
+      } catch (error) {
+        console.error('Error listing files:', error);
+        toast.error($i18n.t('Failed to list files: {0}', [error.message]));
+      } finally {
+        listingFiles = false;
+      }
+    }
   
   async function loadFiles() {
       try {
@@ -175,11 +208,15 @@
           const response = await getFiles(localStorage.token);
           if (response) {
           // 处理文件数据，确保所有必要的字段都有值
-          files = response.map(file => ({
-              ...file,
-              type: file.type || 'application/octet-stream', // 提供默认MIME类型
-              updated_at: file.updated_at || new Date().toISOString() // 如果没有日期，使用当前时间
-              // 不要修改 size
+            files = response.map(file => ({
+              id: file.id,          // 确保包含必要字段
+              filename: file.filename, 
+              type: file.type || 'application/octet-stream',
+              size: file.size,
+              updated_at: file.updated_at || new Date().toISOString(),
+              // 添加缺失的状态字段
+              status: 'loaded',
+              url: file.url || `/files/${file.id}`
           }));
           } else {
               files = [];
@@ -320,21 +357,21 @@
 
 {#if show}
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60" on:click|self={() => (show = false)}>
-      <div class="w-full max-w-3xl bg-white dark:bg-gray-900 rounded-xl p-6 max-h-[80vh] overflow-auto file-modal-content">
-          <div class="flex justify-between items-center mb-4">
-              <h2 class="text-xl font-bold">{$i18n.t('Excel Management')}</h2>
-              <button 
-                  class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
-                  on:click={() => (show = false)}
-              >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                  </svg>
-              </button>
-          </div>
-      
+    <div class="w-full max-w-3xl bg-white dark:bg-gray-900 rounded-xl p-6 max-h-[80vh] overflow-auto file-modal-content">
       <div class="flex justify-between items-center mb-4">
-        <div class="flex items-center">
+        <h2 class="text-xl font-bold">{$i18n.t('Excel Management')}</h2>
+        <button 
+          class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
+          on:click={() => (show = false)}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
+    
+      <div class="flex justify-between items-center mb-4">
+        <div class="flex items-center gap-2">
           <button 
             class="text-sm px-3 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
             on:click={() => loadFiles()}
@@ -346,8 +383,26 @@
               {$i18n.t('Refresh')}
             </div>
           </button>
+          
+          <!-- 新增List Files按钮 -->
+          <button
+            class="text-sm px-3 py-1 rounded-lg bg-purple-100 dark:bg-purple-800 hover:bg-purple-200 dark:hover:bg-purple-700 transition"
+            on:click={handleListFiles}
+            disabled={listingFiles}
+          >
+            <div class="flex items-center gap-2 text-purple-600 dark:text-purple-300">
+              {#if listingFiles}
+                <Spinner className="size-4" />
+              {:else}
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              {/if}
+              {$i18n.t('List Files')}
+            </div>
+          </button>
         </div>
-        
+
         <button 
           class="text-sm px-3 py-1 rounded-lg text-white bg-red-600 hover:bg-red-700 transition"
           on:click={() => confirmingDelete = true}
@@ -360,7 +415,17 @@
           </div>
         </button>
       </div>
-      
+
+      <!-- 新增API响应显示 -->
+      {#if listedFiles.length > 0}
+        <div class="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <h3 class="text-sm font-medium mb-2">{$i18n.t('API Response:')}</h3>
+          <pre class="text-xs p-3 bg-white dark:bg-gray-900 rounded overflow-auto max-h-40">
+            {JSON.stringify(listedFiles, null, 2)}
+          </pre>
+        </div>
+      {/if}
+
       {#if confirmingDelete}
         <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg mb-4">
           <div class="text-red-800 dark:text-red-200 mb-2 font-medium">
@@ -386,152 +451,153 @@
         </div>
       {/if}
 
+      <!-- 保持原有文件列表部分不变 -->
       {#if loading}
-        <div class="flex justify-center items-center h-40">
-          <Spinner className="size-8" />
-        </div>
-      {:else if sortedFiles.length === 0}
-        <div class="text-center py-12 text-gray-500">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-          </svg>
-          <p class="text-lg font-medium">{$i18n.t('No files found')}</p>
-          <p class="text-sm mt-1">{$i18n.t('Upload files to see them here')}</p>
-        </div>
-      {:else}
-        <div class="overflow-x-auto mb-4 rounded-lg border border-gray-200 dark:border-gray-800">
-          <table class="w-full text-sm">
-            <thead class="bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-              <tr>
-                <th class="px-4 py-2 text-left font-medium">
-                  <button class="flex items-center gap-1" on:click={() => handleSort('name')}>
-                    {$i18n.t('Filename')}
-                    {#if sortBy === 'name'}
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div class="flex justify-center items-center h-40">
+        <Spinner className="size-8" />
+      </div>
+    {:else if sortedFiles.length === 0}
+      <div class="text-center py-12 text-gray-500">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+        </svg>
+        <p class="text-lg font-medium">{$i18n.t('No files found')}</p>
+        <p class="text-sm mt-1">{$i18n.t('Upload files to see them here')}</p>
+      </div>
+    {:else}
+      <div class="overflow-x-auto mb-4 rounded-lg border border-gray-200 dark:border-gray-800">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+            <tr>
+              <th class="px-4 py-2 text-left font-medium">
+                <button class="flex items-center gap-1" on:click={() => handleSort('name')}>
+                  {$i18n.t('Filename')}
+                  {#if sortBy === 'name'}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={sortDirection === 'asc' ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7'} />
+                    </svg>
+                  {/if}
+                </button>
+              </th>
+              <th class="px-4 py-2 text-left font-medium">
+                <button class="flex items-center gap-1" on:click={() => handleSort('date')}>
+                  {$i18n.t('Date')}
+                  {#if sortBy === 'date'}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={sortDirection === 'asc' ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7'} />
+                    </svg>
+                  {/if}
+                </button>
+              </th>
+              <th class="px-4 py-2 text-left font-medium">
+                <button class="flex items-center gap-1" on:click={() => handleSort('size')}>
+                  {$i18n.t('Size')}
+                  {#if sortBy === 'size'}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={sortDirection === 'asc' ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7'} />
+                    </svg>
+                  {/if}
+                </button>
+              </th>
+              <th class="px-4 py-2 text-right font-medium">{$i18n.t('Actions')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {#each sortedFiles as file (file.id)}
+              <tr class="border-t border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                <td class="px-4 py-3">
+                  <div class="flex items-center">
+                    <div class="text-gray-500 dark:text-gray-400 mr-2.5">
+                      {@html getFileTypeIcon(file.type)}
+                    </div>
+                    <!-- 修改这里，添加点击事件和样式 -->
+                    <div 
+                      class="truncate max-w-[200px] cursor-pointer hover:text-blue-600 dark:hover:text-blue-400" 
+                      title={file.filename}
+                      on:click={() => handleFileClick(file)}
+                    >
+                      {file.filename}
+                    </div>
+                  </div>
+                </td>
+                <td class="px-4 py-3 text-gray-600 dark:text-gray-400">
+                    {formatDate(file.updated_at)}
+                </td>
+                <td class="px-4 py-3 text-gray-600 dark:text-gray-400">
+                  {formatFileSize(file.size)}
+                </td>
+                <td class="px-4 py-3 text-right">
+                  <div class="flex justify-end space-x-2">
+                    <button 
+                      class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-blue-600 dark:text-blue-400"
+                      on:click={() => handleDownloadFile(file)}
+                      title={$i18n.t('Download')}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                       </svg>
-                    {/if}
-                  </button>
-                </th>
-                <th class="px-4 py-2 text-left font-medium">
-                  <button class="flex items-center gap-1" on:click={() => handleSort('date')}>
-                    {$i18n.t('Date')}
-                    {#if sortBy === 'date'}
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={sortDirection === 'asc' ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7'} />
+                    </button>
+                    <button 
+                      class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-red-600 dark:text-red-400"
+                      on:click={() => handleDeleteFile(file.id)}
+                      title={$i18n.t('Delete')}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
-                    {/if}
-                  </button>
-                </th>
-                <th class="px-4 py-2 text-left font-medium">
-                  <button class="flex items-center gap-1" on:click={() => handleSort('size')}>
-                    {$i18n.t('Size')}
-                    {#if sortBy === 'size'}
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={sortDirection === 'asc' ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7'} />
-                      </svg>
-                    {/if}
-                  </button>
-                </th>
-                <th class="px-4 py-2 text-right font-medium">{$i18n.t('Actions')}</th>
+                    </button>
+                  </div>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {#each sortedFiles as file (file.id)}
-                <tr class="border-t border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                  <td class="px-4 py-3">
-                    <div class="flex items-center">
-                      <div class="text-gray-500 dark:text-gray-400 mr-2.5">
-                        {@html getFileTypeIcon(file.type)}
-                      </div>
-                      <!-- 修改这里，添加点击事件和样式 -->
-                      <div 
-                        class="truncate max-w-[200px] cursor-pointer hover:text-blue-600 dark:hover:text-blue-400" 
-                        title={file.filename}
-                        on:click={() => handleFileClick(file)}
-                      >
-                        {file.filename}
-                      </div>
-                    </div>
-                  </td>
-                  <td class="px-4 py-3 text-gray-600 dark:text-gray-400">
-                      {formatDate(file.updated_at)}
-                  </td>
-                  <td class="px-4 py-3 text-gray-600 dark:text-gray-400">
-                    {formatFileSize(file.size)}
-                  </td>
-                  <td class="px-4 py-3 text-right">
-                    <div class="flex justify-end space-x-2">
-                      <button 
-                        class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-blue-600 dark:text-blue-400"
-                        on:click={() => handleDownloadFile(file)}
-                        title={$i18n.t('Download')}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                      </button>
-                      <button 
-                        class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-red-600 dark:text-red-400"
-                        on:click={() => handleDeleteFile(file.id)}
-                        title={$i18n.t('Delete')}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              {/each}
-            </tbody>
-          </table>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    {/if}
+    
+    <div class="border-t border-gray-200 dark:border-gray-800 pt-4">
+      <div class="flex justify-between items-center">
+        <div class="text-sm text-gray-500 dark:text-gray-400">
+          {#if files.length > 0}
+            {$i18n.t('Showing')} {files.length} {files.length === 1 ? $i18n.t('file') : $i18n.t('files')}
+          {/if}
         </div>
-      {/if}
-      
-      <div class="border-t border-gray-200 dark:border-gray-800 pt-4">
-        <div class="flex justify-between items-center">
-          <div class="text-sm text-gray-500 dark:text-gray-400">
-            {#if files.length > 0}
-              {$i18n.t('Showing')} {files.length} {files.length === 1 ? $i18n.t('file') : $i18n.t('files')}
-            {/if}
-          </div>
-          
-          <div class="flex space-x-3">
-            <label 
-              class="flex items-center justify-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg cursor-pointer text-sm"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-              </svg>
-              {$i18n.t('Upload File')}
-              <input
-                type="file"
-                class="hidden"
-                multiple
-                on:change={async (e) => {
-                  const files = e.target.files;
-                  if (files) {
-                    for (const file of files) {
-                      await handleFileProcessing(file);
-                      await loadFiles(); // 刷新文件列表
-                    }
+        
+        <div class="flex space-x-3">
+          <label 
+            class="flex items-center justify-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg cursor-pointer text-sm"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            {$i18n.t('Upload File')}
+            <input
+              type="file"
+              class="hidden"
+              multiple
+              on:change={async (e) => {
+                const files = e.target.files;
+                if (files) {
+                  for (const file of files) {
+                    await handleFileProcessing(file);
+                    await loadFiles(); // 刷新文件列表
                   }
-                }}
-              />
-            </label>
-            
-            <button 
-              class="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-sm"
-              on:click={() => (show = false)}
-            >
-              {$i18n.t('Close')}
-            </button>
-          </div>
+                }
+              }}
+            />
+          </label>
+          
+          <button 
+            class="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-sm"
+            on:click={() => (show = false)}
+          >
+            {$i18n.t('Close')}
+          </button>
         </div>
       </div>
     </div>
   </div>
+</div>
 {/if}
 
 <!-- 添加文件预览模态框 -->

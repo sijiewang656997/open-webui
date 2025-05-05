@@ -14,8 +14,6 @@
 	import type { i18n as i18nType } from 'i18next';
 	import { WEBUI_BASE_URL } from '$lib/constants';
 
-	import * as XLSX from 'xlsx';
-
 	import {
 		chatId,
 		chats,
@@ -38,6 +36,7 @@
 		chatTitle,
 		showArtifacts,
 		tools,
+		userAPIKey
 	} from '$lib/stores';
 	import {
 		convertMessagesToHistory,
@@ -210,114 +209,6 @@
 		}
 	};
 
-	function isExcelFile(file) {
-		const excelTypes = [
-			'application/vnd.ms-excel',
-			'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-			'application/vnd.oasis.opendocument.spreadsheet',
-			'text/csv'
-		];
-		
-		const excelExtensions = ['.xls', '.xlsx', '.csv', '.ods'];
-		
-		return (
-			(file.file && excelTypes.includes(file.file.type)) ||
-			(file.name && excelExtensions.some(ext => file.name.toLowerCase().endsWith(ext)))
-		);
-	}
-
-	async function processExcelFile(file) {
-		try {
-			// Read the file as ArrayBuffer
-			const arrayBuffer = await file.file.arrayBuffer();
-			// Parse the workbook
-			const workbook = XLSX.read(arrayBuffer);
-			
-			// Get basic workbook info
-			const sheetNames = workbook.SheetNames;
-			let summaryInfo = {
-				fileName: file.name,
-				sheets: [],
-				totalSheets: sheetNames.length
-			};
-			
-			// Process each sheet to get summary (limit to first 3 sheets for performance)
-			const processLimit = Math.min(3, sheetNames.length);
-			for (let i = 0; i < processLimit; i++) {
-				const sheetName = sheetNames[i];
-				const worksheet = workbook.Sheets[sheetName];
-				
-				// Convert to JSON to analyze
-				const jsonData = XLSX.utils.sheet_to_json(worksheet);
-				
-				// Get the range to determine dimensions
-				const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
-				
-				summaryInfo.sheets.push({
-					name: sheetName,
-					rowCount: range.e.r + 1,
-					columnCount: range.e.c + 1,
-					sampleRows: jsonData.slice(0, 5) // Get first 5 rows as sample
-				});
-			}
-			
-			// If there are more sheets than we processed, note that
-			if (sheetNames.length > processLimit) {
-				summaryInfo.note = `Only showing details for ${processLimit} of ${sheetNames.length} sheets`;
-			}
-			
-			return summaryInfo;
-		} catch (error) {
-			console.error("Error processing Excel file:", error);
-			return { error: "Failed to process Excel file", details: error.message };
-		}
-	}
-
-	function createExcelSummaryText(excelSummaries) {
-		let summaryText = "## Excel File Analysis\n\n";
-		
-		excelSummaries.forEach((summary, index) => {
-			summaryText += `### File ${index + 1}: ${summary.fileName}\n`;
-			summaryText += `- Sheets: ${summary.sheetNames.join(', ')}\n`;
-			summaryText += `- Dimensions: ${summary.rowCount} rows × ${summary.columnCount} columns\n`;
-			
-			if (summary.headers && summary.headers.length > 0) {
-				summaryText += `- Headers: ${summary.headers.join(', ')}\n`;
-			}
-			
-			if (summary.previewData && summary.previewData.length > 0) {
-				summaryText += "- Preview of data:\n```\n";
-				// Format preview data as a table
-				const previewTable = formatPreviewDataAsTable(summary.previewData, summary.headers);
-				summaryText += previewTable;
-				summaryText += "\n```\n";
-			}
-			
-			summaryText += "\n";
-		});
-		
-		return summaryText;
-	}
-
-	// Helper function to format preview data as a table
-	function formatPreviewDataAsTable(previewData, headers) {
-		// Simple implementation - can be enhanced for better formatting
-		let table = "";
-		
-		// Add headers
-		if (headers && headers.length > 0) {
-			table += headers.join("\t") + "\n";
-			table += headers.map(() => "--------").join("\t") + "\n";
-		}
-		
-		// Add data rows
-		previewData.forEach(row => {
-			table += row.join("\t") + "\n";
-		});
-		
-		return table;
-	}
-
 	const showMessage = async (message) => {
 		const _chatId = JSON.parse(JSON.stringify($chatId));
 		let _messageId = JSON.parse(JSON.stringify(message.id));
@@ -344,8 +235,74 @@
 		saveChatHandler(_chatId, history);
 	};
 
+	// Improved chat completion event handler to better work with agent responses
+	const chatCompletionEventHandler = async (data, message, chatId) => {
+		console.log('💬 chatCompletionEventHandler data:', JSON.stringify(data));
+		console.log('💬 Message ID:', message.id);
+		console.log('💬 Message before update:', message.content ? message.content.substring(0, 50) + '...' : 'empty');
+
+		if (data && chatId === $chatId) {
+			// Update the message with the new data
+			if (data.content !== undefined) {
+				// Don't overwrite if empty content is provided
+				if (data.content !== "" || !message.content) {
+					message.content = data.content;
+				}
+			}
+
+			if (data.done !== undefined) {
+				message.done = data.done;
+			}
+
+			if (data.loading !== undefined) {
+				message.loading = data.loading;
+			}
+
+			if (data.error !== undefined) {
+				message.error = data.error;
+			}
+
+			if (data.status !== undefined) {
+				message.status = data.status;
+			}
+
+			// Handle agent-specific data - check if content is a stringified JSON
+			try {
+				if (typeof message.content === 'string' && message.content.trim().startsWith('{') && message.content.trim().endsWith('}')) {
+					const parsedContent = JSON.parse(message.content);
+					if (parsedContent.success && parsedContent.response) {
+						console.log('🤖 Agent response detected:', parsedContent.response.type);
+						// Content is already in the correct format, no need to transform
+					}
+				}
+			} catch (e) {
+				// Not JSON or not in agent format, continue with normal processing
+			}
+
+			// Force update in history object to ensure UI updates
+			if (history && history.messages) {
+				history.messages[message.id] = {...message};
+				console.log('✅ Updated message in history object');
+			}
+			
+			// If loading is complete, scroll to bottom
+			if (data.done || data.loading === false) {
+				if (autoScroll) {
+					scrollToBottom();
+				}
+			}
+		}
+
+		// Update the message in history to ensure UI updates
+		if (message.done && history && history.messages) {
+			history.messages[message.id] = { ...message };
+			console.log('📝 Updated final message in history');
+		}
+	};
+
+	// Improved socket event handler with better agent response support
 	const chatEventHandler = async (event, cb) => {
-		console.log(event);
+		console.log('📥 Socket event received:', event && JSON.stringify(event).substring(0, 200) + '...');
 
 		if (event.chat_id === $chatId) {
 			await tick();
@@ -355,7 +312,35 @@
 				const type = event?.data?.type ?? null;
 				const data = event?.data?.data ?? null;
 
-				if (type === 'status') {
+				console.log('📥 Event type:', type, 'Data ID:', data?.id);
+				console.log('📥 Content preview:', data?.content ? data.content.substring(0, 50) + '...' : 'No content');
+
+				if (type === 'chat:completion') {
+					console.log('🤖 Processing agent API response from socket event');
+					
+					if (data.content) {
+						console.log('📝 Content length:', data.content.length);
+						message.content = data.content;
+						
+						if (data.done !== false) {
+							message.done = true;
+							console.log('✅ Marking message as done');
+						}
+						
+						// Force history update
+						history.messages[event.message_id] = { ...message };
+						console.log('✅ Updated message in history.messages');
+						
+						// Force UI update
+						await tick();
+						console.log('✅ Forced UI update');
+						
+						// If done and autoScroll is enabled, scroll to bottom
+						if (data.done && autoScroll) {
+							scrollToBottom();
+						}
+					}
+				} else if (type === 'status') {
 					if (message?.statusHistory) {
 						message.statusHistory.push(data);
 					} else {
@@ -364,31 +349,32 @@
 				} else if (type === 'source' || type === 'citation') {
 					if (data?.type === 'code_execution') {
 						// Code execution; update existing code execution by ID, or add new one.
-						if (!message?.code_executions) {
-							message.code_executions = [];
+						if (!message.codeExecutions) {
+							message.codeExecutions = [];
 						}
-
-						const existingCodeExecutionIndex = message.code_executions.findIndex(
-							(execution) => execution.id === data.id
+						const existingIndex = message.codeExecutions.findIndex(
+							(exec) => exec.id === data.execution_id
 						);
-
-						if (existingCodeExecutionIndex !== -1) {
-							message.code_executions[existingCodeExecutionIndex] = data;
+						if (existingIndex !== -1) {
+							message.codeExecutions[existingIndex] = {
+								...message.codeExecutions[existingIndex],
+								...data,
+								updated: Date.now()
+							};
 						} else {
-							message.code_executions.push(data);
+							message.codeExecutions.push({
+								...data,
+								created: Date.now(),
+								updated: Date.now()
+							});
 						}
-
-						message.code_executions = message.code_executions;
 					} else {
-						// Regular source.
-						if (message?.sources) {
-							message.sources.push(data);
-						} else {
-							message.sources = [data];
+						// Standard source
+						if (!message.sources) {
+							message.sources = [];
 						}
-					}
-				} else if (type === 'chat:completion') {
-					chatCompletionEventHandler(data, message, event.chat_id);
+							message.sources.push(data);
+						}
 				} else if (type === 'chat:title') {
 					chatTitle.set(data);
 					currentChatPage.set(1);
@@ -397,8 +383,10 @@
 					chat = await getChatById(localStorage.token, $chatId);
 					allTags.set(await getAllTags(localStorage.token));
 				} else if (type === 'message') {
+					console.log('📝 Appending message content:', data.content);
 					message.content += data.content;
 				} else if (type === 'replace') {
+					console.log('📝 Replacing message content:', data.content);
 					message.content = data.content;
 				} else if (type === 'action') {
 					if (data.action === 'continue') {
@@ -408,56 +396,19 @@
 							continueButton.click();
 						}
 					}
-				} else if (type === 'confirmation') {
-					eventCallback = cb;
-
-					eventConfirmationInput = false;
-					showEventConfirmation = true;
-
-					eventConfirmationTitle = data.title;
-					eventConfirmationMessage = data.message;
-				} else if (type === 'execute') {
-					eventCallback = cb;
-
-					try {
-						// Use Function constructor to evaluate code in a safer way
-						const asyncFunction = new Function(`return (async () => { ${data.code} })()`);
-						const result = await asyncFunction(); // Await the result of the async function
-
-						if (cb) {
-							cb(result);
-						}
-					} catch (error) {
-						console.error('Error executing code:', error);
-					}
-				} else if (type === 'input') {
-					eventCallback = cb;
-
-					eventConfirmationInput = true;
-					showEventConfirmation = true;
-
-					eventConfirmationTitle = data.title;
-					eventConfirmationMessage = data.message;
-					eventConfirmationInputPlaceholder = data.placeholder;
-					eventConfirmationInputValue = data?.value ?? '';
-				} else if (type === 'notification') {
-					const toastType = data?.type ?? 'info';
-					const toastContent = data?.content ?? '';
-
-					if (toastType === 'success') {
-						toast.success(toastContent);
-					} else if (toastType === 'error') {
-						toast.error(toastContent);
-					} else if (toastType === 'warning') {
-						toast.warning(toastContent);
-					} else {
-						toast.info(toastContent);
-					}
 				} else {
-					console.log('Unknown message type', data);
+					console.log('❓ Unknown message type:', type, data);
 				}
 
-				history.messages[event.message_id] = message;
+				// Force history to update
+				history = { ...history };
+
+				// Callback
+				if (cb && typeof cb === 'function') {
+					cb(event, message);
+					}
+				} else {
+				console.warn('⚠️ No message found for ID:', event.message_id);
 			}
 		}
 	};
@@ -503,6 +454,8 @@
 
 	onMount(async () => {
 		console.log('mounted');
+		console.log("Initial userAPIKey value:", $userAPIKey ? "Present" : "Empty/None");
+		
 		window.addEventListener('message', onMessageHandler);
 		$socket?.on('chat-events', chatEventHandler);
 
@@ -559,6 +512,16 @@
 		chatInput?.focus();
 
 		chats.subscribe(() => {});
+
+		window.addEventListener('beforeunload', (event) => {
+			localStorage.setItem(`chat-input-${$chatId}`, JSON.stringify({ 
+				prompt,
+				files,
+				selectedToolIds,
+				webSearchEnabled,
+				imageGenerationEnabled
+			}));
+		});
 	});
 
 	onDestroy(() => {
@@ -575,9 +538,7 @@
 			name: fileData.name,
 			url: fileData.url,
 			headers: {
-				Authorization: `Bearer ${token}`,
-				'Content-Type': 'application/json',
-    			'Accept-Language': 'zh-CN'
+				Authorization: `Bearer ${token}`
 			}
 		});
 
@@ -585,8 +546,6 @@
 		if (!fileData?.id || !fileData?.name || !fileData?.url || !fileData?.headers?.Authorization) {
 			throw new Error('Invalid file data provided');
 		}
-
-		const isExcel = fileData.name.match(/\.(xlsx|xls|xlsm|xlsb|csv)$/i);
 
 		const tempItemId = uuidv4();
 		const fileItem = {
@@ -676,7 +635,6 @@
 
 			files = files;
 			toast.success($i18n.t('File uploaded successfully'));
-
 		} catch (e) {
 			console.error('Error uploading file:', e);
 			files = files.filter((f) => f.itemId !== tempItemId);
@@ -950,27 +908,28 @@
 		}
 	};
 	const chatCompletedHandler = async (chatId, modelId, responseMessageId, messages) => {
+		console.log('✅ chatCompletedHandler called:', { chatId, modelId, responseMessageId });
+		console.log('📝 messages to save:', messages.length > 0 ? messages[0].role : 'empty');
+		
 		const res = await chatCompleted(localStorage.token, {
 			model: modelId,
 			messages: messages.map((m) => ({
 				id: m.id,
 				role: m.role,
 				content: m.content,
-				info: m.info ? m.info : undefined,
-				timestamp: m.timestamp,
-				...(m.usage ? { usage: m.usage } : {}),
-				...(m.sources ? { sources: m.sources } : {})
+				models: m.models
 			})),
 			model_item: $models.find((m) => m.id === modelId),
 			chat_id: chatId,
 			session_id: $socket?.id,
 			id: responseMessageId
 		}).catch((error) => {
+			console.error('❌ Error in chatCompleted:', error);
 			toast.error(`${error}`);
-			messages.at(-1).error = { content: error };
-
 			return null;
 		});
+
+		console.log('✅ chatCompleted response:', res ? 'success' : 'failed');
 
 		if (res !== null && res.messages) {
 			// Update chat history with the new messages
@@ -1192,158 +1151,20 @@
 		}
 	};
 
-	const chatCompletionEventHandler = async (data, message, chatId) => {
-		const { id, done, choices, content, sources, selected_model_id, error, usage } = data;
-
-		if (error) {
-			await handleOpenAIError(error, message);
-		}
-
-		if (sources) {
-			message.sources = sources;
-		}
-
-		if (choices) {
-			if (choices[0]?.message?.content) {
-				// Non-stream response
-				message.content += choices[0]?.message?.content;
-			} else {
-				// Stream response
-				let value = choices[0]?.delta?.content ?? '';
-				if (message.content == '' && value == '\n') {
-					console.log('Empty response');
-				} else {
-					message.content += value;
-
-					if (navigator.vibrate && ($settings?.hapticFeedback ?? false)) {
-						navigator.vibrate(5);
-					}
-
-					// Emit chat event for TTS
-					const messageContentParts = getMessageContentParts(
-						message.content,
-						$config?.audio?.tts?.split_on ?? 'punctuation'
-					);
-					messageContentParts.pop();
-
-					// dispatch only last sentence and make sure it hasn't been dispatched before
-					if (
-						messageContentParts.length > 0 &&
-						messageContentParts[messageContentParts.length - 1] !== message.lastSentence
-					) {
-						message.lastSentence = messageContentParts[messageContentParts.length - 1];
-						eventTarget.dispatchEvent(
-							new CustomEvent('chat', {
-								detail: {
-									id: message.id,
-									content: messageContentParts[messageContentParts.length - 1]
-								}
-							})
-						);
-					}
-				}
-			}
-		}
-
-		if (content) {
-			// REALTIME_CHAT_SAVE is disabled
-			message.content = content;
-
-			if (navigator.vibrate && ($settings?.hapticFeedback ?? false)) {
-				navigator.vibrate(5);
-			}
-
-			// Emit chat event for TTS
-			const messageContentParts = getMessageContentParts(
-				message.content,
-				$config?.audio?.tts?.split_on ?? 'punctuation'
-			);
-			messageContentParts.pop();
-
-			// dispatch only last sentence and make sure it hasn't been dispatched before
-			if (
-				messageContentParts.length > 0 &&
-				messageContentParts[messageContentParts.length - 1] !== message.lastSentence
-			) {
-				message.lastSentence = messageContentParts[messageContentParts.length - 1];
-				eventTarget.dispatchEvent(
-					new CustomEvent('chat', {
-						detail: {
-							id: message.id,
-							content: messageContentParts[messageContentParts.length - 1]
-						}
-					})
-				);
-			}
-		}
-
-		if (selected_model_id) {
-			message.selectedModelId = selected_model_id;
-			message.arena = true;
-		}
-
-		if (usage) {
-			message.usage = usage;
-		}
-
-		history.messages[message.id] = message;
-
-		if (done) {
-			message.done = true;
-
-			if ($settings.responseAutoCopy) {
-				copyToClipboard(message.content);
-			}
-
-			if ($settings.responseAutoPlayback && !$showCallOverlay) {
-				await tick();
-				document.getElementById(`speak-button-${message.id}`)?.click();
-			}
-
-			// Emit chat event for TTS
-			let lastMessageContentPart =
-				getMessageContentParts(message.content, $config?.audio?.tts?.split_on ?? 'punctuation')?.at(
-					-1
-				) ?? '';
-			if (lastMessageContentPart) {
-				eventTarget.dispatchEvent(
-					new CustomEvent('chat', {
-						detail: { id: message.id, content: lastMessageContentPart }
-					})
-				);
-			}
-			eventTarget.dispatchEvent(
-				new CustomEvent('chat:finish', {
-					detail: {
-						id: message.id,
-						content: message.content
-					}
-				})
-			);
-
-			history.messages[message.id] = message;
-			await chatCompletedHandler(
-				chatId,
-				message.model,
-				message.id,
-				createMessagesList(history, message.id)
-			);
-		}
-
-		console.log(data);
-		if (autoScroll) {
-			scrollToBottom();
-		}
-	};
-
-	//////////////////////////
-	// Chat functions
-	//////////////////////////
-
 	const submitPrompt = async (userPrompt, { _raw = false } = {}) => {
-		console.log('submitPrompt', userPrompt, $chatId);
+		console.log('🚀 submitPrompt', userPrompt, $chatId);
+		console.log('📋 Current history IDs:', { 
+			currentId: history.currentId, 
+			messagesCount: Object.keys(history.messages).length 
+		});
 
 		const messages = createMessagesList(history, history.currentId);
+		if (messages) {
+			console.log('📋 Last message:', messages.length > 0 ? 
+				{ role: messages[messages.length-1].role, content: messages[messages.length-1].content.slice(0, 50) + '...' } : 
+				'No messages');
+		}
+
 		const _selectedModels = selectedModels.map((modelId) =>
 			$models.map((m) => m.id).includes(modelId) ? modelId : ''
 		);
@@ -1443,167 +1264,8 @@
 		await sendPrompt(history, userPrompt, userMessageId, { newChat: true });
 	};
 
-	const sendPrompt = async (
-		_history,
-		prompt: string,
-		parentId: string,
-		{ modelId = null, modelIdx = null, newChat = false } = {}
-	) => {
-		let _chatId = JSON.parse(JSON.stringify($chatId));
-		_history = JSON.parse(JSON.stringify(_history));
-
-		let excelSummaries = [];
-		for (const file of files) {
-			if (isExcelFile(file)) {
-				const summary = await processExcelFile(file);
-				excelSummaries.push(summary);
-			}
-		}
-
-		// If Excel summaries exist, add them to the message content
-		if (excelSummaries.length > 0) {
-			// Create a formatted summary to prepend to the user's message
-			const excelSummaryText = createExcelSummaryText(excelSummaries);
-			
-			// Add the Excel summary to the message
-			const userMessageId = uuidv4();
-			history.messages[userMessageId] = {
-				id: userMessageId,
-				role: 'user',
-				content: prompt,
-				files: files,
-				excelSummaries: excelSummaries, // Store the summaries for UI display
-				timestamp: Math.floor(Date.now() / 1000),
-				childrenIds: [],
-				parentId: history.currentId
-			};
-		}
-
-		const responseMessageIds: Record<PropertyKey, string> = {};
-		// If modelId is provided, use it, else use selected model
-		let selectedModelIds = modelId
-			? [modelId]
-			: atSelectedModel !== undefined
-				? [atSelectedModel.id]
-				: selectedModels;
-
-		// Create response messages for each selected model
-		for (const [_modelIdx, modelId] of selectedModelIds.entries()) {
-			const model = $models.filter((m) => m.id === modelId).at(0);
-
-			if (model) {
-				let responseMessageId = uuidv4();
-				let responseMessage = {
-					parentId: parentId,
-					id: responseMessageId,
-					childrenIds: [],
-					role: 'assistant',
-					content: '',
-					model: model.id,
-					modelName: model.name ?? model.id,
-					modelIdx: modelIdx ? modelIdx : _modelIdx,
-					userContext: null,
-					timestamp: Math.floor(Date.now() / 1000) // Unix epoch
-				};
-
-				// Add message to history and Set currentId to messageId
-				history.messages[responseMessageId] = responseMessage;
-				history.currentId = responseMessageId;
-
-				// Append messageId to childrenIds of parent message
-				if (parentId !== null && history.messages[parentId]) {
-					// Add null check before accessing childrenIds
-					history.messages[parentId].childrenIds = [
-						...history.messages[parentId].childrenIds,
-						responseMessageId
-					];
-				}
-
-				responseMessageIds[`${modelId}-${modelIdx ? modelIdx : _modelIdx}`] = responseMessageId;
-			}
-		}
-		history = history;
-
-		// Create new chat if newChat is true and first user message
-		const currentParentId = _history.messages[_history.currentId].parentId;
-		let create_new_chat: boolean = newChat && !currentParentId;
-		let has_assistant_greeting: boolean = _history.messages[currentParentId]?.role === 'assistant' && !(_history.messages[currentParentId]?.parentId ?? false);
-		create_new_chat = create_new_chat || has_assistant_greeting;
-		if (create_new_chat) {
-			_chatId = await initChatHandler(_history);
-		}
-
-		await tick();
-
-		_history = JSON.parse(JSON.stringify(history));
-		// Save chat after all messages have been created
-		await saveChatHandler(_chatId, _history);
-
-		await Promise.all(
-			selectedModelIds.map(async (modelId, _modelIdx) => {
-				console.log('modelId', modelId);
-				const model = $models.filter((m) => m.id === modelId).at(0);
-
-				if (model) {
-					const messages = createMessagesList(_history, parentId);
-					// If there are image files, check if model is vision capable
-					const hasImages = messages.some((message) =>
-						message.files?.some((file) => file.type === 'image')
-					);
-
-					if (hasImages && !(model.info?.meta?.capabilities?.vision ?? true)) {
-						toast.error(
-							$i18n.t('Model {{modelName}} is not vision capable', {
-								modelName: model.name ?? model.id
-							})
-						);
-					}
-
-					let responseMessageId =
-						responseMessageIds[`${modelId}-${modelIdx ? modelIdx : _modelIdx}`];
-					let responseMessage = _history.messages[responseMessageId];
-
-					let userContext = null;
-					if ($settings?.memory ?? false) {
-						if (userContext === null) {
-							const res = await queryMemory(localStorage.token, prompt).catch((error) => {
-								toast.error(`${error}`);
-								return null;
-							});
-							if (res) {
-								if (res.documents[0].length > 0) {
-									userContext = res.documents[0].reduce((acc, doc, index) => {
-										const createdAtTimestamp = res.metadatas[0][index].created_at;
-										const createdAtDate = new Date(createdAtTimestamp * 1000)
-											.toISOString()
-											.split('T')[0];
-										return `${acc}${index + 1}. [${createdAtDate}]. ${doc}\n`;
-									}, '');
-								}
-
-								console.log(userContext);
-							}
-						}
-					}
-					responseMessage.userContext = userContext;
-
-					const chatEventEmitter = await getChatEventEmitter(model.id, _chatId);
-
-					scrollToBottom();
-					await sendPromptSocket(_history, model, responseMessageId, _chatId);
-
-					if (chatEventEmitter) clearInterval(chatEventEmitter);
-				} else {
-					toast.error($i18n.t(`Model {{modelId}} not found`, { modelId }));
-				}
-			})
-		);
-
-		currentChatPage.set(1);
-		chats.set(await getChatList(localStorage.token, $currentChatPage));
-	};
-
 	const sendPromptSocket = async (_history, model, responseMessageId, _chatId) => {
+		console.log('🔌 sendPromptSocket:', { modelId: model.id, responseMessageId, chatId: _chatId });
 		const responseMessage = _history.messages[responseMessageId];
 		const userMessage = _history.messages[responseMessage.parentId];
 
@@ -1630,6 +1292,31 @@
 		);
 		await tick();
 
+		// Get user location if needed
+		const getUserLocation = async () => {
+			if ($settings?.userLocation) {
+				try {
+					return await getAndUpdateUserLocation(localStorage.token);
+				} catch (err) {
+					console.error(err);
+					return undefined;
+				}
+			}
+			return undefined;
+		};
+		
+		// Get the user location
+		const userLocation = await getUserLocation();
+		
+		// Log the API key for debugging
+		console.log("Sending userAPIKey to backend:", $userAPIKey ? "Present" : "Empty/None");
+
+		// Set the response message content to processing message (if we have a nice settings)
+		responseMessage.content = ''
+		if ($settings?.processingMessage ?? false) {
+			responseMessage.content = $settings.processingMessage === true ? '...' : $settings.processingMessage;
+		}
+
 		const stream =
 			model?.info?.params?.stream_response ??
 			$settings?.params?.stream_response ??
@@ -1643,12 +1330,8 @@
 						content: `${promptTemplate(
 							params?.system ?? $settings?.system ?? '',
 							$user.name,
-							$settings?.userLocation
-								? await getAndUpdateUserLocation(localStorage.token).catch((err) => {
-										console.error(err);
-										return undefined;
-									})
-								: undefined
+							userLocation,
+							$userAPIKey
 						)}${
 							(responseMessage?.userContext ?? null)
 								? `\n\nUser Context:\n${responseMessage?.userContext ?? ''}`
@@ -1660,7 +1343,7 @@
 				...message,
 				content: removeDetails(message.content, ['reasoning', 'code_interpreter'])
 			}))
-		].filter((message) => message);
+		].filter(Boolean);
 
 		messages = messages
 			.map((message, idx, arr) => ({
@@ -1729,21 +1412,20 @@
 							? webSearchEnabled || ($settings?.webSearch ?? false) === 'always'
 							: false
 				},
-				variables: {
-					...getPromptVariables(
+				variables: (() => {
+					console.log("Sending userAPIKey to backend:", $userAPIKey ? "Present" : "Empty/None");
+					// Create variables without using await
+					const promptVars = getPromptVariables(
 						$user.name,
-						$settings?.userLocation
-							? await getAndUpdateUserLocation(localStorage.token).catch((err) => {
-									console.error(err);
-									return undefined;
-								})
-							: undefined
-					)
-				},
+						userLocation,
+						$userAPIKey
+					);
+					return promptVars;
+				})(),
 				model_item: $models.find((m) => m.id === model.id),
 
 				session_id: $socket?.id,
-				chat_id: $chatId,
+				chat_id: _chatId,
 				id: responseMessageId,
 
 				...(!$temporaryChatEnabled &&
@@ -1790,6 +1472,99 @@
 
 		await tick();
 		scrollToBottom();
+	};
+
+	// Send prompt to backend and handle the response
+	const sendPrompt = async (_history, userPrompt, userMessageId, options = {}) => {
+		const { modelId, modelIdx = 0, newChat = false } = options;
+		let _chatId = $chatId;
+		
+		if (newChat && !$temporaryChatEnabled && !_chatId) {
+			console.log('🆕 Creating new chat for prompt');
+			try {
+				chat = await createNewChat(localStorage.token, {
+					id: _chatId,
+					title: $i18n.t('New Chat'),
+					models: selectedModels,
+					system: $settings.system ?? undefined,
+					params: params,
+					history: history,
+					messages: createMessagesList(history, history.currentId),
+					tags: [],
+					timestamp: Date.now()
+				});
+
+				_chatId = chat.id;
+				await chatId.set(_chatId);
+
+				await chats.set(await getChatList(localStorage.token, $currentChatPage));
+				currentChatPage.set(1);
+
+				// Use $app/navigation instead of window.history.replaceState
+				try {
+					window.history.pushState({}, '', `/c/${_chatId}`);
+				} catch (e) {
+					console.error('❌ Error updating URL:', e);
+				}
+			} catch (e) {
+				console.error('❌ Error creating chat:', e);
+				_chatId = null;
+			}
+		}
+		
+		const messages = createMessagesList(_history, userMessageId);
+		const userMessage = messages.at(-1);
+
+		// Create response message
+		const responseMessageId = uuidv4();
+		let model;
+		
+		if (modelId) {
+			model = $models.find((m) => m.id === modelId);
+		} else {
+			// If user message has models defined, use the first one
+			const userModelId = (userMessage?.models ?? selectedModels)[0];
+			model = $models.find((m) => m.id === userModelId);
+		}
+
+		if (!model) {
+			toast.error($i18n.t('Model not selected'));
+			return;
+		}
+
+		// Special handling for accounting_en model which uses our agent API
+		const isAgentModel = model.id === 'accounting_en' || model.id.includes('accounting');
+		console.log(`🏷️ Model ${model.id} is agent model: ${isAgentModel}`);
+
+		const responseMessage = {
+			id: responseMessageId,
+			parentId: userMessageId,
+			childrenIds: [],
+			role: 'assistant',
+			content: '',
+			model: model.id,
+			modelName: model?.name ?? model.id,
+			modelIdx: modelIdx,
+			timestamp: Math.floor(Date.now() / 1000),
+			// Flag to indicate this is an agent response
+			isAgentResponse: isAgentModel
+		};
+
+		// Add message to history and Set currentId to responseMessageId
+		_history.messages[responseMessageId] = responseMessage;
+		_history.currentId = responseMessageId;
+		_history.messages[userMessageId].childrenIds.push(responseMessageId);
+
+		await tick();
+		
+		if (autoScroll) {
+			scrollToBottom();
+		}
+
+		// Send to backend via socket
+		await sendPromptSocket(_history, model, responseMessageId, _chatId);
+		
+		return responseMessageId;
 	};
 
 	const handleOpenAIError = async (error, responseMessage) => {
@@ -1914,7 +1689,10 @@
 				.at(0);
 
 			if (model) {
-				await sendPromptSocket(history, model, responseMessage.id, _chatId);
+				await sendPrompt(history, responseMessage.content, responseMessage.parentId, {
+					modelId: model.id,
+					modelIdx: responseMessage.modelIdx
+				});
 			}
 		}
 	};
@@ -2015,21 +1793,21 @@
 	};
 
 	const initHistoryWithGreetings = () => {
-    	let messageId = uuidv4();
-    	history.messages[messageId] = {
-        	id: messageId,
-        	role: 'assistant',
-        	content: $i18n.t(
-            	"Hi! I'm Kneron Analytics Agent, your financial analysis assistant. I can analyze statements, identify trends, calculate metrics and generate reports. What financial data would you like to examine - balance sheets, income statements, cash flows, or other information?"
-        	),
-       		model: 'Assistant',
-        	modelName: 'Kneron Analytics Agent',
-        	parentId: null,
-        	timestamp: Math.floor(Date.now() / 1000),
-        	childrenIds: [],
-        	done: true
-    	};
-    	history.currentId = messageId;
+		let messageId = uuidv4();
+		history.messages[messageId] = {
+			id: messageId,
+			role: 'assistant',
+			content: $i18n.t(
+				"Hello! I'm your accounting assistant. I can help you analyze financial data, prepare reports, and provide insights on your business performance. Please share the data you'd like me to analyze or let me know what financial questions you have."
+			),
+			model: 'Assistant',
+			modelName: 'Assistant',
+			parentId: null,
+			timestamp: Math.floor(Date.now() / 1000),
+			childrenIds: [],
+			done: true
+		};
+		history.currentId = messageId;
 	};
 </script>
 

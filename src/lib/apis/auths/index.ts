@@ -620,6 +620,7 @@ export const updateJWTExpiresDuration = async (token: string, duration: string) 
 
 export const createAPIKey = async (token: string) => {
 	let error = null;
+	console.log('Creating API key');
 
 	const res = await fetch(`${WEBUI_API_BASE_URL}/auths/api_key`, {
 		method: 'POST',
@@ -645,7 +646,7 @@ export const createAPIKey = async (token: string) => {
 
 export const getAPIKey = async (token: string) => {
 	let error = null;
-
+	console.log('Getting API key');
 	const res = await fetch(`${WEBUI_API_BASE_URL}/auths/api_key`, {
 		method: 'GET',
 		headers: {

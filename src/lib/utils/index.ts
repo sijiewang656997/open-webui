@@ -772,10 +772,11 @@ export const blobToFile = (blob, fileName) => {
 	return file;
 };
 
-export const getPromptVariables = (user_name, user_location) => {
+export const getPromptVariables = (user_name, user_location, user_api_key) => {
 	return {
 		'{{USER_NAME}}': user_name,
 		'{{USER_LOCATION}}': user_location || 'Unknown',
+		'{{USER_API_KEY}}': user_api_key || '',
 		'{{CURRENT_DATETIME}}': getCurrentDateTime(),
 		'{{CURRENT_DATE}}': getFormattedDate(),
 		'{{CURRENT_TIME}}': getFormattedTime(),
@@ -792,7 +793,8 @@ export const getPromptVariables = (user_name, user_location) => {
 export const promptTemplate = (
 	template: string,
 	user_name?: string,
-	user_location?: string
+	user_location?: string,
+	user_api_key?: string
 ): string => {
 	// Get the current date
 	const currentDate = new Date();
@@ -851,6 +853,14 @@ export const promptTemplate = (
 	} else {
 		// Replace {{USER_LOCATION}} in the template with 'Unknown' if no location is provided
 		template = template.replace('{{USER_LOCATION}}', 'LOCATION_UNKNOWN');
+	}
+
+	if (user_api_key) {
+		// Replace {{USER_API_KEY}} in the template with the user's API key
+		template = template.replace('{{USER_API_KEY}}', user_api_key);
+	} else {
+		// Replace {{USER_API_KEY}} in the template with empty string if no API key is provided
+		template = template.replace('{{USER_API_KEY}}', '');
 	}
 
 	return template;

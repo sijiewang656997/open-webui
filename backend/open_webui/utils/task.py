@@ -33,14 +33,35 @@ def get_task_model_id(
 
 
 def prompt_variables_template(template: str, variables: dict[str, str]) -> str:
+    # Log variables for debugging (redact sensitive info)
+    debug_vars = {k: ("**REDACTED**" if "API_KEY" in k else v) for k, v in variables.items()}
+    log.debug(f"Template variables: {debug_vars}")
+    
+    # Specifically check for USER_API_KEY variable
+    if "{{USER_API_KEY}}" in variables:
+        log.debug(f"USER_API_KEY in variables: {'Present (not empty)' if variables['{{USER_API_KEY}}'] else 'Empty string'}")
+    else:
+        log.debug("USER_API_KEY not found in variables dictionary")
+    
     for variable, value in variables.items():
+        log.debug(f"Replacing variable: {variable} with value length: {len(str(value))}")
         template = template.replace(variable, value)
+        
+    # Check for any remaining API key placeholders after replacement
+    if "{{USER_API_KEY}}" in template:
+        log.debug("WARNING: Template still contains {{USER_API_KEY}} after variable replacement")
+        
     return template
 
 
 def prompt_template(
-    template: str, user_name: Optional[str] = None, user_location: Optional[str] = None
+    template: str, 
+    user_name: Optional[str] = None, 
+    user_location: Optional[str] = None,
+    user_api_key: Optional[str] = None
 ) -> str:
+    log.debug(f"prompt_template called with API key: {'Present' if user_api_key else 'Empty/None'}")
+    
     # Get the current date
     current_date = datetime.now()
 
@@ -69,6 +90,19 @@ def prompt_template(
     else:
         # Replace {{USER_LOCATION}} in the template with "Unknown"
         template = template.replace("{{USER_LOCATION}}", "Unknown")
+        
+    if user_api_key:
+        # Replace {{USER_API_KEY}} in the template with the user's API key
+        template = template.replace("{{USER_API_KEY}}", user_api_key)
+        log.debug("API key successfully replaced in template")
+    else:
+        # Replace {{USER_API_KEY}} in the template with empty string
+        template = template.replace("{{USER_API_KEY}}", "")
+        log.debug("Empty API key replaced in template")
+        
+    # Check if template still contains any API KEY placeholders
+    if "{{USER_API_KEY}}" in template:
+        log.debug("WARNING: Template still contains {{USER_API_KEY}} after replacement")
 
     return template
 
@@ -196,7 +230,7 @@ def title_generation_template(
     template = prompt_template(
         template,
         **(
-            {"user_name": user.get("name"), "user_location": user.get("location")}
+            {"user_name": user.get("name"), "user_location": user.get("location"), "user_api_key": user.get("api_key")}
             if user
             else {}
         ),
@@ -215,7 +249,7 @@ def tags_generation_template(
     template = prompt_template(
         template,
         **(
-            {"user_name": user.get("name"), "user_location": user.get("location")}
+            {"user_name": user.get("name"), "user_location": user.get("location"), "user_api_key": user.get("api_key")}
             if user
             else {}
         ),
@@ -233,7 +267,7 @@ def image_prompt_generation_template(
     template = prompt_template(
         template,
         **(
-            {"user_name": user.get("name"), "user_location": user.get("location")}
+            {"user_name": user.get("name"), "user_location": user.get("location"), "user_api_key": user.get("api_key")}
             if user
             else {}
         ),
@@ -248,7 +282,7 @@ def emoji_generation_template(
     template = prompt_template(
         template,
         **(
-            {"user_name": user.get("name"), "user_location": user.get("location")}
+            {"user_name": user.get("name"), "user_location": user.get("location"), "user_api_key": user.get("api_key")}
             if user
             else {}
         ),
@@ -271,7 +305,7 @@ def autocomplete_generation_template(
     template = prompt_template(
         template,
         **(
-            {"user_name": user.get("name"), "user_location": user.get("location")}
+            {"user_name": user.get("name"), "user_location": user.get("location"), "user_api_key": user.get("api_key")}
             if user
             else {}
         ),
@@ -289,7 +323,7 @@ def query_generation_template(
     template = prompt_template(
         template,
         **(
-            {"user_name": user.get("name"), "user_location": user.get("location")}
+            {"user_name": user.get("name"), "user_location": user.get("location"), "user_api_key": user.get("api_key")}
             if user
             else {}
         ),

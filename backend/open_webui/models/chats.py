@@ -12,6 +12,7 @@ from pydantic import BaseModel, ConfigDict
 from sqlalchemy import BigInteger, Boolean, Column, String, Text, JSON
 from sqlalchemy import or_, func, select, and_, text
 from sqlalchemy.sql import exists
+from open_webui.internal.db import Session
 
 ####################
 # Chat DB Schema
@@ -907,6 +908,17 @@ class ChatTable:
                 return True
         except Exception:
             return False
+
+    @classmethod
+    def update_chat_messages_by_id(cls, chat_id, messages):
+        """Update the flat messages array of a chat by ID"""
+        with Session() as session:
+            chat = session.query(cls).filter(cls.id == chat_id).first()
+            if chat:
+                chat.messages = messages
+                session.commit()
+                return chat.to_dict()
+            return None
 
 
 Chats = ChatTable()

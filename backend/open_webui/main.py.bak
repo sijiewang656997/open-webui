@@ -1042,7 +1042,7 @@ async def chat_completion(
 
     model_item = form_data.pop("model_item", {})
     tasks = form_data.pop("background_tasks", None)
-
+    
     # Check if this is a direct LLM call that should use the agent API
     is_direct_llm_call = (
         model_item.get("direct", False) or 
@@ -1093,9 +1093,9 @@ async def chat_completion(
             
             # Transform for agent API call
             agent_data = {
-                "request": form_data.get("messages", [])[-1]["content"],
+                "message": form_data.get("messages", [])[-1]["content"],
                 "history": form_data.get("messages", [])[:-1],
-                "conversation_id": form_data.get("chat_id"),
+                "chat_id": form_data.get("chat_id"),
                 "message_id": form_data.get("id"),
                 "stream": stream
             }
@@ -1109,8 +1109,7 @@ async def chat_completion(
                     agent_url,
                     json=agent_data,
                     headers={
-                        "Accept-Language": "en",
-                        "Authorization": "Bearer token_59b8b43a_aiurmmm0", #f"Bearer {api_key}",
+                        "Authorization": f"Bearer {api_key}",
                         "Content-Type": "application/json"
                     },
                     timeout=300
@@ -1136,43 +1135,30 @@ async def chat_completion(
                 # Extract content from the response
                 response_content = ""
                 
-                # Check if we can use the entire response as a JSON string
-                try:
-                    # Add special handling for query_chart responses
-                    if isinstance(agent_response_data, dict) and agent_response_data.get("type") == "query_chart":
-                        print(f"📊 Detected query_chart response type")
-                    elif isinstance(agent_response_data, dict) and agent_response_data.get("response", {}).get("type") == "query_chart":
-                        print(f"📊 Detected nested query_chart response type")
-                    
-                    # Convert the entire response to a JSON string
-                    response_content = json.dumps(agent_response_data)
-                    print(f"📄 Using entire response as JSON string")
-                except Exception as e:
-                    print(f"⚠️ Error converting response to JSON string: {e}")
-                    # Fallback to extracting content using previous method
-                    if "response" in agent_response_data and isinstance(agent_response_data["response"], dict):
-                        if "content" in agent_response_data["response"]:
-                            response_content = agent_response_data["response"]["content"]
-                            print(f"📄 Found content in response.content")
-                        else:
-                            response_content = str(agent_response_data["response"])
-                            print(f"📄 Using full response object as content")
-                    elif "output" in agent_response_data:
-                        if isinstance(agent_response_data["output"], dict) and "content" in agent_response_data["output"]:
-                            response_content = agent_response_data["output"]["content"]
-                            print(f"📄 Found content in output.content")
-                        else:
-                            response_content = str(agent_response_data["output"])
-                            print(f"📄 Using full output object as content")
-                    elif "content" in agent_response_data:
-                        response_content = agent_response_data["content"]
-                        print(f"📄 Found direct content key")
-                    elif "text" in agent_response_data:
-                        response_content = agent_response_data["text"]
-                        print(f"📄 Found text key")
+                # Check common response formats
+                if "response" in agent_response_data and isinstance(agent_response_data["response"], dict):
+                    if "content" in agent_response_data["response"]:
+                        response_content = agent_response_data["response"]["content"]
+                        print(f"📄 Found content in response.content")
                     else:
-                        response_content = str(agent_response_data)
-                        print(f"⚠️ No standard content found, using full response as content")
+                        response_content = str(agent_response_data["response"])
+                        print(f"📄 Using full response object as content")
+                elif "output" in agent_response_data:
+                    if isinstance(agent_response_data["output"], dict) and "content" in agent_response_data["output"]:
+                        response_content = agent_response_data["output"]["content"]
+                        print(f"📄 Found content in output.content")
+                    else:
+                        response_content = str(agent_response_data["output"])
+                        print(f"📄 Using full output object as content")
+                elif "content" in agent_response_data:
+                    response_content = agent_response_data["content"]
+                    print(f"📄 Found direct content key")
+                elif "text" in agent_response_data:
+                    response_content = agent_response_data["text"]
+                    print(f"📄 Found text key")
+                else:
+                    response_content = str(agent_response_data)
+                    print(f"⚠️ No standard content found, using full response as content")
                 
                 print(f"📝 Final extracted content (first 200 chars): {response_content[:200]}...")
 
@@ -1182,128 +1168,18 @@ async def chat_completion(
                 
                 # Update the database directly
                 if chat_id and message_id:
-                    # Find the correct user message ID (most recent user message)
-                    user_message_id = None
-                    
-                    # First try to get from the JSON payload
-                    if form_data.get("messages") and len(form_data.get("messages")) > 0:
-                        # Get the most recent user message
-                        for msg in reversed(form_data.get("messages")):
-                            if msg.get("role") == "user":
-                                user_message_id = msg.get("id")
-                                break
-                    
-                    # If not found in messages, check history from the database
-                    if not user_message_id:
-                        # Fetch chat messages from the database
-                        chat_messages = Chats.get_messages_by_chat_id(chat_id)
-                        if chat_messages:
-                            # Find the most recent user message
-                            for msg_id, msg in chat_messages.items():
-                                if msg.get("role") == "user" and not msg.get("childrenIds"):
-                                    user_message_id = msg_id
-                                    break
-                    
-                    print(f"🔗 Linking assistant message {message_id} to parent user message: {user_message_id}")
-                    
-                    # Update the assistant message with proper parent reference and all required fields
                     Chats.upsert_message_to_chat_by_id_and_message_id(
                         chat_id,
                         message_id,
                         {
-                            "id": message_id,
                             "content": response_content,
                             "done": True,
-                            "model": form_data.get("model", "accounting_en"),
-                            "modelName": form_data.get("model", "accounting_en"), # Add modelName field
-                            "timestamp": int(time.time()),
-                            "role": "assistant",
-                            "parentId": user_message_id,
-                            "childrenIds": [],
-                            "isAgentResponse": True  # Flag to identify agent responses
+                            "model": form_data.get("model", "agent"),
+                            "timestamp": int(time.time())
                         }
                     )
-                    
-                    # Update the user message's childrenIds to include this response
-                    if user_message_id:
-                        user_message = Chats.get_message_by_id_and_message_id(chat_id, user_message_id)
-                        if user_message:
-                            child_ids = user_message.get("childrenIds", [])
-                            if message_id not in child_ids:
-                                child_ids.append(message_id)
-                                Chats.upsert_message_to_chat_by_id_and_message_id(
-                                    chat_id,
-                                    user_message_id,
-                                    {
-                                        "childrenIds": child_ids
-                                    }
-                                )
-                    
-                    # Update the chat's messages array with the new message
-                    chat_data = Chats.get_chat_by_id(chat_id)
-                    if chat_data:
-                        # Get existing messages 
-                        # In the original JSON, the flat messages array is at the top level
-                        # But in the ChatModel object, we need to extract from chat object
-                        messages_array = chat_data.chat.get("messages", [])
-                        
-                        # Create the complete message entry for the messages array
-                        new_message = {
-                            "id": message_id,
-                            "role": "assistant",
-                            "content": response_content,
-                            "model": form_data.get("model", "accounting_en"),
-                            "modelName": form_data.get("model", "accounting_en"), # Add modelName field
-                            "parentId": user_message_id,
-                            "childrenIds": [],
-                            "timestamp": int(time.time()),
-                            "done": True
-                        }
-                        
-                        # Check if message already exists in the array
-                        exists = False
-                        for i, msg in enumerate(messages_array):
-                            if msg.get("id") == message_id:
-                                messages_array[i] = new_message
-                                exists = True
-                                break
-                        
-                        if not exists:
-                            messages_array.append(new_message)
-                        
-                        # Also ensure we update the history structure correctly
-                        chat_history = chat_data.chat.get("history", {"messages": {}, "currentId": None})
-                        
-                        # Add the message to history.messages
-                        if "messages" not in chat_history:
-                            chat_history["messages"] = {}
-                        
-                        chat_history["messages"][message_id] = {
-                            "id": message_id,
-                            "role": "assistant",
-                            "content": response_content,
-                            "model": form_data.get("model", "accounting_en"),
-                            "modelName": form_data.get("model", "accounting_en"), # Add modelName field
-                            "parentId": user_message_id,
-                            "childrenIds": [],
-                            "timestamp": int(time.time()),
-                            "done": True
-                        }
-                        
-                        # Update the currentId in history
-                        chat_history["currentId"] = message_id
-                        
-                        # Prepare the chat object update with both flat messages and history structure
-                        chat_object = chat_data.chat
-                        chat_object["messages"] = messages_array
-                        chat_object["history"] = chat_history
-                        
-                        # Update the chat with complete data
-                        Chats.update_chat_by_id(chat_id, chat_object)
-                    
                     print(f"✅ Updated message {message_id} in chat {chat_id}")
                 
-                print(f"🔄 Response content: {response_content}")
                 # Create a response object in OpenAI format for middleware processing
                 response_obj = {
                     "id": message_id,
@@ -1324,11 +1200,7 @@ async def chat_completion(
                         "prompt_tokens": 0,
                         "completion_tokens": 0,
                         "total_tokens": 0
-                    },
-                    # Add these fields to ensure they're also captured in the middleware
-                    "role": "assistant",
-                    "parentId": user_message_id,
-                    "childrenIds": []
+                    }
                 }
                 
                 # Prepare for process_chat_response middleware
@@ -1751,138 +1623,6 @@ async def healthcheck():
 async def healthcheck_with_db():
     Session.execute(text("SELECT 1;")).all()
     return {"status": True}
-
-
-# Test endpoint for agent response
-@app.get("/test/agent-response")
-async def test_agent_response():
-    """Test endpoint for agent response formatting"""
-    sample_agent_response = {
-        "success": True,
-        "response": {
-            "type": "query_result",
-            "content": "This is a sample query result showing top SKUs by sales"
-        },
-        "metadata": {
-            "conversation_id": "test_conversation",
-            "requires_clarification": False
-        },
-        "results": {
-            "columns": ["SKU", "Total_Sales"],
-            "records": [
-                {"SKU": 24314164, "Total_Sales": 248576.55},
-                {"SKU": 24416346, "Total_Sales": 221792.23},
-                {"SKU": 24416344, "Total_Sales": 172090.62},
-                {"SKU": 24416345, "Total_Sales": 159972.99},
-                {"SKU": 24525835, "Total_Sales": 69370.29}
-            ],
-            "row_count": 5,
-            "sql_query": "SELECT SKU, SUM(TOTAL_SALES_$) AS Total_Sales FROM table_sales_out_35b6 GROUP BY SKU ORDER BY Total_Sales DESC LIMIT 5"
-        }
-    }
-    
-    # Return the response in the same format as the agent API would
-    return sample_agent_response
-
-
-# Test endpoint for agent chart response
-@app.get("/test/agent-chart")
-async def test_agent_chart():
-    """Test endpoint for agent chart response formatting"""
-    sample_chart_response = {
-        "success": True,
-        "response": {
-            "type": "chart",
-            "content": "This is a sample chart showing sales trend by month",
-            "chart_url": "https://quickchart.io/chart?c={type:'bar',data:{labels:['Jan','Feb','Mar','Apr','May'],datasets:[{label:'Sales',data:[50,60,70,180,190]}]}}",
-            "chart_config": {
-                "type": "bar",
-                "data": {
-                    "labels": ["Jan", "Feb", "Mar", "Apr", "May"],
-                    "datasets": [{
-                        "label": "Sales",
-                        "data": [50, 60, 70, 180, 190]
-                    }]
-                }
-            }
-        },
-        "metadata": {
-            "conversation_id": "test_conversation",
-            "requires_clarification": False
-        }
-    }
-    
-    # Return the response in the same format as the agent API would
-    return sample_chart_response
-
-
-# Test endpoint for direct agent response format
-@app.get("/test/agent-direct")
-async def test_agent_direct():
-    """Test endpoint for direct agent response format with query results"""
-    sample_direct_response = {
-        "success": True,
-        "type": "query_result",
-        "response": {
-            "type": "query_result",
-            "content": "This is a sample query result using direct structure"
-        },
-        "metadata": {
-            "conversation_id": "test_conversation",
-            "description": "This query selects the maximum value of the TOTAL_SALES column.",
-            "sql_query": "SELECT MAX(TOTAL_SALES) FROM sales_table"
-        },
-        "results": {
-            "columns": ["MAX(TOTAL_SALES)"],
-            "records": [{"MAX(TOTAL_SALES)": 248576.55000000005}],
-            "row_count": 1,
-            "description": "Maximum sales value query"
-        }
-    }
-    
-    # Return the response in the same format as might come directly from agent API
-    return sample_direct_response
-
-
-# Test endpoint for query chart response
-@app.get("/test/agent-chart-query")
-async def test_agent_chart_query():
-    """Test endpoint for query chart response format"""
-    sample_chart_query_response = {
-        "success": True,
-        "type": "query_chart",
-        "metadata": {
-            "chart_type": "bar", 
-            "conversation_id": "eb357ff7-b68a-436c-9a9c-14bfc39bb869",
-            "description": "This SQL query selects the SKU and the sum of TOTAL_SALES_$ for each SKU from the table_sales_out_35b6 table. It groups the results by SKU, orders them in descending order by the total sales amount, and limits the output to the top 10 SKUs with the highest total sales.",
-            "sql_query": "SELECT SKU,\n       SUM(TOTAL_SALES_$) AS Total_Sales\nFROM table_sales_out_35b6\nGROUP BY SKU\nORDER BY Total_Sales DESC\nLIMIT 10"
-        },
-        "response": {
-            "chart_url": "https://quickchart.io/chart?c=%7B%22type%22%3A%22bar%22%2C%22data%22%3A%7B%22labels%22%3A%5B%2224314164%22%2C%2224416346%22%2C%2224416344%22%2C%2224416345%22%2C%2224525835%22%2C%2224416343%22%2C%2224314165%22%2C%2224322177%22%2C%2224328047%22%2C%2224314166%22%5D%2C%22datasets%22%3A%5B%7B%22type%22%3A%22bar%22%2C%22label%22%3A%22Total_Sales%22%2C%22data%22%3A%5B248576.55%2C221792.23%2C172090.62%2C159972.99%2C69370.29%2C47606.11%2C39409.55%2C3868.15%2C1800.57%2C64.66%5D%7D%5D%7D%7D",
-            "content": "This SQL query selects the SKU and the sum of TOTAL_SALES_$ for each SKU from the table_sales_out_35b6 table. It groups the results by SKU, orders them in descending order by the total sales amount, and limits the output to the top 10 SKUs with the highest total sales. Here's a bar chart visualization of the data.",
-            "type": "query_chart"
-        },
-        "results": {
-            "columns": ["SKU", "Total_Sales"],
-            "records": [
-                {"SKU": 24314164, "Total_Sales": 248576.55},
-                {"SKU": 24416346, "Total_Sales": 221792.23},
-                {"SKU": 24416344, "Total_Sales": 172090.62},
-                {"SKU": 24416345, "Total_Sales": 159972.99},
-                {"SKU": 24525835, "Total_Sales": 69370.29},
-                {"SKU": 24416343, "Total_Sales": 47606.11},
-                {"SKU": 24314165, "Total_Sales": 39409.55},
-                {"SKU": 24322177, "Total_Sales": 3868.15},
-                {"SKU": 24328047, "Total_Sales": 1800.57},
-                {"SKU": 24314166, "Total_Sales": 64.66}
-            ],
-            "row_count": 10,
-            "description": "Top 10 Total Sales by SKU"
-        }
-    }
-    
-    # Return the response in the same format as the agent API would
-    return sample_chart_query_response
 
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")

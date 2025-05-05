@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { prompts, user } from '$lib/stores';
+	import { prompts, user, userAPIKey } from '$lib/stores';
 	import {
 		findWordIndices,
 		getUserPosition,
@@ -93,6 +93,12 @@
 		if (command.content.includes('{{USER_LANGUAGE}}')) {
 			const language = localStorage.getItem('locale') || 'en-US';
 			text = text.replaceAll('{{USER_LANGUAGE}}', language);
+		}
+
+		if (command.content.includes('{{USER_API_KEY}}')) {
+			console.log("$userAPIKey in prompts", $userAPIKey);
+			const apiKey = $userAPIKey || '';
+			text = text.replace(/{{USER_API_KEY}}/g, apiKey);
 		}
 
 		if (command.content.includes('{{CURRENT_DATE}}')) {

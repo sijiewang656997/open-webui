@@ -66,7 +66,7 @@
 	};
 
 	const createAPIKeyHandler = async () => {
-		APIKey = await createAPIKey(localStorage.token);
+		APIKey = await getAPIKey(localStorage.token);
 		if (APIKey) {
 			toast.success($i18n.t('API Key created.'));
 		} else {
@@ -79,7 +79,7 @@
 		profileImageUrl = $user.profile_image_url;
 		webhookUrl = $settings?.notifications?.webhook_url ?? '';
 
-		APIKey = await createAPIKey(localStorage.token).catch((error) => {
+		APIKey = await getAPIKey(localStorage.token).catch((error) => {
 			console.log(error);
 			return '';
 		});

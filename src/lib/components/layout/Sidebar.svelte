@@ -62,6 +62,7 @@
 	import FileManagementModal from '../common/FileManagementModal.svelte';
 	import AccountAnalysisModal from '../common/AccountAnalysisModal.svelte';
 	import UploadAnalysisModal from '../common/UploadAnalysisModal.svelte';
+	import ExcelToSqlUploadModal from '../common/ExcelToSqlUploadModal.svelte';
 
 	const BREAKPOINT = 768;
 
@@ -73,6 +74,11 @@
 	let showFileManager = false;
 	let showAccountAnalysis = false;
 	let showUploadAnalysis = false;
+	let showExcelToSqlUpload = false;
+
+	// Category toggle states
+	let showExcelSqlCategory = true;
+	let showAccountingAnalysisCategory = true;
 
 	let shiftKey = false;
 
@@ -334,6 +340,15 @@
 		}
 	};
 
+	const excelToSqlUploadHandler = () => {
+		showExcelToSqlUpload = true;
+	};
+
+	const excelToSqlManagementHandler = () => {
+		// Route to Excel To Sql Management page
+		goto('/excel-to-sql');
+	};
+
 	const uploadAnalysisFileHandler = () => {
 		showUploadAnalysis = true;
 	};
@@ -448,6 +463,10 @@
 		dropZone?.addEventListener('dragover', onDragOver);
 		dropZone?.addEventListener('drop', onDrop);
 		dropZone?.addEventListener('dragleave', onDragLeave);
+
+		// Load saved category states from localStorage
+		showExcelSqlCategory = localStorage?.showExcelSqlCategory ? localStorage.showExcelSqlCategory === 'true' : true;
+		showAccountingAnalysisCategory = localStorage?.showAccountingAnalysisCategory ? localStorage.showAccountingAnalysisCategory === 'true' : true;
 	});
 
 	onDestroy(() => {
@@ -466,6 +485,14 @@
 		dropZone?.removeEventListener('drop', onDrop);
 		dropZone?.removeEventListener('dragleave', onDragLeave);
 	});
+
+	// Save category states to localStorage when they change
+	$: {
+		if (typeof localStorage !== 'undefined') {
+			localStorage.setItem('showExcelSqlCategory', showExcelSqlCategory);
+			localStorage.setItem('showAccountingAnalysisCategory', showAccountingAnalysisCategory);
+		}
+	}
 </script>
 
 <ArchivedChatsModal
@@ -662,116 +689,114 @@
 			/>
 		</div>
 
-		<Tooltip content={$i18n.t('Sync')}>
+		<!-- Excel To SQL Category -->
+		<div class="flex flex-col">
 			<button 
-				class="flex-none p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 transition flex items-center space-x-2"
-				on:click={syncHandler}
-				disabled={isSyncing}
-				aria-label="Sync"
+				class="flex-none px-2 py-1 my-1 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900 transition flex items-center justify-between"
+				on:click={() => showExcelSqlCategory = !showExcelSqlCategory}
+				aria-label="Toggle Excel To SQL Category"
 			>
-			  	<div class="self-center">
-					{#if isSyncing}
-				  		<svg
-							xmlns="http://www.w3.org/2000/svg"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke-width="2"
-							stroke="currentColor"
-							class="size-5 animate-spin"
-				  		>
-							<path
-					  			stroke-linecap="round"
-					  			stroke-linejoin="round"
-					  			d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
-							/>
-				  		</svg>
-					{:else}
-				  		<svg
-							xmlns="http://www.w3.org/2000/svg"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke-width="2"
-							stroke="currentColor"
-							class="size-5"
-				  		>
-							<path
-					  			stroke-linecap="round"
-					  			stroke-linejoin="round"
-					  			d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
-							/>
-				  		</svg>
-					{/if}
-			  	</div>
-			  	<span class="font-medium text-sm">{$i18n.t('Sync')}</span>
-			</button>
-		</Tooltip>
-
-		<Tooltip content={$i18n.t('Excel Management')}>
-			<button 
-				class="flex-none p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 transition flex items-center space-x-2"
-				on:click={manageFilesHandler}
-				aria-label="Excel Management"
-			>
-			  	<div class="self-center">
+				<span class="font-medium text-sm flex items-center">
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						fill="none"
 						viewBox="0 0 24 24"
 						stroke-width="2"
 						stroke="currentColor"
-						class="size-5"
-					>
-				  		<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776"
-						/>
-					</svg>
-			  	</div>
-			  	<span class="font-medium text-sm">{$i18n.t('Excel Management')}</span>
-			</button>
-		</Tooltip>
-
-		<Tooltip content={$i18n.t('Upload Analysis File')}>
-			<button 
-				class="flex-none p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 transition flex items-center space-x-2"
-				on:click={uploadAnalysisFileHandler}
-				aria-label="Upload Analysis File"
-			>
-				<div class="self-center">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke-width="2"
-						stroke="currentColor"
-						class="size-5"
+						class="size-5 mr-2"
 					>
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
-							d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+							d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
 						/>
 					</svg>
-				</div>
-				<span class="font-medium text-sm">{$i18n.t('Upload Analysis File')}</span>
+					{$i18n.t('Excel To SQL')}
+				</span>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke-width="2"
+					stroke="currentColor"
+					class="size-4 transform transition-transform {showExcelSqlCategory ? 'rotate-90' : ''}"
+				>
+					<path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+				</svg>
 			</button>
-		</Tooltip>
 
-		<Tooltip content={$i18n.t('Account Analysis')}>
+			{#if showExcelSqlCategory}
+				<div class="flex flex-col pl-6">
+					<Tooltip content={$i18n.t('Excel To Sql Upload')}>
+						<button 
+							class="flex-none p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 transition flex items-center space-x-2"
+							on:click={excelToSqlUploadHandler}
+							aria-label="Excel To Sql Upload"
+						>
+							<div class="self-center">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke-width="2"
+									stroke="currentColor"
+									class="size-5"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+									/>
+								</svg>
+							</div>
+							<span class="font-medium text-sm">{$i18n.t('Excel To Sql Upload')}</span>
+						</button>
+					</Tooltip>
+
+					<Tooltip content={$i18n.t('Excel To Sql Management')}>
+						<button 
+							class="flex-none p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 transition flex items-center space-x-2"
+							on:click={excelToSqlManagementHandler}
+							aria-label="Excel To Sql Management"
+						>
+							<div class="self-center">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke-width="2"
+									stroke="currentColor"
+									class="size-5"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+									/>
+								</svg>
+							</div>
+							<span class="font-medium text-sm">{$i18n.t('Excel To Sql Management')}</span>
+						</button>
+					</Tooltip>
+				</div>
+			{/if}
+		</div>
+
+		<!-- Accounting Analysis Category -->
+		<div class="flex flex-col">
 			<button 
-				class="flex-none p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 transition flex items-center space-x-2"
-				on:click={accountAnalysisHandler}
-				aria-label="Account Analysis"
+				class="flex-none px-2 py-1 my-1 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-900 transition flex items-center justify-between"
+				on:click={() => showAccountingAnalysisCategory = !showAccountingAnalysisCategory}
+				aria-label="Toggle Accounting Analysis Category"
 			>
-				<div class="self-center">
+				<span class="font-medium text-sm flex items-center">
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						fill="none"
 						viewBox="0 0 24 24"
 						stroke-width="2"
 						stroke="currentColor"
-						class="size-5"
+						class="size-5 mr-2"
 					>
 						<path
 							stroke-linecap="round"
@@ -779,10 +804,102 @@
 							d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z"
 						/>
 					</svg>
-				</div>
-				<span class="font-medium text-sm">{$i18n.t('Account Analysis')}</span>
+					{$i18n.t('Accounting Analysis')}
+				</span>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke-width="2"
+					stroke="currentColor"
+					class="size-4 transform transition-transform {showAccountingAnalysisCategory ? 'rotate-90' : ''}"
+				>
+					<path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+				</svg>
 			</button>
-		</Tooltip>
+
+			{#if showAccountingAnalysisCategory}
+				<div class="flex flex-col pl-6">
+					<Tooltip content={$i18n.t('Upload Analysis File')}>
+						<button 
+							class="flex-none p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 transition flex items-center space-x-2"
+							on:click={uploadAnalysisFileHandler}
+							aria-label="Upload Analysis File"
+						>
+							<div class="self-center">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke-width="2"
+									stroke="currentColor"
+									class="size-5"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+									/>
+								</svg>
+							</div>
+							<span class="font-medium text-sm">{$i18n.t('Upload Analysis File')}</span>
+						</button>
+					</Tooltip>
+
+					<Tooltip content={$i18n.t('Account Analysis')}>
+						<button 
+							class="flex-none p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 transition flex items-center space-x-2"
+							on:click={accountAnalysisHandler}
+							aria-label="Account Analysis"
+						>
+							<div class="self-center">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke-width="2"
+									stroke="currentColor"
+									class="size-5"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z"
+									/>
+								</svg>
+							</div>
+							<span class="font-medium text-sm">{$i18n.t('Account Analysis')}</span>
+						</button>
+					</Tooltip>
+
+					<Tooltip content={$i18n.t('Analysis in Chat')}>
+						<button 
+							class="flex-none p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 transition flex items-center space-x-2"
+							on:click={() => goto('/analysis-chat')}
+							aria-label="Analysis in Chat"
+						>
+							<div class="self-center">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke-width="2"
+									stroke="currentColor"
+									class="size-5"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										d="M8.625 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 01.778-.332 48.294 48.294 0 005.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"
+									/>
+								</svg>
+							</div>
+							<span class="font-medium text-sm">{$i18n.t('Analysis in Chat')}</span>
+						</button>
+					</Tooltip>
+				</div>
+			{/if}
+		</div>
 
 		<div
 			class="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden {$temporaryChatEnabled
@@ -1081,41 +1198,6 @@
 				{/if}
 			</div>
 		</div>
-
-		{#if $user?.role?.toLowerCase() === 'admin' || $user?.role?.toLowerCase() === 'manager' || $config?.analysis_enabled}
-			<div
-				class="flex w-full py-1 px-1 mt-1"
-				title={$i18n.t('Account Analysis')}
-			>
-				<a
-					href="/analysis"
-					class="flex items-center w-full px-2 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition"
-				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						class="size-5 mr-2"
-						aria-hidden="true"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="1.5"
-							d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z"
-						/>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="1.5"
-							d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z"
-						/>
-					</svg>
-					<span>{$i18n.t('Account Analysis')}</span>
-				</a>
-			</div>
-		{/if}
 	</div>
 	<FileManagementModal
 		bind:show={showFileManager}
@@ -1133,6 +1215,12 @@
 		bind:show={showUploadAnalysis}
 		on:change={() => {
 			// Handle any updates after analysis changes
+		}}
+	/>
+	<ExcelToSqlUploadModal
+		bind:show={showExcelToSqlUpload}
+		on:change={() => {
+			// Handle any updates after upload changes
 		}}
 	/>
 </div>

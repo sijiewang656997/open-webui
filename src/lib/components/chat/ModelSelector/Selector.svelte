@@ -213,7 +213,7 @@
 	};
 
 	onMount(async () => {
-		ollamaVersion = await getOllamaVersion(localStorage.token).catch((error) => false);
+		//ollamaVersion = await getOllamaVersion(localStorage.token).catch((error) => false);
 	});
 
 	const cancelModelPullHandler = async (model: string) => {

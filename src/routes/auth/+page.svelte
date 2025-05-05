@@ -6,10 +6,10 @@
 	import { page } from '$app/stores';
 
 	import { getBackendConfig } from '$lib/apis';
-	import { ldapUserSignIn, getSessionUser, userSignIn, userSignUp } from '$lib/apis/auths';
+	import { ldapUserSignIn, getSessionUser, userSignIn, userSignUp, createAPIKey, getAPIKey } from '$lib/apis/auths';
 
 	import { WEBUI_API_BASE_URL, WEBUI_BASE_URL } from '$lib/constants';
-	import { WEBUI_NAME, config, user, socket } from '$lib/stores';
+	import { WEBUI_NAME, config, user, socket, userAPIKey } from '$lib/stores';
 
 	import { generateInitialsImage, canvasPixelTest } from '$lib/utils';
 
@@ -58,6 +58,18 @@
 		});
 
 		await setSessionUser(sessionUser);
+		
+		if (sessionUser) {
+			// Get API key after sign in
+			const apiKey = await getAPIKey(sessionUser.token).catch((error) => {
+				console.error("Failed to get API key:", error);
+				return null;
+			});
+			
+			if (apiKey) {
+				userAPIKey.set(apiKey);
+			}
+		}
 	};
 
 	const signUpHandler = async () => {
@@ -69,6 +81,18 @@
 		);
 
 		await setSessionUser(sessionUser);
+		
+		if (sessionUser) {
+			// Create API key after sign up
+			const apiKey = await createAPIKey(sessionUser.token).catch((error) => {
+				console.error("Failed to create API key:", error);
+				return null;
+			});
+			
+			if (apiKey) {
+				userAPIKey.set(apiKey);
+			}
+		}
 	};
 
 	const ldapSignInHandler = async () => {
@@ -77,6 +101,18 @@
 			return null;
 		});
 		await setSessionUser(sessionUser);
+		
+		if (sessionUser) {
+			// Get API key after LDAP sign in
+			const apiKey = await getAPIKey(sessionUser.token).catch((error) => {
+				console.error("Failed to get API key:", error);
+				return null;
+			});
+			
+			if (apiKey) {
+				userAPIKey.set(apiKey);
+			}
+		}
 	};
 
 	const submitHandler = async () => {
@@ -111,6 +147,16 @@
 		}
 		localStorage.token = token;
 		await setSessionUser(sessionUser);
+		
+		// Get API key after OAuth authentication
+		const apiKey = await getAPIKey(token).catch((error) => {
+			console.error("Failed to get API key:", error);
+			return null;
+		});
+		
+		if (apiKey) {
+			userAPIKey.set(apiKey);
+		}
 	};
 
 	let onboarding = false;

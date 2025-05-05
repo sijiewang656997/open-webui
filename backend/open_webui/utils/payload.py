@@ -5,6 +5,9 @@ from open_webui.utils.misc import (
 
 from typing import Callable, Optional
 import json
+import logging
+
+log = logging.getLogger(__name__)
 
 
 # inplace function: form_data is modified
@@ -26,9 +29,18 @@ def apply_model_system_prompt_to_body(
         template_params = {
             "user_name": user.name,
             "user_location": user.info.get("location") if user.info else None,
+            "user_api_key": user.api_key if hasattr(user, "api_key") else None,
         }
+        log.debug(f"User API key status in payload: {'Present' if user.api_key else 'Empty/None'}")
     else:
         template_params = {}
+        
+    # Debug metadata variables
+    if metadata and "variables" in metadata:
+        variables = metadata.get("variables", {})
+        log.debug(f"Metadata variables received: {list(variables.keys())}")
+        if "{{USER_API_KEY}}" in variables:
+            log.debug(f"USER_API_KEY in variables: {'Present' if variables['{{USER_API_KEY}}'] else 'Empty/None'}")
 
     system = prompt_template(system, **template_params)
 

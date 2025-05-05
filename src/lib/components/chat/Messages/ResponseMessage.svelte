@@ -46,6 +46,9 @@
 	import ContentRenderer from './ContentRenderer.svelte';
 	import { KokoroWorker } from '$lib/workers/KokoroWorker';
 
+	// Add new imports for table rendering
+	import Table from '$lib/components/common/Table.svelte';
+
 	interface MessageType {
 		id: string;
 		model: string;
@@ -101,9 +104,10 @@
 	export let history;
 	export let messageId;
 
-	let message: MessageType = JSON.parse(JSON.stringify(history.messages[messageId]));
+	export let message: MessageType = JSON.parse(JSON.stringify(history.messages[messageId]));
 	$: if (history.messages) {
 		if (JSON.stringify(message) !== JSON.stringify(history.messages[messageId])) {
+			console.log('📱 ResponseMessage updated for message:', messageId);
 			message = JSON.parse(JSON.stringify(history.messages[messageId]));
 		}
 	}
@@ -532,6 +536,86 @@
 			});
 		}
 	});
+
+	// Add debug logging
+	$: if (message?.content) {
+		console.log(`🖥️ Rendering message ${messageId} content length: ${message.content.length}`);
+	}
+
+	// Function to check if a string is JSON
+	function isJsonString(str) {
+		try {
+			const json = JSON.parse(str);
+			return typeof json === 'object' && json !== null;
+		} catch (e) {
+			return false;
+		}
+	}
+	
+	// Process potential agent response
+	function processAgentResponse(content) {
+		console.log('Processing agent response:', content);
+		console.log('Type of content:', typeof content);
+		if (!content || typeof content !== 'string') return { isAgent: false, content };
+		
+		// Try to parse as JSON
+		if (isJsonString(content)) {
+			try {
+				const parsedContent = JSON.parse(content);
+				
+				// Check if it matches the agent response format
+				if (parsedContent.success && parsedContent.response) {
+					console.log('📊 Detected agent response:', parsedContent.response.type);
+					
+					// For query_chart type, use response.content as the main content
+					if (parsedContent.response.type === 'query_chart') {
+						return { 
+							isAgent: true, 
+							type: 'query_chart',
+							content: parsedContent.response.content,
+							data: parsedContent
+						};
+					}
+					
+					// For query_result type, use response.content as the main content
+					if (parsedContent.response.type === 'query_result') {
+						return { 
+							isAgent: true, 
+							type: parsedContent.response.type,
+							content: parsedContent.response.content,
+							data: parsedContent
+						};
+					}
+					
+					// For other types
+					return { 
+						isAgent: true, 
+						type: parsedContent.response.type,
+						content: parsedContent.response.content,
+						data: parsedContent
+					};
+				}
+				
+				// Also check for direct type format in the root object
+				if (parsedContent.success && (parsedContent.type === 'query_result' || parsedContent.type === 'query_chart')) {
+					console.log('📊 Detected direct query type:', parsedContent.type);
+					return { 
+						isAgent: true, 
+						type: parsedContent.type,
+						content: parsedContent.response.content,
+						data: parsedContent
+					};
+				}
+			} catch (e) {
+				console.error('Error parsing potential agent response:', e);
+			}
+		}
+		
+		return { isAgent: false, content };
+	}
+	
+	// Extract processed agent response
+	$: processedResponse = processAgentResponse(message?.content);
 </script>
 
 <DeleteConfirmDialog
@@ -732,12 +816,171 @@
 								{#if message.content === '' && !message.error}
 									<Skeleton />
 								{:else if message.content && message.error !== true}
-									<!-- always show message contents even if there's an error -->
-									<!-- unless message.error === true which is legacy error handling, where the error message is stored in message.content -->
+									{#if processedResponse.isAgent}
+										{#if (processedResponse.type === 'query_result' || processedResponse.data.type === 'query_result') && (processedResponse.data.results || processedResponse.data.response?.results)}
+											<div class="agent-query-results py-3">
+												<div class="mb-4 text-gray-700 dark:text-gray-300">{processedResponse.content}</div>
+												
+												<!-- Data table with header -->
+												<div class="mb-2">
+													<div class="flex items-center gap-2 font-medium text-gray-700 dark:text-gray-300 mb-2">
+														<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+															<path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0 1 12 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m1.125-3.75h7.5c.621 0 1.125.504 1.125 1.125m-9.75 0h9.75" />
+														</svg>
+														Data Table
+													</div>
+													<div class="overflow-x-auto">
+														{#if processedResponse.data.results}
+															<Table 
+																data={processedResponse.data.results.records}
+																columns={processedResponse.data.results.columns}
+																className="border w-full table-improved"
+															/>
+														{:else if processedResponse.data.response?.results}
+															<Table 
+																data={processedResponse.data.response.results.records}
+																columns={processedResponse.data.response.results.columns}
+																className="border w-full table-improved"
+															/>
+														{/if}
+													</div>
+												</div>
+												
+												{#if processedResponse.data.results?.sql_query || processedResponse.data.metadata?.sql_query}
+													<div class="mt-4 mb-2">
+														<div class="flex justify-between items-center mb-2">
+															<div class="font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+																<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-4 h-4" stroke-width="2">
+																	<path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+																</svg>
+																SQL Query
+															</div>
+															<button 
+																class="text-xs px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 transition-colors"
+																on:click={() => {
+																	copyToClipboard(processedResponse.data.results?.sql_query || processedResponse.data.metadata?.sql_query);
+																}}
+															>
+																<div class="flex items-center gap-1">
+																	<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5">
+																		<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
+																	</svg>
+																	Copy
+																</div>
+															</button>
+														</div>
+														<pre class="bg-gray-50 dark:bg-gray-800/70 p-3 rounded-lg overflow-auto text-sm font-mono border border-gray-200 dark:border-gray-700 shadow-inner">
+															<code class="sql-syntax text-gray-800 dark:text-gray-200">
+{processedResponse.data.results?.sql_query || processedResponse.data.metadata?.sql_query}
+															</code>
+														</pre>
+													</div>
+												{/if}
+											</div>
+										{:else if (processedResponse.type === 'query_chart' || processedResponse.data.type === 'query_chart') && processedResponse.data.response?.chart_url}
+											<div class="agent-query-chart py-3">
+												<!-- Display text content -->
+												<div class="mb-3 text-gray-700 dark:text-gray-300">{processedResponse.content}</div>
+												
+												<!-- Display chart image with enhanced styling and download button -->
+												<div class="mb-4 relative">
+													<div class="absolute top-2 right-2 flex gap-2 z-10">
+														<a 
+															href={processedResponse.data.response.chart_url} 
+															download="chart.png"
+															target="_blank"
+															class="p-1.5 bg-gray-100/80 dark:bg-gray-700/80 backdrop-blur-sm rounded shadow-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+															title="Download chart"
+														>
+															<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+																<path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+															</svg>
+														</a>
+														<a 
+															href={processedResponse.data.response.chart_url} 
+															target="_blank"
+															class="p-1.5 bg-gray-100/80 dark:bg-gray-700/80 backdrop-blur-sm rounded shadow-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+															title="Open in new tab"
+														>
+															<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+																<path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+															</svg>
+														</a>
+													</div>
+													<img 
+														src={processedResponse.data.response.chart_url} 
+														alt="Data visualization chart" 
+														class="max-w-full h-auto border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm"
+													/>
+												</div>
+												
+												<!-- Display data table if available with enhanced section header -->
+												{#if processedResponse.data.results?.records}
+													<div class="mt-4 mb-2">
+														<div class="flex items-center gap-2 font-medium text-gray-700 dark:text-gray-300 mb-2">
+															<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+																<path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0 1 12 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m1.125-3.75h7.5c.621 0 1.125.504 1.125 1.125m-9.75 0h9.75" />
+															</svg>
+															Data Table
+														</div>
+														<div class="overflow-x-auto">
+															<Table 
+																data={processedResponse.data.results.records}
+																columns={processedResponse.data.results.columns}
+																className="border w-full table-improved"
+																maxPreviewRows={12}
+															/>
+														</div>
+													</div>
+												{/if}
+												
+												<!-- Display SQL query if available -->
+												{#if processedResponse.data.results?.sql_query || processedResponse.data.metadata?.sql_query}
+													<div class="mt-4 mb-2">
+														<div class="flex justify-between items-center mb-2">
+															<div class="font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+																<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-4 h-4" stroke-width="2">
+																	<path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+																</svg>
+																SQL Query
+															</div>
+															<button 
+																class="text-xs px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 transition-colors"
+																on:click={() => {
+																	copyToClipboard(processedResponse.data.results?.sql_query || processedResponse.data.metadata?.sql_query);
+																}}
+															>
+																<div class="flex items-center gap-1">
+																	<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5">
+																		<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
+																	</svg>
+																	Copy
+																</div>
+															</button>
+														</div>
+														<pre class="bg-gray-50 dark:bg-gray-800/70 p-3 rounded-lg overflow-auto text-sm font-mono border border-gray-200 dark:border-gray-700 shadow-inner">
+															<code class="sql-syntax text-gray-800 dark:text-gray-200">
+{processedResponse.data.results?.sql_query || processedResponse.data.metadata?.sql_query}
+															</code>
+														</pre>
+													</div>
+												{/if}
+											</div>
+										{:else if processedResponse.type === 'chart' && processedResponse.data.response.chart_url}
+											<div class="agent-chart py-2">
+												<div class="mb-2">{processedResponse.content}</div>
+												<img 
+													src={processedResponse.data.response.chart_url} 
+													alt="Chart" 
+													class="max-w-full h-auto border dark:border-gray-700 rounded"
+												/>
+											</div>
+										{:else}
+											<!-- Regular text response or fallback -->
 									<ContentRenderer
 										id={message.id}
 										{history}
-										content={message.content}
+												content={processedResponse.isAgent ? processedResponse.content : message.content}
 										sources={message.sources}
 										floatingButtons={message?.done}
 										save={!readOnly}
@@ -751,7 +994,7 @@
 											const sourcesCollapsible = document.getElementById(`collapsible-sources`);
 
 											if (sourceButton) {
-												sourceButton.click();
+														sourceButton.scrollIntoView({ behavior: 'smooth' });
 											} else if (sourcesCollapsible) {
 												// Open sources collapsible so we can click the source button
 												sourcesCollapsible
@@ -759,47 +1002,72 @@
 													.dispatchEvent(new PointerEvent('pointerup', {}));
 
 												// Wait for next frame to ensure DOM updates
-												await new Promise((resolve) => {
-													requestAnimationFrame(() => {
-														requestAnimationFrame(resolve);
-													});
-												});
+														await new Promise((resolve) => requestAnimationFrame(resolve));
+														await new Promise((resolve) => requestAnimationFrame(resolve));
 
-												// Try clicking the source button again
 												sourceButton = document.getElementById(`source-${message.id}-${idx}`);
-												sourceButton && sourceButton.click();
+														if (sourceButton) {
+															sourceButton.scrollIntoView({ behavior: 'smooth' });
+														}
 											}
 										}}
 										onAddMessages={({ modelId, parentId, messages }) => {
 											addMessages({ modelId, parentId, messages });
 										}}
 										on:update={(e) => {
-											const { raw, oldContent, newContent } = e.detail;
+													message.content = e.detail.content;
+													dispatch('update', message);
+												}}
+											/>
+										{/if}
+									{:else}
+										<!-- Not an agent response, use normal rendering -->
+										<ContentRenderer
+											id={message.id}
+											{history}
+											content={message.content}
+											sources={message.sources}
+											floatingButtons={message?.done}
+											save={!readOnly}
+											{model}
+											onTaskClick={async (e) => {
+												console.log(e);
+											}}
+											onSourceClick={async (id, idx) => {
+												console.log(id, idx);
+												let sourceButton = document.getElementById(`source-${message.id}-${idx}`);
+												const sourcesCollapsible = document.getElementById(`collapsible-sources`);
 
-											history.messages[message.id].content = history.messages[
-												message.id
-											].content.replace(raw, raw.replace(oldContent, newContent));
+												if (sourceButton) {
+													sourceButton.scrollIntoView({ behavior: 'smooth' });
+												} else if (sourcesCollapsible) {
+													// Open sources collapsible so we can click the source button
+													sourcesCollapsible
+														.querySelector('div:first-child')
+														.dispatchEvent(new PointerEvent('pointerup', {}));
 
-											updateChat();
-										}}
-										on:select={(e) => {
-											const { type, content } = e.detail;
+													// Wait for next frame to ensure DOM updates
+													await new Promise((resolve) => requestAnimationFrame(resolve));
+													await new Promise((resolve) => requestAnimationFrame(resolve));
 
-											if (type === 'explain') {
-												submitMessage(
-													message.id,
-													`Explain this section to me in more detail\n\n\`\`\`\n${content}\n\`\`\``
-												);
-											} else if (type === 'ask') {
-												const input = e.detail?.input ?? '';
-												submitMessage(message.id, `\`\`\`\n${content}\n\`\`\`\n${input}`);
-											}
-										}}
+													sourceButton = document.getElementById(`source-${message.id}-${idx}`);
+													if (sourceButton) {
+														sourceButton.scrollIntoView({ behavior: 'smooth' });
+													}
+												}
+											}}
+											onAddMessages={({ modelId, parentId, messages }) => {
+												addMessages({ modelId, parentId, messages });
+											}}
+											on:update={(e) => {
+												message.content = e.detail.content;
+												dispatch('update', message);
+											}}
 									/>
 								{/if}
 
-								{#if message?.error}
-									<Error content={message?.error?.content ?? message.content} />
+									{#if message?.error && message.error !== true}
+										<Error content={message.error.content} />
 								{/if}
 
 								{#if (message?.sources || message?.citations) && (model?.info?.meta?.capabilities?.citations ?? true)}
@@ -807,7 +1075,8 @@
 								{/if}
 
 								{#if message.code_executions}
-									<CodeExecutions codeExecutions={message.code_executions} />
+										<CodeExecutions id={message?.id} code_executions={message.code_executions} />
+									{/if}
 								{/if}
 							</div>
 						{/if}
@@ -1002,7 +1271,7 @@
 												<path
 													stroke-linecap="round"
 													stroke-linejoin="round"
-													d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"
+													d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 0 1 2.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"
 												/>
 											</svg>
 										{/if}
@@ -1108,7 +1377,7 @@
 												<path
 													stroke-linecap="round"
 													stroke-linejoin="round"
-													d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"
+													d="M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9-3.75h.008v.008H12V8.25z"
 												/>
 											</svg>
 										</button>
@@ -1218,8 +1487,7 @@
 													<path
 														stroke-linecap="round"
 														stroke-linejoin="round"
-														d="M15.91 11.672a.375.375 0 0 1 0 .656l-5.603 3.113a.375.375 0 0 1-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112Z"
-													/>
+														d="M15.91 11.672a.375.375 0 0 1 0 .656l-5.603 3.113a.375.375 0 0 1-.557-.328V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
 												</svg>
 											</button>
 										</Tooltip>
@@ -1259,7 +1527,7 @@
 												<path
 													stroke-linecap="round"
 													stroke-linejoin="round"
-													d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+													d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
 												/>
 											</svg>
 										</button>
@@ -1288,8 +1556,7 @@
 													<path
 														stroke-linecap="round"
 														stroke-linejoin="round"
-														d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
-													/>
+														d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2 2 0 0 1-2 2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
 												</svg>
 											</button>
 										</Tooltip>
@@ -1355,5 +1622,30 @@
 	.buttons {
 		-ms-overflow-style: none; /* IE and Edge */
 		scrollbar-width: none; /* Firefox */
+	}
+	
+	/* Table styling improvements */
+	:global(.table-improved) {
+		width: calc(100% + 1rem) !important;
+		max-width: none !important;
+		margin-left: -0.5rem;
+		margin-right: -0.5rem;
+	}
+	
+	:global(.table-improved thead) {
+		background-color: #e8f4ff !important; /* Light blue header */
+	}
+	
+	:global(.dark .table-improved thead) {
+		background-color: #1e3a5f !important; /* Dark theme blue header */
+	}
+	
+	:global(.table-improved th) {
+		font-weight: 600;
+		padding: 0.75rem 1rem !important;
+	}
+	
+	:global(.table-improved td) {
+		padding: 0.625rem 1rem !important;
 	}
 </style>

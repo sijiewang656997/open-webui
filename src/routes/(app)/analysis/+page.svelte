@@ -5,6 +5,7 @@
   import { userAPIKey } from '$lib/stores';
   import { page } from '$app/stores';
   import { writable } from 'svelte/store';
+  import { downloadWordDocument, createSimpleWordDocument } from '$lib/utils/docUtils';
 
   const i18n: any = getContext('i18n');
   
@@ -208,7 +209,9 @@
   
   // Add Chart.js initialization in onMount
   onMount(() => {
+    console.log('Current user language:', $i18n.language);
     console.log('Current user API key:', $userAPIKey);
+    
     console.log('Component mounted, loading account tree...');
     loadAccountTree();
     
@@ -2301,6 +2304,63 @@
     const textStr = String(text);
     return textStr.replace(/\n/g, '<br>');
   }
+
+  async function downloadWordReport() {
+    try {
+      console.log('[DEBUG] Starting Word document download');
+      
+      // Simplify to just use the current analysis text
+      let analysisContent = '';
+      let title = '';
+      
+      // Check if modal is open and has content
+      if ($analysisModal.isOpen) {
+        console.log('[DEBUG] Getting content from modal');
+        
+        // Get raw content without HTML formatting
+        analysisContent = $analysisModal.editText || '';
+        title = $analysisModal.title || 'Analysis Report';
+        
+        if (!analysisContent && $analysisModal.content) {
+          // If we only have HTML content, convert it
+          analysisContent = $analysisModal.content.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
+        }
+      } 
+      // Otherwise check if we have analysis input text
+      else if (analysisInputText) {
+        console.log('[DEBUG] Using input text');
+        analysisContent = analysisInputText;
+        title = currentAnalysisKey || 'Analysis Report';
+      }
+      
+      if (!analysisContent) {
+        console.error('[DEBUG] No analysis content available');
+        toast.error($i18n.t('No analysis content to download'));
+        return;
+      }
+      
+      console.log('[DEBUG] Creating simple Word document');
+      console.log('[DEBUG] Content length:', analysisContent.length);
+      console.log('[DEBUG] Title:', title);
+      
+      // Use the simplified creator to avoid docx errors
+      const blob = await createSimpleWordDocument(analysisContent, title);
+      
+      // Generate a filename
+      const safeTitle = (title || 'analysis').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      const timestamp = new Date().toISOString().replace(/[-:.]/g, '').substring(0, 14);
+      const filename = `${safeTitle}_${timestamp}.docx`;
+      
+      // Download the document
+      downloadWordDocument(blob, filename);
+      
+      console.log('[DEBUG] Download complete');
+      toast.success($i18n.t('Report downloaded successfully'));
+    } catch (error) {
+      console.error('[DEBUG] Error downloading Word report:', error);
+      toast.error($i18n.t('Failed to download report: ') + (error.message || 'Unknown error'));
+    }
+  }
 </script>
 
 <!-- Analysis Modal -->
@@ -2356,7 +2416,40 @@
         {/each}
       </div>
       
-      <div class="mt-4 flex justify-end">
+      <div class="mt-4 flex justify-end space-x-3">
+        <button 
+          class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition flex items-center"
+          on:click={async () => {
+            try {
+              // Disable button during download (via CSS)
+              const button = event.currentTarget;
+              button.classList.add('opacity-50', 'pointer-events-none');
+              button.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> ${$i18n.t('Downloading...')}`;
+              
+              await downloadWordReport();
+              
+              // Re-enable button after download
+              setTimeout(() => {
+                button.classList.remove('opacity-50', 'pointer-events-none');
+                button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l2.414 2.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> ${$i18n.t('Download Report')}`;
+              }, 1000);
+            } catch (e) {
+              console.error('Error in download button click handler:', e);
+              toast.error($i18n.t('Download failed: ') + (e.message || ''));
+              
+              // Re-enable button after error
+              const button = event.currentTarget;
+              button.classList.remove('opacity-50', 'pointer-events-none');
+              button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l2.414 2.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> ${$i18n.t('Download Report')}`;
+            }
+          }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l2.414 2.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          {$i18n.t('Download Report')}
+        </button>
+        
         <button 
           class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
           on:click={toggleEditMode}
@@ -2684,6 +2777,39 @@
           on:click={navigateBack}
         >
           {$i18n.t('Cancel')}
+        </button>
+        <button 
+          class="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition flex items-center"
+          on:click={async () => {
+            try {
+              // Disable button during download (via CSS)
+              const button = event.currentTarget;
+              button.classList.add('opacity-50', 'pointer-events-none');
+              button.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> ${$i18n.t('Downloading...')}`;
+              
+              await downloadWordReport();
+              
+              // Re-enable button after download
+              setTimeout(() => {
+                button.classList.remove('opacity-50', 'pointer-events-none');
+                button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l2.414 2.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> ${$i18n.t('Download Report')}`;
+              }, 1000);
+            } catch (e) {
+              console.error('Error in download button click handler:', e);
+              toast.error($i18n.t('Download failed: ') + (e.message || ''));
+              
+              // Re-enable button after error
+              const button = event.currentTarget;
+              button.classList.remove('opacity-50', 'pointer-events-none');
+              button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l2.414 2.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> ${$i18n.t('Download Report')}`;
+            }
+          }}
+          disabled={!analysisInputText || isGeneratingAnalysis}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l2.414 2.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          {$i18n.t('Download')}
         </button>
         <button 
           class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"

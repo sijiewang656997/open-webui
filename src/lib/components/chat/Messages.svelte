@@ -69,13 +69,31 @@
 
 	$: if (history.currentId) {
 		let _messages = [];
-
-		let message = history.messages[history.currentId];
-		while (message && _messages.length <= messagesCount) {
-			_messages.unshift({ ...message });
-			message = message.parentId !== null ? history.messages[message.parentId] : null;
+		
+		// Get all messages and sort them chronologically
+		if (history.messages) {
+			_messages = Object.values(history.messages)
+				.sort((a: any, b: any) => {
+					// First try to sort by timestamp if available
+					if (a.timestamp && b.timestamp) {
+						return a.timestamp - b.timestamp;
+					}
+					
+					// If timestamps aren't available, use parent-child relationships
+					// Messages with no parent (root messages) come first
+					if (a.parentId === null && b.parentId !== null) return -1;
+					if (a.parentId !== null && b.parentId === null) return 1;
+					
+					// For messages with the same parent status, preserve existing order
+					return 0;
+				});
+			
+			// Limit to messagesCount if needed
+			if (_messages.length > messagesCount) {
+				_messages = _messages.slice(-messagesCount);
+			}
 		}
-
+		
 		messages = _messages;
 	} else {
 		messages = [];

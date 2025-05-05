@@ -33,7 +33,7 @@
 	import { Toaster, toast } from 'svelte-sonner';
 
 	import { getBackendConfig } from '$lib/apis';
-	import { getSessionUser , createAPIKey} from '$lib/apis/auths';
+	import { getSessionUser , getAPIKey} from '$lib/apis/auths';
 
 	import '../tailwind.css';
 	import '../app.css';
@@ -502,7 +502,7 @@
 						await config.set(await getBackendConfig());
 
 						// Get the user's API key
-						const apiKey = await createAPIKey(localStorage.token).catch(error => {
+						const apiKey = await getAPIKey(localStorage.token).catch(error => {
 							console.log('Error fetching API key:', error);
 							return null;
 						});

@@ -22,7 +22,7 @@
 	let notificationEnabled = false;
 	let system = '';
 
-	let showAdvanced = false;
+	let showAdvanced = true;
 
 	const toggleNotification = async () => {
 		const permission = await Notification.requestPermission();
@@ -82,7 +82,7 @@
 	onMount(async () => {
 		selectedTheme = localStorage.theme ?? 'system';
 
-		languages = await gets();
+		languages = await getLanguages();
 
 		notificationEnabled = $settings.notificationEnabled ?? false;
 		system = $settings.system ?? '';

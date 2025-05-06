@@ -6,6 +6,7 @@
   import { page } from '$app/stores';
   import { writable } from 'svelte/store';
   import { downloadWordDocument, createSimpleWordDocument } from '$lib/utils/docUtils';
+  import { createDocxTemplateReport, downloadDocxDocument } from '$lib/utils/docxTemplateUtils';
 
   const i18n: any = getContext('i18n');
   
@@ -2339,20 +2340,25 @@
         return;
       }
       
-      console.log('[DEBUG] Creating simple Word document');
+      console.log('[DEBUG] Creating document with Docxtemplater');
       console.log('[DEBUG] Content length:', analysisContent.length);
       console.log('[DEBUG] Title:', title);
-      
-      // Use the simplified creator to avoid docx errors
-      const blob = await createSimpleWordDocument(analysisContent, title);
       
       // Generate a filename
       const safeTitle = (title || 'analysis').replace(/[^a-z0-9]/gi, '_').toLowerCase();
       const timestamp = new Date().toISOString().replace(/[-:.]/g, '').substring(0, 14);
       const filename = `${safeTitle}_${timestamp}.docx`;
       
-      // Download the document
-      downloadWordDocument(blob, filename);
+      try {
+        // Try the new Docxtemplater method first
+        const blob = await createDocxTemplateReport(analysisContent, title);
+        downloadDocxDocument(blob, filename);
+      } catch (docxTemplaterError) {
+        console.error('[DEBUG] Docxtemplater failed, falling back to simple document:', docxTemplaterError);
+        // Fall back to the previous method
+        const blob = await createSimpleWordDocument(analysisContent, title);
+        downloadWordDocument(blob, filename);
+      }
       
       console.log('[DEBUG] Download complete');
       toast.success($i18n.t('Report downloaded successfully'));

@@ -315,6 +315,7 @@
 	};
 
 	const saveSettings = async (updated) => {
+		console.log('Current locale:', localStorage.getItem('locale'));
 		console.log(updated);
 		await settings.set({ ...$settings, ...updated });
 		await models.set(await getModels());

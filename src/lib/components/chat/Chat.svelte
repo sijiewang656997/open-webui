@@ -246,12 +246,20 @@
 			if (data.content !== undefined) {
 				// Don't overwrite if empty content is provided
 				if (data.content !== "" || !message.content) {
+					// Stop loading animation if real content arrives
+					if (message.isLoading) {
+						message.isLoading = false;
+					}
 					message.content = data.content;
 				}
 			}
 
 			if (data.done !== undefined) {
 				message.done = data.done;
+				// Make sure we stop the loading animation when done
+				if (data.done) {
+					message.isLoading = false;
+				}
 			}
 
 			if (data.loading !== undefined) {
@@ -260,6 +268,8 @@
 
 			if (data.error !== undefined) {
 				message.error = data.error;
+				// Stop animation on error
+				message.isLoading = false;
 			}
 
 			if (data.status !== undefined) {
@@ -273,6 +283,8 @@
 					if (parsedContent.success && parsedContent.response) {
 						console.log('🤖 Agent response detected:', parsedContent.response.type);
 						// Content is already in the correct format, no need to transform
+						// Stop the loading animation as we have a real response
+						message.isLoading = false;
 					}
 				}
 			} catch (e) {
@@ -320,6 +332,12 @@
 					
 					if (data.content) {
 						console.log('📝 Content length:', data.content.length);
+						
+						// If we have real content, stop the loading animation
+						if (message.isLoading) {
+							message.isLoading = false;
+						}
+						
 						message.content = data.content;
 						
 						if (data.done !== false) {
@@ -384,9 +402,17 @@
 					allTags.set(await getAllTags(localStorage.token));
 				} else if (type === 'message') {
 					console.log('📝 Appending message content:', data.content);
+					// If we're still in loading state but receiving actual content, stop the animation
+					if (message.isLoading) {
+						message.isLoading = false;
+					}
 					message.content += data.content;
 				} else if (type === 'replace') {
 					console.log('📝 Replacing message content:', data.content);
+					// If we're still in loading state but receiving actual content, stop the animation
+					if (message.isLoading) {
+						message.isLoading = false;
+					}
 					message.content = data.content;
 				} else if (type === 'action') {
 					if (data.action === 'continue') {
@@ -1536,18 +1562,23 @@
 		const isAgentModel = model.id === 'accounting_en' || model.id.includes('accounting');
 		console.log(`🏷️ Model ${model.id} is agent model: ${isAgentModel}`);
 
+		// Create loading message with animation text for agent models
+		const agentLoadingText = isAgentModel ? $i18n.t('Agent is helping...') : '';
+		
 		const responseMessage = {
 			id: responseMessageId,
 			parentId: userMessageId,
 			childrenIds: [],
 			role: 'assistant',
-			content: '',
+			content: agentLoadingText,
 			model: model.id,
 			modelName: model?.name ?? model.id,
 			modelIdx: modelIdx,
 			timestamp: Math.floor(Date.now() / 1000),
 			// Flag to indicate this is an agent response
-			isAgentResponse: isAgentModel
+			isAgentResponse: isAgentModel,
+			// Add loading indicator for agents
+			isLoading: isAgentModel
 		};
 
 		// Add message to history and Set currentId to responseMessageId
@@ -1561,10 +1592,53 @@
 			scrollToBottom();
 		}
 
+		// If this is an agent model, start the typing animation
+		if (isAgentModel) {
+			startAgentAnimation(responseMessageId);
+		}
+
 		// Send to backend via socket
 		await sendPromptSocket(_history, model, responseMessageId, _chatId);
 		
 		return responseMessageId;
+	};
+
+	// Animation for agent loading message
+	const startAgentAnimation = async (messageId) => {
+		const loadingTexts = [
+			$i18n.t("Agent is helping..."),
+			$i18n.t("Agent is processing your request..."),
+			$i18n.t("Agent is working on it..."),
+			$i18n.t("Agent is analyzing...")
+		];
+		let textIndex = 0;
+		let dotCount = 0;
+		
+		const animateText = () => {
+			const message = history.messages[messageId];
+			// Stop animation if message is no longer loading or has content
+			if (!message || !message.isLoading || (message.content && message.content.length > 30)) {
+				return;
+			}
+			
+			const baseText = loadingTexts[textIndex];
+			const dots = ".".repeat(dotCount % 4);
+			history.messages[messageId].content = baseText + dots;
+			
+			// Force update in history object to ensure UI updates
+			history = { ...history };
+			
+			// Increment counters
+			dotCount++;
+			if (dotCount % 12 === 0) {
+				textIndex = (textIndex + 1) % loadingTexts.length;
+			}
+			
+			// Continue animation
+			setTimeout(animateText, 400);
+		};
+		
+		animateText();
 	};
 
 	const handleOpenAIError = async (error, responseMessage) => {
@@ -1794,12 +1868,17 @@
 
 	const initHistoryWithGreetings = () => {
 		let messageId = uuidv4();
+		const locale = localStorage.getItem('locale');
+		
+		// Use shorter messages and check locale directly instead of using i18n
+		const greeting = locale === 'zh-CN' 
+			? "您好！我是您的会计助手。请告诉我您需要分析的财务数据或有什么财务问题。"
+			: "Hello! I'm your accounting assistant. How can I help with your financial data analysis?";
+			
 		history.messages[messageId] = {
 			id: messageId,
 			role: 'assistant',
-			content: $i18n.t(
-				"Hello! I'm your accounting assistant. I can help you analyze financial data, prepare reports, and provide insights on your business performance. Please share the data you'd like me to analyze or let me know what financial questions you have."
-			),
+			content: greeting,
 			model: 'Assistant',
 			modelName: 'Assistant',
 			parentId: null,

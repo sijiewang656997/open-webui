@@ -133,6 +133,16 @@ async def get_config(request: Request, user=Depends(get_admin_user)):
     }
 
 
+@router.get("/urls")
+async def get_openai_urls(request: Request, user=Depends(get_verified_user)):
+    """
+    Get the list of OpenAI API base URLs
+    """
+    return {
+        "OPENAI_API_BASE_URLS": request.app.state.config.OPENAI_API_BASE_URLS,
+    }
+
+
 class OpenAIConfigForm(BaseModel):
     ENABLE_OPENAI_API: Optional[bool] = None
     OPENAI_API_BASE_URLS: list[str]

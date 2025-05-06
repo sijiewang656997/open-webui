@@ -1,5 +1,5 @@
 <script>
-	import { createEventDispatcher, onMount } from 'svelte';
+	import { createEventDispatcher, onMount, onDestroy } from 'svelte';
 	import { toast } from 'svelte-sonner';
 
 	const dispatch = createEventDispatcher();
@@ -13,13 +13,58 @@
 	import Prompts from './Commands/Prompts.svelte';
 	import Knowledge from './Commands/Knowledge.svelte';
 	import Models from './Commands/Models.svelte';
+	import DatabaseReferences from './Commands/DatabaseReferences.svelte';
 	import Spinner from '$lib/components/common/Spinner.svelte';
 
 	export let prompt = '';
 	export let files = [];
+	export let history = null; // Add history prop to access message data
 
 	let loading = false;
 	let commandElement = null;
+	let useDbReferences = false; // Flag to determine if we should show DB references or models
+	let dbReferencesList = []; // List of database references found in messages
+
+	// Extract database references from message content
+	const extractDbReferences = () => {
+		if (!history || !history.messages) return [];
+		
+		const references = [];
+		let highestGeneratedTable = -1; // Track highest actually generated table
+		
+		// Look through all assistant messages to find database references
+		Object.values(history.messages).forEach(message => {
+			if (message.role === 'assistant' && message.content) {
+				try {
+					// First look for "Generated Table Tn" pattern that confirms table creation
+					const generatedMatch = message.content.match(/Generated Table T(\d+)/i);
+					if (generatedMatch) {
+						const tableNumber = parseInt(generatedMatch[1]);
+						if (tableNumber > highestGeneratedTable) {
+							highestGeneratedTable = tableNumber;
+						}
+					}
+				} catch (error) {
+					console.log("Error parsing message content:", error);
+				}
+			}
+		});
+		
+		if (highestGeneratedTable >= 0) {
+			// Show only tables that have actually been generated
+			// Add generated tables (T1 to highestGeneratedTable)
+			for (let i = 0; i <= highestGeneratedTable; i++) {
+				references.push(`T${i}`);
+			}
+			// Add the next table in sequence
+			//references.push(`T${highestGeneratedTable + 1}`);
+		} else {
+			// If no tables found, show T0 for new conversations
+			references.push("T0");
+		}
+		
+		return references;
+	};
 
 	export const selectUp = () => {
 		commandElement?.selectUp();
@@ -37,6 +82,12 @@
 
 	$: if (show) {
 		init();
+	}
+	
+	// Update database references whenever command is shown
+	$: if (show && command?.charAt(0) === '@') {
+		dbReferencesList = extractDbReferences();
+		useDbReferences = dbReferencesList.length > 0;
 	}
 
 	const init = async () => {
@@ -94,18 +145,32 @@
 				}}
 			/>
 		{:else if command?.charAt(0) === '@'}
-			<Models
-				bind:this={commandElement}
-				{command}
-				on:select={(e) => {
-					prompt = removeLastWordFromString(prompt, command);
+			{#if useDbReferences}
+				<DatabaseReferences
+					bind:this={commandElement}
+					{command}
+					dbReferences={dbReferencesList}
+					on:select={(e) => {
+						prompt = removeLastWordFromString(prompt, command);
+						prompt += `@${e.detail}`;
+						
+						dispatch('select');
+					}}
+				/>
+			{:else}
+				<Models
+					bind:this={commandElement}
+					{command}
+					on:select={(e) => {
+						prompt = removeLastWordFromString(prompt, command);
 
-					dispatch('select', {
-						type: 'model',
-						data: e.detail
-					});
-				}}
-			/>
+						dispatch('select', {
+							type: 'model',
+							data: e.detail
+						});
+					}}
+				/>
+			{/if}
 		{/if}
 	{:else}
 		<div

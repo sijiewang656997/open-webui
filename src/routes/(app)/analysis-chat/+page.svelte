@@ -18,8 +18,7 @@
 		Legend
 	} from 'chart.js';
 	import Table from '$lib/components/common/Table.svelte';
-	import { saveAs } from 'file-saver';
-	import { Document, Packer, Paragraph, TextRun, Table as DocxTable, TableRow, TableCell } from 'docx';
+	import { createDocxTemplateReport, downloadDocxDocument } from '$lib/utils/docxTemplateUtils';
 
 	ChartJS.register(
 		LineController,
@@ -56,6 +55,7 @@
 	let input = '';
 	let isLoading = false;
 	let error = '';
+	let isDownloading = false;
 
 	async function handleSubmit() {
 		if (!input.trim()) return;
@@ -82,7 +82,7 @@
 			};
 			const requestHeaders = {
 				'Content-Type': 'application/json',
-				'Authorization': 'Bearer token_59b8b43a_aiurmmm0_test', //`Bearer ${token}`,
+				'Authorization': 'Bearer token_59b8b43a_aiurmmm0_upload', //`Bearer ${token}`,
 				'Accept-Language': 'zh-cn'
 			};
 			console.log('[DEBUG] Sending fetch to http://192.168.200.118:5002/api/analysis/stream', requestBody, requestHeaders);
@@ -166,35 +166,40 @@
 	}
 
 	async function downloadWordReport() {
-		const doc = new Document();
-		const children = [];
-
-		children.push(new Paragraph({
-			children: [new TextRun({ text: 'Analysis Report', bold: true, size: 36 })],
-			spacing: { after: 300 }
-		}));
-
-		for (const message of messages) {
-			children.push(new Paragraph({
-				children: [new TextRun({ text: message.content.replace(/<[^>]+>/g, ''), size: 24 })],
-				spacing: { after: 200 }
-			}));
-			if (message.results && message.results.columns && message.results.records) {
-				const tableRows = [
-					new TableRow({
-						children: message.results.columns.map(col => new TableCell({ children: [new Paragraph({ text: col, bold: true })] }))
-					}),
-					...message.results.records.map(row => new TableRow({
-						children: row.map(cell => new TableCell({ children: [new Paragraph({ text: String(cell) })] }))
-					}))
-				];
-				children.push(new DocxTable({ rows: tableRows }));
-			}
+		try {
+			console.log('[DOCX DEBUG] Starting Word document download with Docxtemplater');
+			isDownloading = true;
+			
+			// Combine all message contents for the report
+			const combinedContent = messages.map(message => {
+				// Clean HTML tags and format the content
+				return message.content.replace(/<[^>]+>/g, '');
+			}).join('\n\n');
+			
+			// Use the first message's results for the table, if available
+			const tableData = messages.find(msg => msg.results?.columns && msg.results.records)?.results;
+			
+			// Create the document using our new utility function
+			const blob = await createDocxTemplateReport(
+				combinedContent,
+				'Analysis Report',
+				tableData
+			);
+			
+			// Generate filename with timestamp
+			const timestamp = new Date().toISOString().replace(/[-:.]/g, '').substring(0, 14);
+			const filename = `analysis_report_${timestamp}.docx`;
+			
+			// Download the document
+			downloadDocxDocument(blob, filename);
+			
+			console.log('[DOCX DEBUG] Download complete');
+		} catch (error) {
+			console.error('[DOCX DEBUG] Error in downloadWordReport:', error);
+			alert('Failed to download report. Please try again.');
+		} finally {
+			isDownloading = false;
 		}
-
-		doc.addSection({ children });
-		const blob = await Packer.toBlob(doc);
-		saveAs(blob, 'analysis_report.docx');
 	}
 </script>
 
@@ -203,7 +208,24 @@
 	<div class="flex-1 flex flex-col h-full">
 		<div class="flex items-center justify-between px-4 pt-4 pb-2">
 			<h1 class="text-2xl font-bold">Analysis Report</h1>
-			<button on:click={downloadWordReport} class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">Download as Word</button>
+			<button 
+				on:click={downloadWordReport} 
+				class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition flex items-center"
+				disabled={isDownloading || messages.length === 0}
+			>
+				{#if isDownloading}
+					<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+						<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+					</svg>
+					Downloading...
+				{:else}
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l2.414 2.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+					</svg>
+					Download as Word
+				{/if}
+			</button>
 		</div>
 		<div class="flex-1 overflow-y-auto p-4 space-y-4">
 			{#each messages as message}
@@ -250,31 +272,36 @@
 				</div>
 			{/each}
 		</div>
-
-		<div class="p-4 border-t dark:border-gray-700">
-			{#if error}
-				<div class="mb-4 text-red-500 dark:text-red-400">{error}</div>
-			{/if}
-			<form on:submit|preventDefault={handleSubmit} class="flex space-x-2">
+		<div class="p-4 border-t">
+			<form on:submit|preventDefault={handleSubmit} class="flex items-center gap-4">
 				<input
 					type="text"
 					bind:value={input}
-					placeholder="Type @analysis followed by your query..."
-					class="flex-1 p-2 rounded-lg border dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+					placeholder="Send a message starting with @analysis"
+					class="flex-1 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800"
 					disabled={isLoading}
 				/>
 				<button
 					type="submit"
-					class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
+					class="py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
 					disabled={isLoading}
 				>
 					{#if isLoading}
-						Loading...
+						<span class="flex items-center">
+							<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+								<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+							</svg>
+							Processing...
+						</span>
 					{:else}
 						Send
 					{/if}
 				</button>
 			</form>
+			{#if error}
+				<p class="mt-2 text-red-500">{error}</p>
+			{/if}
 		</div>
 	</div>
 </div>

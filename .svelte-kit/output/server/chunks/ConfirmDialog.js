@@ -1,0 +1,43 @@
+import { c as create_ssr_component, p as getContext, b as subscribe, l as createEventDispatcher, a as add_attribute, g as escape } from "./ssr.js";
+/* empty css                                            */
+const css = {
+  code: "@keyframes svelte-fq1rhy-scaleUp{from{transform:scale(0.985);opacity:0}to{transform:scale(1);opacity:1}}",
+  map: `{"version":3,"file":"ConfirmDialog.svelte","sources":["ConfirmDialog.svelte"],"sourcesContent":["<script lang=\\"ts\\">import { onMount, getContext, createEventDispatcher } from \\"svelte\\";\\nconst i18n = getContext(\\"i18n\\");\\nconst dispatch = createEventDispatcher();\\nimport { fade } from \\"svelte/transition\\";\\nimport { flyAndScale } from \\"$lib/utils/transitions\\";\\nexport let title = \\"\\";\\nexport let message = \\"\\";\\nexport let cancelLabel = $i18n.t(\\"Cancel\\");\\nexport let confirmLabel = $i18n.t(\\"Confirm\\");\\nexport let onConfirm = () => {\\n};\\nexport let input = false;\\nexport let inputPlaceholder = \\"\\";\\nexport let inputValue = \\"\\";\\nexport let show = false;\\nlet modalElement = null;\\nlet mounted = false;\\nconst handleKeyDown = (event) => {\\n  if (event.key === \\"Escape\\") {\\n    console.log(\\"Escape\\");\\n    show = false;\\n  }\\n  if (event.key === \\"Enter\\") {\\n    console.log(\\"Enter\\");\\n    confirmHandler();\\n  }\\n};\\nconst confirmHandler = async () => {\\n  show = false;\\n  await onConfirm();\\n  dispatch(\\"confirm\\", inputValue);\\n};\\nonMount(() => {\\n  mounted = true;\\n});\\n$: if (mounted) {\\n  if (show && modalElement) {\\n    document.body.appendChild(modalElement);\\n    window.addEventListener(\\"keydown\\", handleKeyDown);\\n    document.body.style.overflow = \\"hidden\\";\\n  } else if (modalElement) {\\n    window.removeEventListener(\\"keydown\\", handleKeyDown);\\n    document.body.removeChild(modalElement);\\n    document.body.style.overflow = \\"unset\\";\\n  }\\n}\\n<\/script>\\n\\n{#if show}\\n\\t<!-- svelte-ignore a11y-click-events-have-key-events -->\\n\\t<!-- svelte-ignore a11y-no-static-element-interactions -->\\n\\t<div\\n\\t\\tbind:this={modalElement}\\n\\t\\tclass=\\" fixed top-0 right-0 left-0 bottom-0 bg-black/60 w-full h-screen max-h-[100dvh] flex justify-center z-99999999 overflow-hidden overscroll-contain\\"\\n\\t\\tin:fade={{ duration: 10 }}\\n\\t\\ton:mousedown={() => {\\n\\t\\t\\tshow = false;\\n\\t\\t}}\\n\\t>\\n\\t\\t<div\\n\\t\\t\\tclass=\\" m-auto rounded-2xl max-w-full w-[32rem] mx-2 bg-gray-50 dark:bg-gray-950 max-h-[100dvh] shadow-3xl\\"\\n\\t\\t\\tin:flyAndScale\\n\\t\\t\\ton:mousedown={(e) => {\\n\\t\\t\\t\\te.stopPropagation();\\n\\t\\t\\t}}\\n\\t\\t>\\n\\t\\t\\t<div class=\\"px-[1.75rem] py-6 flex flex-col\\">\\n\\t\\t\\t\\t<div class=\\" text-lg font-semibold dark:text-gray-200 mb-2.5\\">\\n\\t\\t\\t\\t\\t{#if title !== ''}\\n\\t\\t\\t\\t\\t\\t{title}\\n\\t\\t\\t\\t\\t{:else}\\n\\t\\t\\t\\t\\t\\t{$i18n.t('Confirm your action')}\\n\\t\\t\\t\\t\\t{/if}\\n\\t\\t\\t\\t</div>\\n\\n\\t\\t\\t\\t<slot>\\n\\t\\t\\t\\t\\t<div class=\\" text-sm text-gray-500 flex-1\\">\\n\\t\\t\\t\\t\\t\\t{#if message !== ''}\\n\\t\\t\\t\\t\\t\\t\\t{message}\\n\\t\\t\\t\\t\\t\\t{:else}\\n\\t\\t\\t\\t\\t\\t\\t{$i18n.t('This action cannot be undone. Do you wish to continue?')}\\n\\t\\t\\t\\t\\t\\t{/if}\\n\\n\\t\\t\\t\\t\\t\\t{#if input}\\n\\t\\t\\t\\t\\t\\t\\t<textarea\\n\\t\\t\\t\\t\\t\\t\\t\\tbind:value={inputValue}\\n\\t\\t\\t\\t\\t\\t\\t\\tplaceholder={inputPlaceholder ? inputPlaceholder : $i18n.t('Enter your message')}\\n\\t\\t\\t\\t\\t\\t\\t\\tclass=\\"w-full mt-2 rounded-lg px-4 py-2 text-sm dark:text-gray-300 dark:bg-gray-900 outline-hidden resize-none\\"\\n\\t\\t\\t\\t\\t\\t\\t\\trows=\\"3\\"\\n\\t\\t\\t\\t\\t\\t\\t\\trequired\\n\\t\\t\\t\\t\\t\\t\\t/>\\n\\t\\t\\t\\t\\t\\t{/if}\\n\\t\\t\\t\\t\\t</div>\\n\\t\\t\\t\\t</slot>\\n\\n\\t\\t\\t\\t<div class=\\"mt-6 flex justify-between gap-1.5\\">\\n\\t\\t\\t\\t\\t<button\\n\\t\\t\\t\\t\\t\\tclass=\\"bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-850 dark:hover:bg-gray-800 dark:text-white font-medium w-full py-2.5 rounded-lg transition\\"\\n\\t\\t\\t\\t\\t\\ton:click={() => {\\n\\t\\t\\t\\t\\t\\t\\tshow = false;\\n\\t\\t\\t\\t\\t\\t\\tdispatch('cancel');\\n\\t\\t\\t\\t\\t\\t}}\\n\\t\\t\\t\\t\\t\\ttype=\\"button\\"\\n\\t\\t\\t\\t\\t>\\n\\t\\t\\t\\t\\t\\t{cancelLabel}\\n\\t\\t\\t\\t\\t</button>\\n\\t\\t\\t\\t\\t<button\\n\\t\\t\\t\\t\\t\\tclass=\\"bg-gray-900 hover:bg-gray-850 text-gray-100 dark:bg-gray-100 dark:hover:bg-white dark:text-gray-800 font-medium w-full py-2.5 rounded-lg transition\\"\\n\\t\\t\\t\\t\\t\\ton:click={() => {\\n\\t\\t\\t\\t\\t\\t\\tconfirmHandler();\\n\\t\\t\\t\\t\\t\\t}}\\n\\t\\t\\t\\t\\t\\ttype=\\"button\\"\\n\\t\\t\\t\\t\\t>\\n\\t\\t\\t\\t\\t\\t{confirmLabel}\\n\\t\\t\\t\\t\\t</button>\\n\\t\\t\\t\\t</div>\\n\\t\\t\\t</div>\\n\\t\\t</div>\\n\\t</div>\\n{/if}\\n\\n<style>\\n\\t.modal-content {\\n\\t\\tanimation: scaleUp 0.1s ease-out forwards;\\n\\t}\\n\\n\\t@keyframes scaleUp {\\n\\t\\tfrom {\\n\\t\\t\\ttransform: scale(0.985);\\n\\t\\t\\topacity: 0;\\n\\t\\t}\\n\\t\\tto {\\n\\t\\t\\ttransform: scale(1);\\n\\t\\t\\topacity: 1;\\n\\t\\t}\\n\\t}\\n</style>\\n"],"names":[],"mappings":"AA8HC,WAAW,qBAAQ,CAClB,IAAK,CACJ,SAAS,CAAE,MAAM,KAAK,CAAC,CACvB,OAAO,CAAE,CACV,CACA,EAAG,CACF,SAAS,CAAE,MAAM,CAAC,CAAC,CACnB,OAAO,CAAE,CACV,CACD"}`
+};
+const ConfirmDialog = create_ssr_component(($$result, $$props, $$bindings, slots) => {
+  let $i18n, $$unsubscribe_i18n;
+  const i18n = getContext("i18n");
+  $$unsubscribe_i18n = subscribe(i18n, (value) => $i18n = value);
+  createEventDispatcher();
+  let { title = "" } = $$props;
+  let { message = "" } = $$props;
+  let { cancelLabel = $i18n.t("Cancel") } = $$props;
+  let { confirmLabel = $i18n.t("Confirm") } = $$props;
+  let { onConfirm = () => {
+  } } = $$props;
+  let { input = false } = $$props;
+  let { inputPlaceholder = "" } = $$props;
+  let { inputValue = "" } = $$props;
+  let { show = false } = $$props;
+  let modalElement = null;
+  if ($$props.title === void 0 && $$bindings.title && title !== void 0) $$bindings.title(title);
+  if ($$props.message === void 0 && $$bindings.message && message !== void 0) $$bindings.message(message);
+  if ($$props.cancelLabel === void 0 && $$bindings.cancelLabel && cancelLabel !== void 0) $$bindings.cancelLabel(cancelLabel);
+  if ($$props.confirmLabel === void 0 && $$bindings.confirmLabel && confirmLabel !== void 0) $$bindings.confirmLabel(confirmLabel);
+  if ($$props.onConfirm === void 0 && $$bindings.onConfirm && onConfirm !== void 0) $$bindings.onConfirm(onConfirm);
+  if ($$props.input === void 0 && $$bindings.input && input !== void 0) $$bindings.input(input);
+  if ($$props.inputPlaceholder === void 0 && $$bindings.inputPlaceholder && inputPlaceholder !== void 0) $$bindings.inputPlaceholder(inputPlaceholder);
+  if ($$props.inputValue === void 0 && $$bindings.inputValue && inputValue !== void 0) $$bindings.inputValue(inputValue);
+  if ($$props.show === void 0 && $$bindings.show && show !== void 0) $$bindings.show(show);
+  $$result.css.add(css);
+  $$unsubscribe_i18n();
+  return `${show ? `  <div class="fixed top-0 right-0 left-0 bottom-0 bg-black/60 w-full h-screen max-h-[100dvh] flex justify-center z-99999999 overflow-hidden overscroll-contain"${add_attribute("this", modalElement, 0)}><div class="m-auto rounded-2xl max-w-full w-[32rem] mx-2 bg-gray-50 dark:bg-gray-950 max-h-[100dvh] shadow-3xl"><div class="px-[1.75rem] py-6 flex flex-col"><div class="text-lg font-semibold dark:text-gray-200 mb-2.5">${title !== "" ? `${escape(title)}` : `${escape($i18n.t("Confirm your action"))}`}</div> ${slots.default ? slots.default({}) : ` <div class="text-sm text-gray-500 flex-1">${message !== "" ? `${escape(message)}` : `${escape($i18n.t("This action cannot be undone. Do you wish to continue?"))}`} ${input ? `<textarea${add_attribute(
+    "placeholder",
+    inputPlaceholder ? inputPlaceholder : $i18n.t("Enter your message"),
+    0
+  )} class="w-full mt-2 rounded-lg px-4 py-2 text-sm dark:text-gray-300 dark:bg-gray-900 outline-hidden resize-none" rows="3" required>${escape(inputValue || "")}</textarea>` : ``}</div> `} <div class="mt-6 flex justify-between gap-1.5"><button class="bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-850 dark:hover:bg-gray-800 dark:text-white font-medium w-full py-2.5 rounded-lg transition" type="button">${escape(cancelLabel)}</button> <button class="bg-gray-900 hover:bg-gray-850 text-gray-100 dark:bg-gray-100 dark:hover:bg-white dark:text-gray-800 font-medium w-full py-2.5 rounded-lg transition" type="button">${escape(confirmLabel)}</button></div></div></div></div>` : ``}`;
+});
+export {
+  ConfirmDialog as C
+};
+//# sourceMappingURL=ConfirmDialog.js.map

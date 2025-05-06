@@ -98,6 +98,7 @@
 			usage?: unknown;
 		};
 		annotation?: { type: string; rating: number };
+		isLoading?: boolean;
 	}
 
 	export let chatId = '';
@@ -816,7 +817,21 @@
 								{#if message.content === '' && !message.error}
 									<Skeleton />
 								{:else if message.content && message.error !== true}
-									{#if processedResponse.isAgent}
+									{#if message.isLoading}
+										<!-- Agent loading animation -->
+										<div class="agent-loading-animation">
+											<div class="flex items-center">
+												<div class="typing-animation mr-1">
+													<span></span>
+													<span></span>
+													<span></span>
+												</div>
+												<div class="agent-loading-text">
+													{message.content}
+												</div>
+											</div>
+										</div>
+									{:else if processedResponse.isAgent}
 										{#if (processedResponse.type === 'query_result' || processedResponse.data.type === 'query_result') && (processedResponse.data.results || processedResponse.data.response?.results)}
 											<div class="agent-query-results py-3">
 												<div class="mb-4 text-gray-700 dark:text-gray-300">{processedResponse.content}</div>
@@ -1647,5 +1662,59 @@
 	
 	:global(.table-improved td) {
 		padding: 0.625rem 1rem !important;
+	}
+
+	/* Agent loading animation styles */
+	.agent-loading-animation {
+		padding: 0.5rem 0;
+	}
+
+	.agent-loading-text {
+		font-size: 1rem;
+		line-height: 1.5;
+		color: var(--text-primary);
+	}
+
+	.typing-animation {
+		display: inline-flex;
+		align-items: center;
+		margin-right: 0.5rem;
+	}
+
+	.typing-animation span {
+		height: 0.5rem;
+		width: 0.5rem;
+		margin: 0 0.1rem;
+		background-color: #4b5563;
+		border-radius: 50%;
+		display: inline-block;
+		opacity: 0.6;
+	}
+
+	:global(.dark) .typing-animation span {
+		background-color: #9ca3af;
+	}
+
+	.typing-animation span:nth-child(1) {
+		animation: pulse 1.5s infinite ease-in-out;
+	}
+
+	.typing-animation span:nth-child(2) {
+		animation: pulse 1.5s infinite ease-in-out 0.3s;
+	}
+
+	.typing-animation span:nth-child(3) {
+		animation: pulse 1.5s infinite ease-in-out 0.6s;
+	}
+
+	@keyframes pulse {
+		0%, 100% {
+			transform: scale(0.75);
+			opacity: 0.4;
+		}
+		50% {
+			transform: scale(1);
+			opacity: 1;
+		}
 	}
 </style>

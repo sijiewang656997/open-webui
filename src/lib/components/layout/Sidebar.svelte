@@ -872,11 +872,11 @@
 						</button>
 					</Tooltip>
 
-					<Tooltip content={$i18n.t('Analysis in Chat')}>
+					<Tooltip content={$i18n.t('Generate Analysis Report')}>
 						<button 
 							class="flex-none p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 transition flex items-center space-x-2"
 							on:click={() => goto('/analysis-chat')}
-							aria-label="Analysis in Chat"
+							aria-label="Generate Analysis Report"
 						>
 							<div class="self-center">
 								<svg
@@ -894,7 +894,7 @@
 									/>
 								</svg>
 							</div>
-							<span class="font-medium text-sm">{$i18n.t('Analysis in Chat')}</span>
+							<span class="font-medium text-sm">{$i18n.t('Generate Analysis Report')}</span>
 						</button>
 					</Tooltip>
 				</div>

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { getContext } from 'svelte';
+  const i18n: any = getContext('i18n');
   export let data: any[] = [];
   export let columns: string[] = [];
   export let className = "";
@@ -80,9 +82,10 @@
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] flex flex-col">
       <!-- Modal header -->
       <div class="flex justify-between items-center p-4 border-b dark:border-gray-700">
-        <h3 class="text-lg font-medium text-gray-800 dark:text-gray-200">Full Data Table</h3>
+        <h3 class="text-lg font-medium text-gray-800 dark:text-gray-200">{$i18n.t('Full Data Table')}</h3>
         <button 
           class="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+          title={$i18n.t('View full table')}
           on:click={() => showModal = false}
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -129,7 +132,7 @@
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
           </svg>
-          Download CSV
+          {$i18n.t('Download CSV')}
         </button>
       </div>
     </div>
@@ -142,8 +145,8 @@
     <div class="absolute top-2 right-2 flex gap-2 z-10">
       <button 
         class="p-1.5 bg-gray-100 dark:bg-gray-700 rounded shadow-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+        title={$i18n.t('View full table')}
         on:click={toggleFullPreview}
-        title="View full table"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
           <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
@@ -152,8 +155,8 @@
       
       <button 
         class="p-1.5 bg-gray-100 dark:bg-gray-700 rounded shadow-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+        title={$i18n.t('Download as CSV')}
         on:click={downloadCSV}
-        title="Download as CSV"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
           <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -196,7 +199,7 @@
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75l3 3m0 0l3-3m-3 3v-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          Show all {data.length} rows
+          {$i18n.t('Show all {{count}} rows', { count: data.length })}
         </button>
       </div>
     {/if}

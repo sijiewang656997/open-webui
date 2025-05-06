@@ -1080,6 +1080,9 @@ async def chat_completion(
             # Get API key from variables or fall back to model configuration
             variables = form_data.get('variables', {})
             api_key = variables.get('{{USER_API_KEY}}', '')
+            user_language = variables.get('{{LOCAL_LANGUAGE}}', 'en_US')
+            local_language = "en" if user_language == "en_US" else "zh_cn"
+            
             
             # If api_key is empty, try to get it from OPENAI_API_KEYS
             if not api_key and OPENAI_API_KEYS and OPENAI_API_KEYS.value:
@@ -1109,8 +1112,8 @@ async def chat_completion(
                     agent_url,
                     json=agent_data,
                     headers={
-                        "Accept-Language": "en",
-                        "Authorization": "Bearer token_59b8b43a_aiurmmm0", #f"Bearer {api_key}",
+                        "Accept-Language": local_language,
+                        "Authorization": f"Bearer token_{api_key}",
                         "Content-Type": "application/json"
                     },
                     timeout=300

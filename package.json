@@ -78,6 +78,8 @@
 		"codemirror-lang-hcl": "^0.0.0-beta.2",
 		"crc-32": "^1.2.2",
 		"dayjs": "^1.11.10",
+		"docx": "^8.5.0",
+		"docxtemplater": "^3.61.1",
 		"dompurify": "^3.1.6",
 		"eventsource-parser": "^1.1.2",
 		"file-saver": "^2.0.5",
@@ -97,6 +99,7 @@
 		"mermaid": "^10.9.3",
 		"paneforge": "^0.0.6",
 		"panzoom": "^9.4.3",
+		"pizzip": "^3.1.8",
 		"prosemirror-commands": "^1.6.0",
 		"prosemirror-example-setup": "^1.2.3",
 		"prosemirror-history": "^1.4.1",
@@ -117,8 +120,7 @@
 		"undici": "^7.3.0",
 		"uuid": "^9.0.1",
 		"vite-plugin-static-copy": "^2.2.0",
-		"xlsx": "^0.18.5",
-		"docx": "^8.5.0"
+		"xlsx": "^0.18.5"
 	},
 	"engines": {
 		"node": ">=18.13.0 <=22.x.x",

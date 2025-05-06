@@ -1,9 +1,10 @@
 <script>
-    import { createEventDispatcher, getContext } from 'svelte';
+    import { createEventDispatcher, getContext, onMount } from 'svelte';
     import { toast } from 'svelte-sonner';
     
     import Modal from './Modal.svelte';
     import Spinner from './Spinner.svelte';
+    import { getApiConfig } from '$lib/utils/api-config';
 
     const i18n = getContext('i18n');
     
@@ -16,11 +17,32 @@
     let clearPreviousData = false;
     let deleteExcelOnClear = false;
     
-    // Constants for API configuration - matching the Excel to SQL page config
-    const host_ip = "192.168.200.118";
-    const base_url = "http://" + host_ip + ":5002";
-    const user_token = "token_59b8b43a_aiurmmm0";
-    const language_local = 'en';
+    // API configuration with fallback defaults
+    let base_url = 'http://192.168.200.118:5002';
+    let user_token = 'token_59b8b43a_aiurmmm0';
+    let language_local = 'en';
+    
+    // Load API configuration once component is mounted
+    onMount(async () => {
+        console.log('ExcelToSqlUploadModal - Component mounted');
+        console.log('i18n object available:', !!i18n);
+        
+        try {
+            // Get API configuration
+            console.log('Getting API config...');
+            const apiConfig = await getApiConfig(i18n);
+            
+            // Update local variables with config values
+            base_url = apiConfig.baseUrl || base_url;
+            user_token = apiConfig.userToken || user_token;
+            language_local = apiConfig.languageLocal || language_local;
+            
+            console.log('API Config loaded:', { base_url, language_local, user_token });
+        } catch (error) {
+            console.error('Error loading API configuration:', error);
+            // Keep using default values set above
+        }
+    });
     
     const uploadFiles = async () => {
         if (files.length === 0) {
@@ -41,6 +63,13 @@
                 console.log('Uploading file:', file.name);
                 console.log('Clear previous data:', clearPreviousData);
                 console.log('Delete Excel on clear:', deleteExcelOnClear);
+                if (localStorage.getItem('locale') === "zh-CN") {
+                    language_local = 'zh-cn';
+                } else {
+                    language_local = 'en';
+                }
+                
+                console.log('Using API config:', { base_url, language_local, user_token });
                 
                 const response = await fetch(`${base_url}/api/excel_to_sql`, {
                     method: 'POST',
@@ -69,7 +98,7 @@
             show = false;
         } catch (error) {
             console.error('Error uploading files:', error);
-            toast.error($i18n.t('Error uploading files: {{message}}', { message: error.message }));
+            toast.error($i18n.t('Error uploading files: {{message}}', { message: error.message || 'Unknown error' }));
         } finally {
             isUploading = false;
         }

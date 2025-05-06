@@ -1,8 +1,11 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount, getContext } from 'svelte';
   import { toast } from 'svelte-sonner';
   import { user } from '$lib/stores';
   import Spinner from '$lib/components/common/Spinner.svelte';
+  import { getApiConfig } from '$lib/utils/api-config';
+  
+  const i18n = getContext('i18n');
   
   let isLoading = true;
   let files = [];
@@ -17,11 +20,10 @@
   let hasUnsavedChanges = false;
   let isEditMode = false;
   
-  // Constants for API configuration
-  const host_ip = "192.168.200.118";
-  const base_url = "http://" + host_ip + ":5002";
-  const user_token = "token_59b8b43a_aiurmmm0";
-  const language_local = 'en';
+  // API configuration with fallback defaults
+  let base_url = 'http://192.168.200.118:5002';
+  let user_token = 'token_59b8b43a_aiurmmm0';
+  let language_local = 'en';
   
   // Create a confirmation modal state
   let showConfirmDialog = false;
@@ -33,6 +35,23 @@
   };
   
   onMount(async () => {
+    try {
+      console.log('Loading API configuration...');
+      
+      // Get API configuration
+      const apiConfig = await getApiConfig(i18n);
+      
+      // Update local variables with config values
+      base_url = apiConfig.baseUrl || base_url;
+      user_token = apiConfig.userToken || user_token;
+      language_local = apiConfig.languageLocal || language_local;
+      
+      console.log('Excel-to-SQL page - API Config loaded:', { base_url, language_local, user_token });
+    } catch (error) {
+      console.error('Error loading API configuration:', error);
+      // Keep using default values
+    }
+    
     await loadFiles();
   });
   
@@ -379,7 +398,7 @@
           </svg>
           Back
         </a>
-        <h2 class="header-title">Excel To SQL Management</h2>
+        <h2 class="header-title">{$i18n.t('Excel To SQL Management')}</h2>
       </div>
       <button 
         class="flex items-center space-x-2 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 transition"
@@ -388,7 +407,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
         </svg>
-        <span>Refresh</span>
+        <span>{$i18n.t('Refresh')}</span>
       </button>
     </div>
   </div>
@@ -399,7 +418,7 @@
       <div class="file-list-container">
         <div class="file-list-header dark:border-gray-700">
           <div class="flex justify-between items-center">
-            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Excel Data Sources</h3>
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">{$i18n.t('Excel Data Sources')}</h3>
             <div class="search-box">
               <div class="relative">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -419,23 +438,23 @@
         {#if isLoading}
           <div class="flex justify-center items-center h-64">
             <Spinner className="w-10 h-10" />
-            <span class="ml-4 text-gray-600 dark:text-gray-400">Loading files...</span>
+            <span class="ml-4 text-gray-600 dark:text-gray-400">{$i18n.t('Loading files...')}</span>
           </div>
         {:else if files.length === 0}
           <div class="empty-state">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-16 h-16 mx-auto mb-4 text-gray-400">
               <path stroke-linecap="round" stroke-linejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
             </svg>
-            <h3 class="text-xl font-medium text-gray-700 dark:text-gray-300 mb-2">No Excel files have been uploaded yet</h3>
-            <p class="text-gray-500 dark:text-gray-400">Upload Excel files using the Excel File Handler to see them here</p>
+            <h3 class="text-xl font-medium text-gray-700 dark:text-gray-300 mb-2">{$i18n.t('No Excel files have been uploaded yet')}</h3>
+            <p class="text-gray-500 dark:text-gray-400">{$i18n.t('Upload Excel files using the Excel File Handler to see them here')}</p>
           </div>
         {:else if filteredFiles.length === 0}
           <div class="empty-state">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-16 h-16 mx-auto mb-4 text-gray-400">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            <h3 class="text-xl font-medium text-gray-700 dark:text-gray-300 mb-2">No files match your search</h3>
-            <p class="text-gray-500 dark:text-gray-400">Try a different search term or clear your search</p>
+            <h3 class="text-xl font-medium text-gray-700 dark:text-gray-300 mb-2">{$i18n.t('No files match your search')}</h3>
+            <p class="text-gray-500 dark:text-gray-400">{$i18n.t('Try a different search term or clear your search')}</p>
           </div>
         {:else}
           <div class="file-list">
@@ -443,10 +462,10 @@
               <thead>
                 <tr class="border-b border-gray-200 dark:border-gray-700">
                   <th class="py-3 px-4 text-left"></th>
-                  <th class="py-3 px-4 text-left">Filename</th>
-                  <th class="py-3 px-4 text-left">Upload Date</th>
-                  <th class="py-3 px-4 text-left">Tables</th>
-                  <th class="py-3 px-4 text-left">Actions</th>
+                  <th class="py-3 px-4 text-left">{$i18n.t('Filename')}</th>
+                  <th class="py-3 px-4 text-left">{$i18n.t('Upload Date')}</th>
+                  <th class="py-3 px-4 text-left">{$i18n.t('Tables')}</th>
+                  <th class="py-3 px-4 text-left">{$i18n.t('Actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -525,26 +544,26 @@
           <!-- Show file info and table list -->
           <div class="file-info-section dark:border-gray-700">
             <div class="file-info-item">
-              <span class="info-label">Filename:</span>
+              <span class="info-label">{$i18n.t('Filename')}:</span>
               <span class="info-value">{selectedFile.name}</span>
             </div>
             <div class="file-info-item">
-              <span class="info-label">Upload Date:</span>
+              <span class="info-label">{$i18n.t('Upload Date')}:</span>
               <span class="info-value">{selectedFile.dateUploaded}</span>
             </div>
             <div class="file-info-item">
-              <span class="info-label">Tables:</span>
+              <span class="info-label">{$i18n.t('Tables')}:</span>
               <span class="info-value">{selectedFile.tableCount}</span>
             </div>
             <div class="file-info-item">
-              <span class="info-label">Path:</span>
+              <span class="info-label">{$i18n.t('Path')}:</span>
               <span class="info-value text-xs opacity-80">{selectedFile.savedPath}</span>
             </div>
           </div>
           
           <div class="tables-section">
             <div class="flex justify-between items-center mb-4">
-              <h4 class="section-title">Excel Sheets</h4>
+              <h4 class="section-title">{$i18n.t('Excel Sheets')}</h4>
               {#if selectedFile.tables && selectedFile.tables.length > 0}
                 <span class="text-gray-500 dark:text-gray-400 text-sm">
                   {selectedFile.tables.length} {selectedFile.tables.length === 1 ? 'sheet' : 'sheets'} available
@@ -554,7 +573,7 @@
             
             {#if !selectedFile.tables || selectedFile.tables.length === 0}
               <div class="no-content-message">
-                <p class="text-gray-500 dark:text-gray-400">No tables found in this file.</p>
+                <p class="text-gray-500 dark:text-gray-400">{$i18n.t('No tables found in this file')}</p>
               </div>
             {:else}
               <div class="tables-list">
@@ -579,7 +598,7 @@
           <div class="table-view-section">
             <div class="mb-4">
               <div class="flex justify-between items-center">
-                <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200">Table: {selectedTable.table_name}</h4>
+                <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200">{$i18n.t('Table')}: {selectedTable.table_name}</h4>
                 <div class="flex space-x-2">
                   <button
                     class="px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition flex items-center space-x-2"
@@ -597,7 +616,7 @@
             {#if tableLoadingStates[selectedTable.table_name]}
               <div class="flex justify-center items-center h-64">
                 <Spinner className="w-10 h-10" />
-                <span class="ml-4 text-gray-600 dark:text-gray-400">Loading table data...</span>
+                <span class="ml-4 text-gray-600 dark:text-gray-400">{$i18n.t('Loading table data...')}</span>
               </div>
             {:else}
               {#if tablesData[selectedTable.table_name]}

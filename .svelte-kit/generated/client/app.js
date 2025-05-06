@@ -1,0 +1,105 @@
+export { matchers } from './matchers.js';
+
+export const nodes = [
+	() => import('./nodes/0'),
+	() => import('./nodes/1'),
+	() => import('./nodes/2'),
+	() => import('./nodes/3'),
+	() => import('./nodes/4'),
+	() => import('./nodes/5'),
+	() => import('./nodes/6'),
+	() => import('./nodes/7'),
+	() => import('./nodes/8'),
+	() => import('./nodes/9'),
+	() => import('./nodes/10'),
+	() => import('./nodes/11'),
+	() => import('./nodes/12'),
+	() => import('./nodes/13'),
+	() => import('./nodes/14'),
+	() => import('./nodes/15'),
+	() => import('./nodes/16'),
+	() => import('./nodes/17'),
+	() => import('./nodes/18'),
+	() => import('./nodes/19'),
+	() => import('./nodes/20'),
+	() => import('./nodes/21'),
+	() => import('./nodes/22'),
+	() => import('./nodes/23'),
+	() => import('./nodes/24'),
+	() => import('./nodes/25'),
+	() => import('./nodes/26'),
+	() => import('./nodes/27'),
+	() => import('./nodes/28'),
+	() => import('./nodes/29'),
+	() => import('./nodes/30'),
+	() => import('./nodes/31'),
+	() => import('./nodes/32'),
+	() => import('./nodes/33'),
+	() => import('./nodes/34'),
+	() => import('./nodes/35'),
+	() => import('./nodes/36'),
+	() => import('./nodes/37'),
+	() => import('./nodes/38'),
+	() => import('./nodes/39'),
+	() => import('./nodes/40'),
+	() => import('./nodes/41'),
+	() => import('./nodes/42'),
+	() => import('./nodes/43')
+];
+
+export const server_loads = [];
+
+export const dictionary = {
+		"/(app)": [7,[2]],
+		"/(app)/admin": [8,[2,3]],
+		"/(app)/admin/evaluations": [9,[2,3]],
+		"/(app)/admin/functions": [10,[2,3]],
+		"/(app)/admin/functions/create": [11,[2,3]],
+		"/(app)/admin/functions/edit": [12,[2,3]],
+		"/(app)/admin/settings": [13,[2,3]],
+		"/(app)/admin/users": [14,[2,3]],
+		"/(app)/analysis-chat": [16,[2]],
+		"/(app)/analysis": [15,[2]],
+		"/auth": [38],
+		"/(app)/channels/[id]": [18,[2]],
+		"/(app)/c/[id]": [17,[2]],
+		"/error": [39],
+		"/(app)/excel-to-sql": [19,[2]],
+		"/excel-viewer": [40],
+		"/(app)/home": [20,[2,4]],
+		"/(app)/playground": [21,[2,5]],
+		"/(app)/playground/completions": [22,[2,5]],
+		"/(app)/playground/notes": [23,[2,5]],
+		"/sync": [42],
+		"/s/[id]": [41],
+		"/watch": [43],
+		"/(app)/workspace": [24,[2,6]],
+		"/(app)/workspace/functions/create": [25,[2,6]],
+		"/(app)/workspace/knowledge": [26,[2,6]],
+		"/(app)/workspace/knowledge/create": [28,[2,6]],
+		"/(app)/workspace/knowledge/[id]": [27,[2,6]],
+		"/(app)/workspace/models": [29,[2,6]],
+		"/(app)/workspace/models/create": [30,[2,6]],
+		"/(app)/workspace/models/edit": [31,[2,6]],
+		"/(app)/workspace/prompts": [32,[2,6]],
+		"/(app)/workspace/prompts/create": [33,[2,6]],
+		"/(app)/workspace/prompts/edit": [34,[2,6]],
+		"/(app)/workspace/tools": [35,[2,6]],
+		"/(app)/workspace/tools/create": [36,[2,6]],
+		"/(app)/workspace/tools/edit": [37,[2,6]]
+	};
+
+export const hooks = {
+	handleError: (({ error }) => { console.error(error) }),
+	
+	reroute: (() => {}),
+	transport: {}
+};
+
+export const decoders = Object.fromEntries(Object.entries(hooks.transport).map(([k, v]) => [k, v.decode]));
+
+export const hash = false;
+
+export const decode = (type, value) => decoders[type](value);
+
+export { default as root } from '../root.svelte';

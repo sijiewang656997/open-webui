@@ -68,6 +68,7 @@ export const initI18n = (defaultLocale: string | undefined) => {
 		});
 
 	i18next.changeLanguage('en-US');
+	console.log('Current locale:', localStorage.getItem('locale'));
 };
 
 const i18n = createI18nStore(i18next);

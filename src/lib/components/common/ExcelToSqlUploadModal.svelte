@@ -1,10 +1,12 @@
-<script>
+<script lang="ts">
     import { createEventDispatcher, getContext, onMount } from 'svelte';
     import { toast } from 'svelte-sonner';
     
     import Modal from './Modal.svelte';
     import Spinner from './Spinner.svelte';
     import { getApiConfig } from '$lib/utils/api-config';
+    import { WEBUI_BASE_URL } from '$lib/constants';
+    import type { File } from '$lib/types';
 
     const i18n = getContext('i18n');
     
@@ -13,12 +15,13 @@
     const dispatch = createEventDispatcher();
     
     let isUploading = false;
-    let files = [];
+    let files: File[] = [];
     let clearPreviousData = false;
     let deleteExcelOnClear = false;
+    let dragOver = false;
     
     // API configuration with fallback defaults
-    let base_url = 'http://192.168.200.118:5002';
+    let base_url = WEBUI_BASE_URL;
     let user_token = 'token_59b8b43a_aiurmmm0';
     let language_local = 'en';
     
@@ -33,7 +36,7 @@
             const apiConfig = await getApiConfig(i18n);
             
             // Update local variables with config values
-            base_url = apiConfig.baseUrl || base_url;
+            
             user_token = apiConfig.userToken || user_token;
             language_local = apiConfig.languageLocal || language_local;
             
@@ -63,15 +66,19 @@
                 console.log('Uploading file:', file.name);
                 console.log('Clear previous data:', clearPreviousData);
                 console.log('Delete Excel on clear:', deleteExcelOnClear);
+                
+                // Set language based on locale
                 if (localStorage.getItem('locale') === "zh-CN") {
                     language_local = 'zh-cn';
                 } else {
                     language_local = 'en';
                 }
-                
+                base_url = WEBUI_BASE_URL;
                 console.log('Using API config:', { base_url, language_local, user_token });
                 
-                const response = await fetch(`${base_url}/api/excel_to_sql`, {
+                
+                // Make the API call using WEBUI_BASE_URL
+                const response = await fetch(`${base_url}/proxy/api/excel_to_sql`, {
                     method: 'POST',
                     headers: {
                         'Accept-Language': language_local,
@@ -80,7 +87,6 @@
                     body: formData
                 });
                 
-                // Log full response for debugging
                 const responseData = await response.json();
                 console.log('Upload response:', responseData);
                 
@@ -96,7 +102,7 @@
             files = [];
             dispatch('change');
             show = false;
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error uploading files:', error);
             toast.error($i18n.t('Error uploading files: {{message}}', { message: error.message || 'Unknown error' }));
         } finally {
@@ -104,12 +110,52 @@
         }
     };
     
-    const handleFileSelection = (e) => {
-        const selectedFiles = Array.from(e.target.files);
-        files = selectedFiles;
+    const handleFileSelection = (e: Event) => {
+        const target = e.target as HTMLInputElement;
+        if (target.files) {
+            const selectedFiles = Array.from(target.files);
+            files = selectedFiles;
+            
+            // Log selected files for debugging
+            console.log('Selected files:', files.map(f => ({ name: f.name, type: f.type, size: f.size })));
+        }
+    };
+
+    // Handle drag and drop events
+    const handleDragOver = (e: DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dragOver = true;
+    };
+
+    const handleDragLeave = (e: DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dragOver = false;
+    };
+
+    const handleDrop = (e: DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dragOver = false;
         
-        // Log selected files for debugging
-        console.log('Selected files:', files.map(f => ({ name: f.name, type: f.type, size: f.size })));
+        if (e.dataTransfer?.files) {
+            const droppedFiles = Array.from(e.dataTransfer.files);
+            // Filter to only include allowed file types
+            const validFiles = droppedFiles.filter(file => {
+                const fileExt = file.name.split('.').pop()?.toLowerCase();
+                return fileExt && ['xlsx', 'xls', 'csv', 'zip'].includes(fileExt);
+            });
+            
+            if (validFiles.length !== droppedFiles.length) {
+                toast.error($i18n.t('Some files were skipped. Only Excel, CSV, or ZIP files are allowed.'));
+            }
+            
+            if (validFiles.length > 0) {
+                files = validFiles;
+                console.log('Dropped files:', files.map(f => ({ name: f.name, type: f.type, size: f.size })));
+            }
+        }
     };
     
     const allowedFileTypes = [
@@ -150,7 +196,11 @@
                         {$i18n.t('Upload Excel, CSV, or ZIP Files')}
                     </label>
                     <div 
-                        class="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-700 border-dashed rounded-md"
+                        class="flex justify-center px-6 pt-5 pb-6 border-2 {dragOver ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-gray-300 dark:border-gray-700'} border-dashed rounded-md"
+                        on:dragover={handleDragOver}
+                        on:dragenter={handleDragOver}
+                        on:dragleave={handleDragLeave}
+                        on:drop={handleDrop}
                     >
                         <div class="space-y-1 text-center">
                             <svg 

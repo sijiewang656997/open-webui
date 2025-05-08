@@ -1,5 +1,5 @@
-import { l as WEBUI_API_BASE_URL } from "./index3.js";
-import { i as getUserPosition } from "./index5.js";
+import { p as WEBUI_API_BASE_URL } from "./index3.js";
+import { e as getUserPosition } from "./index5.js";
 const getUsers = async (token) => {
   let error = null;
   const res = await fetch(`${WEBUI_API_BASE_URL}/users/`, {

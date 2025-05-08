@@ -1,6 +1,6 @@
 import "dequal";
 import { d as derived, w as writable, r as readable } from "./index2.js";
-import { o as onDestroy, q as get_store_value } from "./ssr.js";
+import { o as onDestroy, r as get_store_value } from "./ssr.js";
 import { o as onMount } from "./ssr2.js";
 function styleToString(style) {
   return Object.keys(style).reduce((str, key) => {

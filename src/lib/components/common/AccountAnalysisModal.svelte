@@ -12,7 +12,7 @@
   const user_token = "token_59b8b43a_aiurmmm0_test"
   
   // API base URL with the host IP
-  const apiBaseUrl = "http://192.168.200.118:5002";
+  const apiBaseUrl = "https://192.168.200.118:5002";
   
   export let show: boolean = false;
   

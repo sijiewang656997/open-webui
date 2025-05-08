@@ -114,7 +114,9 @@ export class PreTrainedTokenizer extends PreTrainedTokenizer_base {
     /** @type {AddedToken[]} */
     added_tokens: AddedToken[];
     additional_special_tokens: any;
-    added_tokens_regex: RegExp;
+    added_tokens_splitter: DictionarySplitter;
+    /** @type {Map<string, AddedToken>} */
+    added_tokens_map: Map<string, AddedToken>;
     mask_token: string;
     mask_token_id: number;
     pad_token: string;
@@ -992,6 +994,7 @@ declare class AddedToken {
     special: boolean;
     normalized: boolean;
 }
+import { DictionarySplitter } from './utils/data-structures.js';
 import { Tensor } from './utils/tensor.js';
 export {};
 //# sourceMappingURL=tokenizers.d.ts.map

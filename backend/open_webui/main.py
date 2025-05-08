@@ -939,7 +939,7 @@ app.include_router(
 )
 app.include_router(utils.router, prefix="/api/v1/utils", tags=["utils"])
 print("add router")
-app.include_router(proxy_router, prefix="/proxy", tags=["utils"])
+app.include_router(proxy_router, prefix="/proxy", tags=["proxy"])
 print("======")
 
 try:

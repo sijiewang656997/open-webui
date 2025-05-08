@@ -2095,6 +2095,7 @@ const mobile = writable(false);
 const socket = writable(null);
 const activeUserIds = writable(null);
 const USAGE_POOL = writable(null);
+const userAPIKey = writable(null);
 const theme = writable("system");
 const shortCodesToEmojis = writable(
   Object.entries(emojiShortCodes).reduce((acc, [key, value]) => {
@@ -2131,11 +2132,12 @@ const currentChatPage = writable(1);
 const isLastActiveTab = writable(true);
 export {
   AUDIO_API_BASE_URL as A,
-  activeUserIds as B,
-  emojiShortCodes as C,
-  shortCodesToEmojis as D,
-  knowledge as E,
-  prompts as F,
+  tags as B,
+  activeUserIds as C,
+  emojiShortCodes as D,
+  shortCodesToEmojis as E,
+  knowledge as F,
+  prompts as G,
   MODEL_DOWNLOAD_POOL as M,
   RETRIEVAL_API_BASE_URL as R,
   TTSWorker as T,
@@ -2152,20 +2154,20 @@ export {
   isLastActiveTab as i,
   showSidebar as j,
   functions as k,
-  WEBUI_API_BASE_URL as l,
+  userAPIKey as l,
   models as m,
   tools as n,
   mobile as o,
-  showCallOverlay as p,
-  showControls as q,
-  showArtifacts as r,
+  WEBUI_API_BASE_URL as p,
+  showCallOverlay as q,
+  showControls as r,
   socket as s,
   temporaryChatEnabled as t,
   user as u,
-  showOverview as v,
-  chatTitle as w,
-  banners as x,
-  chats as y,
-  tags as z
+  showArtifacts as v,
+  showOverview as w,
+  chatTitle as x,
+  banners as y,
+  chats as z
 };
 //# sourceMappingURL=index3.js.map

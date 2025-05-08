@@ -41,6 +41,7 @@ services:
     volumes:
       - ./conf.d:/etc/nginx/conf.d
       - ./ssl:/etc/nginx/ssl
+      - /home/kneox/Documents/ssl:/home/kneox/Documents/ssl
     depends_on:
       - open-webui
     extra_hosts:

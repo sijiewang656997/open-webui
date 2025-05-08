@@ -2,7 +2,7 @@
   import { toast } from 'svelte-sonner';
   import { getContext, onMount } from 'svelte';
   import Spinner from '$lib/components/common/Spinner.svelte';
-  import { userAPIKey } from '$lib/stores';
+  import { userAPIKey, showSidebar } from '$lib/stores';
   import { page } from '$app/stores';
   import { writable } from 'svelte/store';
   import { downloadWordDocument, createSimpleWordDocument } from '$lib/utils/docUtils';
@@ -92,11 +92,18 @@
     });
   }
   
-  let language_local = 'zh-cn';
+  let language_local = 'en';
   let language = 'zh-cn';
-  const user_token = "token_59b8b43a_aiurmmm0_test" // This should come from your auth system
-  
+  //const user_token = "token_59b8b43a_aiurmmm0_test" // This should come from your auth system
+  const user_token = "token_59b8b43a_aiurmmm0_upload_long_demo"
+
+  if (localStorage.getItem('locale') === "zh-CN") {
+                    language_local = 'zh-cn';
+                } else {
+                    language_local = 'en';
+                }
   // API base URL with the host IP
+  //const apiBaseUrl = "http://localhost:5002";
   const apiBaseUrl = "http://192.168.200.118:5002";
   
   // Add type definitions at the top of the script section
@@ -436,35 +443,89 @@
   }
 
   // Function to initialize expanded states
-  function initializeExpandedStates(tree) {
+  function initializeExpandedStates(tree: any) {
     if (!tree) return;
     
-    // Get the first company (root node) and expand it
+    // Get all root nodes and expand them
     const rootKeys = Object.keys(tree);
+    
+    // Initialize empty objects for expanded states
+    expandedCompanies = {};
+    expandedCategories = {};
+    
     if (rootKeys.length > 0) {
-      const firstCompany = rootKeys[0];
-      expandedCompanies = { [firstCompany]: true };
-      
-      // Also expand the first level categories
-      const rootNode = tree[firstCompany];
-      if (rootNode && rootNode.children) {
-        Object.keys(rootNode.children).forEach(categoryKey => {
-          const path = `${firstCompany}/${categoryKey}`;
-          expandedCategories[path] = true;
+      // Expand all companies
+      rootKeys.forEach(company => {
+        expandedCompanies[company] = true;
+        
+        // Get the top-level nodes from the tree
+        const topLevelNodes = Object.keys(tree);
+        
+        topLevelNodes.forEach(topNodeKey => {
+          const topNode = tree[topNodeKey];
+          
+          // Mark important top categories as expanded
+          if (topNode && typeof topNode === 'object') {
+            // Expand the top-level node
+            const topPath = `${company}/${topNodeKey}`;
+            expandedCategories[topPath] = true;
+            
+            // Always expand key categories like Operating Profit and Operating Costs
+            if (topNode.children) {
+              Object.entries(topNode.children).forEach(([categoryKey, category]) => {
+                const categoryName = category?.name || categoryKey;
+                
+                // Expand important categories automatically
+                const shouldExpand = 
+                  categoryName.includes('Operating') || 
+                  categoryName.includes('Profit') || 
+                  categoryName.includes('Revenue') ||
+                  categoryName.includes('Sales') ||
+                  categoryName.includes('Costs') ||
+                  categoryName.includes('Expenses');
+                
+                if (shouldExpand) {
+                  const categoryPath = `${company}/${topNodeKey}/${categoryKey}`;
+                  expandedCategories[categoryPath] = true;
+                  
+                  console.log(`Auto-expanded category: ${categoryName}, Path: ${categoryPath}`);
+                }
+              });
+            }
+          }
         });
-      }
+      });
       
       console.log('Initialized expanded states:', { 
-        companies: expandedCompanies, 
-        categories: expandedCategories
+        companies: Object.keys(expandedCompanies),
+        categories: Object.keys(expandedCategories).length
       });
     }
   }
   
-  // Helper function to check if a node is an account (starts with numbers)
-  function isAccountNode(node) {
+  // Helper function to check if a node is an account (starts with numbers or has specific account patterns)
+  function isAccountNode(node: any) {
     if (!node || !node.name) return false;
-    return /^\d/.test(node.name);
+    
+    const name = node.name;
+    
+    // Main criteria: Account nodes typically start with numbers
+    if (/^\d/.test(name)) return true;
+    
+    // Additional check: Account may contain specific account codes in parentheses/brackets
+    if (/\(A\d+\)/.test(name) || /\[A\d+\]/.test(name)) return true;
+    
+    // Check for account list nodes that might have account arrays
+    if (node.accounts && Array.isArray(node.accounts) && node.accounts.length > 0) return true;
+    
+    // Final check: Account may be at leaf level with specific level
+    if (node.level >= 2 && (!node.children || Object.keys(node.children).length === 0)) {
+      // Check if the name contains any account-like terms
+      const accountTerms = ['account', 'acct', 'a/c', '科目', '账户'];
+      return accountTerms.some(term => name.toLowerCase().includes(term));
+    }
+    
+    return false;
   }
   
   async function fetchData() {
@@ -533,18 +594,18 @@
   }
   
   // Process data according to account tree - same logic as in ISAnalysis.js
-  function processDataWithTree(rawData) {
+  function processDataWithTree(rawData: any) {
     if (!accountTree) return { companies: {} };
     
     try {
-      const processedData = { companies: {} };
+      const processedData: any = { companies: {} };
       
       console.log('Processing data with account tree:', {
         companiesCount: Object.keys(rawData.companies || {}).length,
         hasAccountTree: !!accountTree
       });
       
-      Object.entries(rawData.companies || {}).forEach(([company, companyData]) => {
+      Object.entries(rawData.companies || {}).forEach(([company, companyData]: [string, any]) => {
         processedData.companies[company] = {
           accounts: {},
           categories: structureAccountTree(getAccountTreeRoot()),
@@ -558,7 +619,7 @@
         });
         
         // First pass: Find all accounts and add them with their direct category paths
-        Object.entries(companyData.accounts || {}).forEach(([account, accountData]) => {
+        Object.entries(companyData.accounts || {}).forEach(([account, accountData]: [string, any]) => {
           const categoryPath = findAccountCategory(
             account, 
             accountData.name, 
@@ -588,8 +649,8 @@
         resetAllCategoryTotals(processedData.companies[company].categories);
         
         // Collect account values for updating categories
-        const accountValues = [];
-        Object.entries(companyData.accounts || {}).forEach(([account, accountData]) => {
+        const accountValues: any[] = [];
+        Object.entries(companyData.accounts || {}).forEach(([account, accountData]: [string, any]) => {
           const categoryPath = findAccountCategory(
             account, 
             accountData.name, 
@@ -639,26 +700,39 @@
       return null;
     }
     
-    // Get the first key from the tree object
+    // Get all keys from the tree object
     const rootKeys = Object.keys(accountTree);
     if (rootKeys.length === 0) {
       console.error('Account tree has no root nodes', { tree: accountTree });
       return null;
     }
     
-    const rootKey = rootKeys[0];
-    const rootNode = accountTree[rootKey];
+    // Create a merged root node that preserves the original top-level structure
+    const mergedRootNode = {
+      name: 'Root',
+      level: 0,
+      children: {}
+    };
     
-    console.log('Using root node for account tree:', { 
-      rootKey,
-      rootNodeName: rootNode?.name
+    // Instead of merging children, preserve the top-level categories
+    rootKeys.forEach(rootKey => {
+      // Add each top-level node directly as a child of the merged root
+      if (accountTree[rootKey]) {
+        mergedRootNode.children[rootKey] = accountTree[rootKey];
+      }
     });
     
-    return rootNode;
+    console.log('Using merged root node for account tree:', { 
+      rootKeys,
+      childrenCount: Object.keys(mergedRootNode.children).length,
+      childrenNames: Object.keys(mergedRootNode.children).join(', ')
+    });
+    
+    return mergedRootNode;
   }
   
   // Create a structured tree from the raw account tree
-  function structureAccountTree(node) {
+  function structureAccountTree(node: any): any {
     if (!node) {
       console.error('Invalid node provided to structureAccountTree');
       return {
@@ -671,8 +745,8 @@
     }
     
     const result = {
-      name: node.name,
-      level: node.level,
+      name: node.name || 'Unknown',
+      level: node.level || 1,
       currentTotal: 0,
       previousTotal: 0,
       children: {}
@@ -688,10 +762,14 @@
   }
   
   // Find the category path for a given account
-  function findAccountCategory(account, accountName, node, path = []) {
+  function findAccountCategory(account: string, accountName: string, node: any, path: string[] = []): string[] | null {
+    // Handle null/undefined nodes
+    if (!node) return null;
+    
     // Check if this node's name starts with the account number
-    const nodeName = node?.name || '';
-    const nodeAccountNumber = nodeName.split(' ')[0];
+    const nodeName = node.name || '';
+    const nodeAccountParts = nodeName.split(' ');
+    const nodeAccountNumber = nodeAccountParts[0];
     
     console.log('Searching for account in tree:', {
       searchingFor: {
@@ -701,15 +779,15 @@
       currentNode: {
         nodeName,
         nodeAccountNumber,
-        level: node?.level
+        level: node.level
       },
       currentPath: path
     });
     
-    // If this node represents the account we're looking for
+    // Direct match: This node represents the exact account we're looking for
     if (nodeAccountNumber === account || nodeName === account) {
       // For leaf nodes (actual accounts), return the full path including this node
-      const foundPath = [...path, node.name];
+      const foundPath = [...path, nodeName];
       console.log('Found exact account match:', {
         account,
         foundPath
@@ -717,30 +795,49 @@
       return foundPath;
     }
     
-    // Check if this node has accounts array
-    if (node?.accounts && node.accounts.includes(account)) {
-      const foundPath = [...path, node.name];
-      console.log('Found account in accounts array:', {
+    // Check if the node name contains the account number/name
+    if (nodeName.includes(account) || (accountName && nodeName.includes(accountName))) {
+      const foundPath = [...path, nodeName];
+      console.log('Found account number/name in node name:', {
         account,
+        nodeName,
         foundPath
       });
       return foundPath;
     }
     
-    // Check children
-    if (node?.children) {
+    // Check if this node has accounts array with our account
+    if (node.accounts && Array.isArray(node.accounts)) {
+      const hasAccountInArray = node.accounts.some((a: string) => 
+        a === account || 
+        a.startsWith(account + ' ') || 
+        (accountName && a.includes(accountName))
+      );
+      
+      if (hasAccountInArray) {
+        const foundPath = [...path, nodeName];
+        console.log('Found account in accounts array:', {
+          account,
+          foundPath
+        });
+        return foundPath;
+      }
+    }
+    
+    // Check children recursively
+    if (node.children) {
       for (const [key, child] of Object.entries(node.children)) {
         // Don't include the current node if at root
         const newPath = path.length === 0 && node.level === 0 
           ? []  // If at root, don't add to path
-          : [...path, node.name];
+          : [...path, nodeName];
           
         const found = findAccountCategory(account, accountName, child, newPath);
         if (found) {
           console.log('Found account in child node:', {
             account,
             childKey: key,
-            childLevel: child.level,
+            childLevel: (child as any).level,
             foundPath: found
           });
           return found;
@@ -1174,22 +1271,41 @@
       return;
     }
     
+    // Check if data is available without showing an error
     if (!data?.companies?.[company]?.accounts?.[account]) {
-      console.error('Missing data for auto analysis:', { 
+      // Suppress the error message, only log it to console at debug level
+      console.debug('Data for auto analysis not available yet:', { 
         company, 
         account, 
         dataAvailable: !!data,
         companiesAvailable: data ? Object.keys(data.companies || {}) : [],
         accountsAvailable: data?.companies?.[company] ? Object.keys(data.companies[company].accounts || {}) : []
       });
-      toast.error($i18n.t('Missing data for this account'));
       
-      // Update modal to show error
-      analysisModal.update(state => ({
-        ...state,
-        isLoading: false,
-        content: `<p class="text-red-500">${$i18n.t('Missing data for this account')}</p>`
-      }));
+      // Continue with graceful handling - open modal with loading state
+      const accountName = account; // Fallback to using the account code as the name
+      openAnalysisModal(`${company} - ${account} - ${accountName}`, company, account);
+      
+      // Create a fake account data structure for display
+      const fakeAccountData = {
+        name: accountName,
+        currentTotal: 0,
+        previousTotal: 0,
+        months: [{previousMonth: ''}]
+      };
+      
+      // Use this fake data to proceed with the rest of the analysis
+      try {
+        await proceedWithAnalysis(company, account, fakeAccountData);
+      } catch (error) {
+        // Quietly handle any errors
+        console.debug('Error in analysis with fallback data:', error);
+        analysisModal.update(state => ({
+          ...state,
+          isLoading: false,
+          content: `<p>${$i18n.t('Analysis data not available for this account yet. Please try again later.')}</p>`
+        }));
+      }
       
       return;
     }
@@ -1198,6 +1314,11 @@
     const accountData = data.companies[company].accounts[account];
     openAnalysisModal(`${company} - ${account} - ${accountData.name}`, company, account);
     
+    await proceedWithAnalysis(company, account, accountData);
+  }
+  
+  // Helper function to proceed with analysis once we have account data
+  async function proceedWithAnalysis(company, account, accountData) {
     // Add a timeout to prevent UI from being stuck indefinitely
     const timeout = setTimeout(() => {
       analysisModal.update(state => {
@@ -1224,7 +1345,7 @@
         currentMonth: selectedMonth,
         previousMonth: accountData.months?.[0]?.previousMonth,
         changePercentage: ((accountData.currentTotal - accountData.previousTotal) / 
-          Math.abs(accountData.previousTotal)) * 100
+          Math.abs(accountData.previousTotal || 1)) * 100 // Use 1 as fallback to avoid division by zero
       };
       
       console.log('Auto analysis request data:', requestData);
@@ -1562,9 +1683,39 @@
       return '';
     }
     
-    // Skip rendering the root category if it's the profit node
-    if (level === 0 && (categoryName === '利润' || categoryName.toLowerCase() === 'profit')) {
-      console.log('Rendering root category children directly:', categoryName);
+    // Handle special root node case - render each top-level category properly
+    if (level === 0 && categoryName === 'Root') {
+      console.log('Rendering root node children as categories:', categoryName);
+      
+      // For the merged root node, render each top-level category with proper structure
+      if (category.children) {
+        // Sort children to maintain consistent order
+        const sortedChildren = Object.entries(category.children).sort((a, b) => {
+          const aName = a[1].name || a[0];
+          const bName = b[1].name || b[0];
+          
+          // Special case for "Operating Profit" or "- Operating Costs" to appear in order
+          if (aName.includes('Operating Profit') || aName.includes('Profit')) return -1;
+          if (bName.includes('Operating Profit') || bName.includes('Profit')) return 1;
+          if (aName.includes('Operating Costs') || aName.includes('Costs')) return 1;
+          if (bName.includes('Operating Costs') || bName.includes('Costs')) return -1;
+          
+          return String(aName).localeCompare(String(bName));
+        });
+        
+        // Render each top-level category as a normal category, not bypassing them
+        sortedChildren.forEach(([childKey, childNode]) => {
+          console.log(`Rendering top-level category: ${childKey}`);
+          html += renderCategoriesFromData(companyKey, childNode, level + 1, [...path, categoryName]);
+        });
+      }
+      
+      return html;
+    }
+    
+    // Original case for profit/loss nodes - bypass them
+    if (level !== 0 && (categoryName === '利润' || categoryName.toLowerCase() === 'profit')) {
+      console.log('Bypassing profit/loss node:', categoryName);
       
       // Directly render its children
       if (category.children) {
@@ -1580,7 +1731,7 @@
     if (isAccountNode(category)) {
       console.log('Rendering account node:', categoryName);
       const accountCode = categoryName.split(' ')[0];
-      const accountName = categoryName.substring(accountCode.length + 1);
+      const accountName = categoryName.substring(accountCode.length + 1).trim();
       
       // Get account data from data structure
       const accountData = data?.companies?.[companyKey]?.accounts?.[accountCode] || {
@@ -2367,6 +2518,10 @@
       toast.error($i18n.t('Failed to download report: ') + (error.message || 'Unknown error'));
     }
   }
+
+  function toggleSidebar() {
+		showSidebar.update(value => !value);
+	}
 </script>
 
 <!-- Analysis Modal -->
@@ -2475,6 +2630,28 @@
 <div class="page-container w-full max-w-7xl mx-auto px-4 py-6">
   {#if currentView === 'main'}
     <div class="flex justify-between items-center mb-6">
+      <button
+        class="cursor-pointer p-[7px] flex rounded-xl hover:bg-gray-100 dark:hover:bg-gray-900 transition"
+        on:click={toggleSidebar}
+        aria-label="Toggle Sidebar"
+      >
+        <div class="m-auto self-center">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2"
+            stroke="currentColor"
+            class="size-5"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"
+            />
+          </svg>
+        </div>
+      </button>
       <h1 class="text-2xl font-bold text-blue-800 dark:text-blue-300">{$i18n.t('Account Analysis')}</h1>
       <div class="flex items-center space-x-2">
         <!-- Language dropdown removed -->

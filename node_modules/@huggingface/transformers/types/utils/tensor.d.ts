@@ -155,6 +155,23 @@ export function rand(size: number[]): Tensor;
  * @returns {Tensor} The quantized tensor.
  */
 export function quantize_embeddings(tensor: Tensor, precision: "binary" | "ubinary"): Tensor;
+export const DataTypeMap: Readonly<{
+    float32: Float32ArrayConstructor;
+    float16: Uint16ArrayConstructor | Float16ArrayConstructor;
+    float64: Float64ArrayConstructor;
+    string: ArrayConstructor;
+    int8: Int8ArrayConstructor;
+    uint8: Uint8ArrayConstructor;
+    int16: Int16ArrayConstructor;
+    uint16: Uint16ArrayConstructor;
+    int32: Int32ArrayConstructor;
+    uint32: Uint32ArrayConstructor;
+    int64: BigInt64ArrayConstructor;
+    uint64: BigUint64ArrayConstructor;
+    bool: Uint8ArrayConstructor;
+    uint4: Uint8ArrayConstructor;
+    int4: Int8ArrayConstructor;
+}>;
 /**
  * @typedef {keyof typeof DataTypeMap} DataType
  * @typedef {import('./maths.js').AnyTypedArray | any[]} DataArray
@@ -464,22 +481,4 @@ export type NestArray<T, Depth extends number, Acc extends never[] = []> = Acc["
 export type DataType = keyof typeof DataTypeMap;
 export type DataArray = import("./maths.js").AnyTypedArray | any[];
 import { Tensor as ONNXTensor } from '../backends/onnx.js';
-declare const DataTypeMap: Readonly<{
-    float32: Float32ArrayConstructor;
-    float16: Uint16ArrayConstructor;
-    float64: Float64ArrayConstructor;
-    string: ArrayConstructor;
-    int8: Int8ArrayConstructor;
-    uint8: Uint8ArrayConstructor;
-    int16: Int16ArrayConstructor;
-    uint16: Uint16ArrayConstructor;
-    int32: Int32ArrayConstructor;
-    uint32: Uint32ArrayConstructor;
-    int64: BigInt64ArrayConstructor;
-    uint64: BigUint64ArrayConstructor;
-    bool: Uint8ArrayConstructor;
-    uint4: Uint8ArrayConstructor;
-    int4: Int8ArrayConstructor;
-}>;
-export {};
 //# sourceMappingURL=tensor.d.ts.map

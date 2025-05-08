@@ -12,7 +12,9 @@ export class WhisperFeatureExtractor extends FeatureExtractor {
      * @param {Float32Array|Float64Array} audio The audio data as a Float32Array/Float64Array.
      * @returns {Promise<{ input_features: Tensor }>} A Promise resolving to an object containing the extracted input features as a Tensor.
      */
-    _call(audio: Float32Array | Float64Array): Promise<{
+    _call(audio: Float32Array | Float64Array, { max_length, }?: {
+        max_length?: any;
+    }): Promise<{
         input_features: Tensor;
     }>;
 }

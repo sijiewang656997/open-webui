@@ -26,7 +26,7 @@ export class Florence2Processor extends Processor {
      * @param {[number, number]} image_size The size of the image. height x width.
      */
     post_process_generation(text: string, task: string, image_size: [number, number]): {
-        [x: string]: string | {
+        [task]: string | {
             [x: string]: any[];
             labels: any[];
         };

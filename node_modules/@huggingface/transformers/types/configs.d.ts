@@ -63,6 +63,10 @@ export type ProgressInfo = import("./utils/core.js").ProgressInfo;
  */
 export type TransformersJSConfig = {
     /**
+     * Device-specific configurations.
+     */
+    device_config?: Record<import("./utils/devices.js").DeviceType, DeviceConfig>;
+    /**
      * The data type of the key-value cache.
      */
     kv_cache_dtype?: import("./utils/tensor.js").DataType | Record<import("./utils/dtypes.js").DataType, import("./utils/tensor.js").DataType>;
@@ -83,6 +87,10 @@ export type TransformersJSConfig = {
     /**
      * Whether to load the model using the external data format (used for models >= 2GB in size).
      */
-    use_external_data_format?: boolean | Record<string, boolean>;
+    use_external_data_format?: import("./utils/hub.js").ExternalData | Record<string, import("./utils/hub.js").ExternalData>;
 };
+/**
+ * Device-specific configuration options.
+ */
+export type DeviceConfig = Omit<TransformersJSConfig, "device" | "device_config">;
 //# sourceMappingURL=configs.d.ts.map

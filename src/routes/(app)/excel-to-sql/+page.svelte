@@ -1,7 +1,7 @@
 <script>
   import { onMount, getContext } from 'svelte';
   import { toast } from 'svelte-sonner';
-  import { user } from '$lib/stores';
+  import { user, showSidebar } from '$lib/stores';;
   import Spinner from '$lib/components/common/Spinner.svelte';
   import { getApiConfig } from '$lib/utils/api-config';
   
@@ -21,6 +21,7 @@
   let isEditMode = false;
   
   // API configuration with fallback defaults
+  //let base_url = 'http://localhost:5002';
   let base_url = 'http://192.168.200.118:5002';
   let user_token = 'token_59b8b43a_aiurmmm0';
   let language_local = 'en';
@@ -36,13 +37,15 @@
   
   onMount(async () => {
     try {
+
+
       console.log('Loading API configuration...');
       
       // Get API configuration
       const apiConfig = await getApiConfig(i18n);
       
       // Update local variables with config values
-      base_url = apiConfig.baseUrl || base_url;
+      base_url = base_url;
       user_token = apiConfig.userToken || user_token;
       language_local = apiConfig.languageLocal || language_local;
       
@@ -57,6 +60,8 @@
   
   // Function to make requests to the API with the required headers
   async function makeRequest(endpoint, options = {}) {
+    //const base_url = 'http://localhost:5002'
+    const base_url = 'http://192.168.200.118:5002'
     const url = `${base_url}${endpoint}`;
     
     console.log(`[ExcelToSQL Debug] Request to: ${endpoint}`, { options });
@@ -386,12 +391,38 @@
     }
     return 'Page';
   }
+
+  function toggleSidebar() {
+		showSidebar.update(value => !value);
+	}
 </script>
 
 <div class="excel-management-container">
   <div class="management-header bg-gray-900 dark:bg-gray-950 text-white">
     <div class="header-title-row">
       <div class="header-left">
+        <button
+          class="cursor-pointer p-[7px] flex rounded-xl hover:bg-gray-100 dark:hover:bg-gray-900 transition"
+          on:click={toggleSidebar}
+          aria-label="Toggle Sidebar"
+        >
+          <div class="m-auto self-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              class="size-5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"
+              />
+            </svg>
+          </div>
+        </button>
         <a href="/" class="back-button">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />

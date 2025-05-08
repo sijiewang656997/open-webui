@@ -7,7 +7,7 @@
  * @module utils/maths
  */
 /**
- * @typedef {Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array} TypedArray
+ * @typedef {Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array | Int32Array | Uint32Array | Float16Array | Float32Array | Float64Array} TypedArray
  * @typedef {BigInt64Array | BigUint64Array} BigTypedArray
  * @typedef {TypedArray | BigTypedArray} AnyTypedArray
  */
@@ -113,7 +113,7 @@ export class FFT {
     realTransform(out: any, input: any): void;
     transform(out: any, input: any): void;
 }
-export type TypedArray = Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array;
+export type TypedArray = Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array | Int32Array | Uint32Array | Float16Array | Float32Array | Float64Array;
 export type BigTypedArray = BigInt64Array | BigUint64Array;
 export type AnyTypedArray = TypedArray | BigTypedArray;
 /**

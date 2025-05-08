@@ -1,7 +1,7 @@
 import { n as noop, c as create_ssr_component, a as add_attribute, e as each, b as subscribe, d as add_styles, f as merge_ssr_styles, g as escape, v as validate_component, m as missing_component, h as compute_rest_props, o as onDestroy, i as spread, j as escape_attribute_value, k as escape_object, s as setContext } from "../../chunks/ssr.js";
 import "socket.io-client";
 import { w as writable } from "../../chunks/index2.js";
-import { s as socket, c as config, a as settings, i as isLastActiveTab, u as user, b as currentChatPage, t as temporaryChatEnabled, d as chatId, W as WEBUI_NAME, e as isApp, f as theme, g as WEBUI_BASE_URL } from "../../chunks/index3.js";
+import { u as user, s as socket, c as config, a as settings, i as isLastActiveTab, b as currentChatPage, t as temporaryChatEnabled, d as chatId, W as WEBUI_NAME, e as isApp, f as theme, g as WEBUI_BASE_URL } from "../../chunks/index3.js";
 import "../../chunks/client.js";
 import { p as page } from "../../chunks/stores.js";
 import { c as cn, t as toastState, u as useEffect } from "../../chunks/Toaster.svelte_svelte_type_style_lang.js";
@@ -534,12 +534,12 @@ const Toaster = create_ssr_component(($$result, $$props, $$bindings, slots) => {
 });
 const Layout = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   let $$unsubscribe_page;
+  let $$unsubscribe_user;
   let $$unsubscribe_socket;
   let $$unsubscribe_config;
   let $$unsubscribe_i18n;
   let $$unsubscribe_settings;
   let $$unsubscribe_isLastActiveTab;
-  let $$unsubscribe_user;
   let $$unsubscribe_currentChatPage;
   let $$unsubscribe_temporaryChatEnabled;
   let $$unsubscribe_chatId;
@@ -547,12 +547,12 @@ const Layout = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   let $$unsubscribe_isApp;
   let $theme, $$unsubscribe_theme;
   $$unsubscribe_page = subscribe(page, (value) => value);
+  $$unsubscribe_user = subscribe(user, (value) => value);
   $$unsubscribe_socket = subscribe(socket, (value) => value);
   $$unsubscribe_config = subscribe(config, (value) => value);
   $$unsubscribe_i18n = subscribe(i18n, (value) => value);
   $$unsubscribe_settings = subscribe(settings, (value) => value);
   $$unsubscribe_isLastActiveTab = subscribe(isLastActiveTab, (value) => value);
-  $$unsubscribe_user = subscribe(user, (value) => value);
   $$unsubscribe_currentChatPage = subscribe(currentChatPage, (value) => value);
   $$unsubscribe_temporaryChatEnabled = subscribe(temporaryChatEnabled, (value) => value);
   $$unsubscribe_chatId = subscribe(chatId, (value) => value);
@@ -563,12 +563,12 @@ const Layout = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   setContext("i18n", i18n);
   new BroadcastChannel("active-tab-channel");
   $$unsubscribe_page();
+  $$unsubscribe_user();
   $$unsubscribe_socket();
   $$unsubscribe_config();
   $$unsubscribe_i18n();
   $$unsubscribe_settings();
   $$unsubscribe_isLastActiveTab();
-  $$unsubscribe_user();
   $$unsubscribe_currentChatPage();
   $$unsubscribe_temporaryChatEnabled();
   $$unsubscribe_chatId();

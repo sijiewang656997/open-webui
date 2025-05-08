@@ -1,1 +1,1 @@
-export { default as component } from "../../../../src/routes/(app)/playground/completions/+page.svelte";
+export { default as component } from "../../../../src/routes/(app)/excel-to-sql/+page.svelte";

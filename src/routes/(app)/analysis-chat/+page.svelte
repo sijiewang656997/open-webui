@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { get } from 'svelte/store';
-	import { user } from '$lib/stores';
+	import { get, writable } from 'svelte/store';
+	import { user, showSidebar } from '$lib/stores';
 	import i18n from '$lib/i18n';
 	import { Chart } from 'svelte-chartjs';
 	import type { ChartData, ChartTypeRegistry } from 'chart.js';
@@ -19,6 +19,14 @@
 	} from 'chart.js';
 	import Table from '$lib/components/common/Table.svelte';
 	import { createDocxTemplateReport, downloadDocxDocument } from '$lib/utils/docxTemplateUtils';
+
+	let language_local = ""
+
+	if (localStorage.getItem('locale') === "zh-CN") {
+                    language_local = 'zh-cn';
+                } else {
+                    language_local = 'en';
+                }
 
 	ChartJS.register(
 		LineController,
@@ -82,8 +90,8 @@
 			};
 			const requestHeaders = {
 				'Content-Type': 'application/json',
-				'Authorization': 'Bearer token_59b8b43a_aiurmmm0_upload', //`Bearer ${token}`,
-				'Accept-Language': 'zh-cn'
+				'Authorization': 'Bearer token_59b8b43a_aiurmmm0_upload_long_demo', //`token_59b8b43a_aiurmmm0_upload_long_demoBearer ${token}`,
+				'Accept-Language': language_local
 			};
 			console.log('[DEBUG] Sending fetch to http://192.168.200.118:5002/api/analysis/stream', requestBody, requestHeaders);
 
@@ -138,6 +146,7 @@
 			error = e instanceof Error ? e.message : 'An error occurred';
 		} finally {
 			isLoading = false;
+			input = '';
 		}
 	}
 
@@ -201,42 +210,202 @@
 			isDownloading = false;
 		}
 	}
+
+	function toggleSidebar() {
+		showSidebar.update(value => !value);
+	}
 </script>
 
 <div class="flex flex-row w-full h-full max-h-[100dvh]">
-	<!-- Main content area -->
 	<div class="flex-1 flex flex-col h-full">
 		<div class="flex items-center justify-between px-4 pt-4 pb-2">
-			<h1 class="text-2xl font-bold">Analysis Report</h1>
+			<div class="flex items-center gap-4">
+				<!-- Sidebar Toggle Button -->
+					<button
+						class="cursor-pointer p-[7px] flex rounded-xl hover:bg-gray-100 dark:hover:bg-gray-900 transition"
+						on:click={toggleSidebar}
+						aria-label="Toggle Sidebar"
+					>
+						<div class="m-auto self-center">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke-width="2"
+								stroke="currentColor"
+								class="size-5"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"
+								/>
+							</svg>
+						</div>
+					</button>
+				<h1 class="text-2xl font-bold">Analysis Report</h1>
+			</div>
+
 			<button 
 				on:click={downloadWordReport} 
-				class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition flex items-center"
+				class="px-4 py-2 bg-blue-100 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-200 dark:bg-blue-800/30 dark:text-blue-300 dark:border-blue-700 dark:hover:bg-blue-700/50 transition flex items-center"
 				disabled={isDownloading || messages.length === 0}
 			>
 				{#if isDownloading}
-					<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+					<svg class="animate-spin h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
 						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
 						<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
 					</svg>
-					Downloading...
+					<span>Downloading...</span>
 				{:else}
-					<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l2.414 2.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
 					</svg>
-					Download as Word
+					<span>Download as Word</span>
 				{/if}
 			</button>
 		</div>
+
+		<!-- 下面内容保持不变 -->
 		<div class="flex-1 overflow-y-auto p-4 space-y-4">
 			{#each messages as message}
-				<div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
-					<div class="prose dark:prose-invert max-w-none">
-						{@html message.content}
+				<div class="bg-white dark:bg-gray-800 rounded-xl p-0 shadow-md overflow-hidden border border-gray-100 dark:border-gray-700 mb-6">
+					<!-- 提取并显示标题 -->
+					{#if message.content.match(/\*\*Analysis for - (.*?)\*\*/)}
+						<div class="bg-gray-50 dark:bg-gray-700 px-5 py-3 border-b border-gray-200 dark:border-gray-700">
+							<h2 class="text-xl font-bold text-gray-800 dark:text-gray-200">
+								{message.content.match(/\*\*Analysis for - (.*?)\*\*/)[1]}
+							</h2>
+						</div>
+					{/if}
+					
+					<!-- 内容区域 -->
+					<div class="p-0">
+						<!-- Summary 部分 -->
+						{#if message.content.includes('**Summary')}
+							<div class="px-4 py-4 border-b border-gray-100 dark:border-gray-700">
+								<div class="flex items-start">
+									<div class="bg-blue-100 dark:bg-blue-800/30 p-2 rounded-lg mr-3">
+										<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 dark:text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+											<path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+											<path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
+										</svg>
+									</div>
+									<div class="flex-1">
+										<h3 class="font-semibold text-blue-800 dark:text-blue-300 mb-2">Summary</h3>
+										<div class="text-gray-700 dark:text-gray-300">
+											{#if message.content.match(/\*\*Summary\*\*:?\s*(.*?)(?:\n\n\*\*Trends And Insights|\*\*Trends And Insights)/s)}
+												{@html message.content
+													.match(/\*\*Summary\*\*:?\s*(.*?)(?:\n\n\*\*Trends And Insights|\*\*Trends And Insights)/s)[1]
+													.replace(/\*\*(.*?)\*\*/g, '<strong>\$1</strong>')
+													.split(';')
+													.map(line => line.trim())
+													.join('<br>')}
+											{/if}
+										</div>
+									</div>
+								</div>
+							</div>
+						{/if}
+						
+						<!-- Trends And Insights 部分 -->
+						{#if message.content.includes('**Trends And Insights')}
+							<div class="bg-purple-50 dark:bg-purple-900/10 px-4 py-4 border-b border-gray-100 dark:border-gray-700">
+								<div class="flex items-start">
+									<div class="bg-purple-100 dark:bg-purple-800/30 p-2 rounded-lg mr-3">
+										<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-600 dark:text-purple-400" viewBox="0 0 20 20" fill="currentColor">
+											<path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+										</svg>
+									</div>
+									<div class="flex-1">
+										<h3 class="font-semibold text-purple-800 dark:text-purple-300 mb-2">Trends And Insights</h3>
+										<div class="text-gray-700 dark:text-gray-300">
+											{#if message.content.match(/\*\*Trends And Insights\*\*:?\s*(.*?)(?:\n\n\*\*Journal Entries|\*\*Journal Entries)/s)}
+												<ul class="list-disc pl-5 space-y-2">
+													{#each message.content
+														.match(/\*\*Trends And Insights\*\*:?\s*(.*?)(?:\n\n\*\*Journal Entries|\*\*Journal Entries)/s)[1]
+														.replace(/^\*\s*/, '')
+														.split(/;\s*|\n\*\s*/)
+														.filter(item => item.trim()) as item}
+														<li>{@html item.replace(/\*\*(.*?)\*\*/g, '<strong>\$1</strong>')}</li>
+													{/each}
+												</ul>
+											{/if}
+										</div>
+									</div>
+								</div>
+							</div>
+						{/if}
+						
+						<!-- Journal Entries Analysis 部分 -->
+						{#if message.content.includes('**Journal Entries Analysis')}
+							<div class="bg-green-50 dark:bg-green-900/10 px-4 py-4 border-b border-gray-100 dark:border-gray-700">
+								<div class="flex items-start">
+									<div class="bg-green-100 dark:bg-green-800/30 p-2 rounded-lg mr-3">
+										<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600 dark:text-green-400" viewBox="0 0 20 20" fill="currentColor">
+											<path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm2 10a1 1 0 10-2 0v3a1 1 0 102 0v-3zm2-3a1 1 0 011 1v5a1 1 0 11-2 0v-5a1 1 0 011-1zm4-1a1 1 0 10-2 0v7a1 1 0 102 0V8z" clip-rule="evenodd" />
+										</svg>
+									</div>
+									<div class="flex-1">
+										<h3 class="font-semibold text-green-800 dark:text-green-300 mb-2">Journal Entries</h3>
+										<div class="text-gray-700 dark:text-gray-300">
+											{#if message.content.match(/\*\*Journal Entries Analysis\*\*:?\s*(.*?)(?:\n\n\*\*Recommendations|\*\*Recommendations)/s)}
+												<ul class="list-disc pl-5 space-y-2">
+													{#each message.content
+														.match(/\*\*Journal Entries Analysis\*\*:?\s*(.*?)(?:\n\n\*\*Recommendations|\*\*Recommendations)/s)[1]
+														.replace(/^\*\s*/, '')
+														.split(/;\s*|\n\*\s*/)
+														.filter(item => item.trim()) as item}
+														<li>{@html item.replace(/\*\*(.*?)\*\*/g, '<strong>\$1</strong>')}</li>
+													{/each}
+												</ul>
+											{/if}
+										</div>
+									</div>
+								</div>
+							</div>
+						{/if}
+						
+						<!-- Recommendations 部分 -->
+						{#if message.content.includes('**Recommendations')}
+						<div class="bg-amber-50 dark:bg-amber-900/10 px-4 py-4">
+							<div class="flex items-start">
+								<div class="bg-amber-100 dark:bg-amber-800/30 p-2 rounded-lg mr-3">
+									<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-600 dark:text-amber-400" viewBox="0 0 20 20" fill="currentColor">
+										<path d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" />
+									</svg>
+								</div>
+								<div class="flex-1">
+									<h3 class="font-semibold text-amber-800 dark:text-amber-300 mb-2">Recommendations</h3>
+									<div class="text-gray-700 dark:text-gray-300">
+										{#if message.content.match(/\*\*Recommendations\*\*:?\s*(.*?)$/s)}
+											<ul class="list-disc pl-5 space-y-2">
+												{#each message.content
+													.match(/\*\*Recommendations\*\*:?\s*(.*?)$/s)[1]
+													.split(/;\s*|\n\*\s*/)
+													.filter(rec => rec.trim()) as recommendation}
+													<li>{@html recommendation.replace(/\*\*(.*?)\*\*/g, '<strong>\$1</strong>')}</li>
+												{/each}
+											</ul>
+										{/if}
+									</div>
+								</div>
+							</div>
+						</div>
+						{/if}
+						
+						{#if !message.content.includes('**Summary') && !message.content.includes('**Trends And Insights') && 
+							!message.content.includes('**Journal Entries Analysis') && !message.content.includes('**Recommendations')}
+							<div class="px-5 py-4">
+								<div class="prose dark:prose-invert max-w-none">
+									{@html message.content.replace(/;/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>\$1</strong>')}
+								</div>
+							</div>
+						{/if}
 					</div>
 					{#if message.results}
 						<div class="mt-4">
 							{#if message.results.records}
-								<!-- Table Section Header -->
 								<div class="flex items-center gap-2 font-medium text-gray-700 dark:text-gray-300 mb-2">
 									<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
 										<path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0 1 12 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m1.125-3.75h7.5c.621 0 1.125.504 1.125 1.125m-9.75 0h9.75" />
@@ -272,39 +441,64 @@
 				</div>
 			{/each}
 		</div>
-		<div class="p-4 border-t">
-			<form on:submit|preventDefault={handleSubmit} class="flex items-center gap-4">
-				<input
-					type="text"
-					bind:value={input}
-					placeholder="Send a message starting with @analysis"
-					class="flex-1 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800"
-					disabled={isLoading}
-				/>
-				<button
-					type="submit"
-					class="py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-					disabled={isLoading}
-				>
-					{#if isLoading}
-						<span class="flex items-center">
-							<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+
+		<div class="bg-white dark:bg-gray-900">
+			<div class="max-w-6xl px-2.5 mx-auto inset-x-0">
+			  <form on:submit|preventDefault={handleSubmit} class="w-full flex gap-1.5">
+				<div class="flex-1 flex flex-col relative w-full rounded-3xl px-1 bg-gray-600/5 dark:bg-gray-400/5 dark:text-gray-100">
+				  <div class="px-2.5">
+					<input
+					  type="text"
+					  bind:value={input}
+					  placeholder="Send a message starting with @analysis"
+					  class="scrollbar-hidden bg-transparent dark:text-gray-100 outline-hidden w-full pt-3 px-1 resize-none h-fit"
+					  disabled={isLoading}
+					/>
+				  </div>
+				  
+				  <div class="flex justify-between mt-1.5 mb-2.5 mx-0.5 max-w-full">
+					<div class="ml-1 self-end gap-0.5 flex items-center flex-1 max-w-[80%]">
+					  <!-- This space can remain empty to match the layout -->
+					</div>
+					
+					<div class="self-end flex space-x-1 mr-1 shrink-0">
+					  <div class="flex items-center">
+						<button
+						  type="submit"
+						  class="{!isLoading 
+							? 'bg-black text-white hover:bg-gray-900 dark:bg-white dark:text-black dark:hover:bg-gray-100' 
+							: 'text-white bg-gray-200 dark:text-gray-900 dark:bg-gray-700'} 
+							transition rounded-full p-1.5 self-center"
+						  disabled={isLoading}
+						>
+						  {#if isLoading}
+							<div class="flex items-center">
+							  <svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
 								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
 								<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+							  </svg>
+							  <span>Processing...</span>
+							</div>
+						  {:else}
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-5">
+							  <path fill-rule="evenodd" d="M8 14a.75.75 0 0 1-.75-.75V4.56L4.03 7.78a.75.75 0 0 1-1.06-1.06l4.5-4.5a.75.75 0 0 1 1.06 0l4.5 4.5a.75.75 0 0 1-1.06 1.06L8.75 4.56v8.69A.75.75 0 0 1 8 14Z" clip-rule="evenodd"/>
 							</svg>
-							Processing...
-						</span>
-					{:else}
-						Send
-					{/if}
-				</button>
-			</form>
-			{#if error}
-				<p class="mt-2 text-red-500">{error}</p>
-			{/if}
-		</div>
+						  {/if}
+						</button>
+					  </div>
+					</div>
+				  </div>
+				</div>
+			  </form>
+			  
+			  {#if error}
+				<p class="mt-2 text-red-500 text-sm">{error}</p>
+			  {/if}
+			</div>
+		  </div>
 	</div>
 </div>
+
 
 <style>
 :global(.table-improved) {

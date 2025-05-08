@@ -4,7 +4,7 @@ import { a as toast } from "../../../../../../chunks/Toaster.svelte_svelte_type_
 import { v4 } from "uuid";
 import "../../../../../../chunks/client.js";
 import { p as page } from "../../../../../../chunks/stores.js";
-import { l as WEBUI_API_BASE_URL, j as showSidebar } from "../../../../../../chunks/index3.js";
+import { p as WEBUI_API_BASE_URL, j as showSidebar } from "../../../../../../chunks/index3.js";
 import { A as AddFilesPlaceholder, u as uploadFile } from "../../../../../../chunks/Drawer.svelte_svelte_type_style_lang.js";
 import "../../../../../../chunks/index5.js";
 import { S as Spinner } from "../../../../../../chunks/Spinner.js";

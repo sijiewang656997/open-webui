@@ -150,33 +150,6 @@ const getModels = async (token = "", connections = null, base = false) => {
   }
   return models;
 };
-const chatCompleted = async (token, body) => {
-  let error = null;
-  const res = await fetch(`${WEBUI_BASE_URL}/api/chat/completed`, {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      ...token && { authorization: `Bearer ${token}` }
-    },
-    body: JSON.stringify(body)
-  }).then(async (res2) => {
-    if (!res2.ok) throw await res2.json();
-    return res2.json();
-  }).catch((err) => {
-    console.log(err);
-    if ("detail" in err) {
-      error = err.detail;
-    } else {
-      error = err;
-    }
-    return null;
-  });
-  if (error) {
-    throw error;
-  }
-  return res;
-};
 const chatAction = async (token, action_id, body) => {
   let error = null;
   const res = await fetch(`${WEBUI_BASE_URL}/api/chat/actions/${action_id}`, {
@@ -296,7 +269,7 @@ const getBackendConfig = async () => {
   let error = null;
   const res = await fetch(`${WEBUI_BASE_URL}/api/config`, {
     method: "GET",
-    credentials: "include",
+    credentials: "omit",
     headers: {
       "Content-Type": "application/json"
     }
@@ -317,9 +290,8 @@ export {
   getBackendConfig as a,
   generateEmoji as b,
   chatAction as c,
-  generateOpenAIChatCompletion as d,
-  generateMoACompletion as e,
-  chatCompleted as f,
+  generateMoACompletion as d,
+  generateOpenAIChatCompletion as e,
   getModels as g,
   stopTask as s
 };

@@ -1,5 +1,5 @@
-import { l as WEBUI_API_BASE_URL } from "./index3.js";
-import { j as getTimeRange } from "./index5.js";
+import { p as WEBUI_API_BASE_URL } from "./index3.js";
+import { h as getTimeRange } from "./index5.js";
 const createNewChat = async (token, chat) => {
   let error = null;
   const res = await fetch(`${WEBUI_API_BASE_URL}/chats/new`, {

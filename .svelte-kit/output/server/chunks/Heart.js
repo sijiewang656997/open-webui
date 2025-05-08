@@ -1,4 +1,4 @@
-import { l as WEBUI_API_BASE_URL } from "./index3.js";
+import { p as WEBUI_API_BASE_URL } from "./index3.js";
 import { c as create_ssr_component, l as createEventDispatcher, p as getContext, b as subscribe, e as each, g as escape, a as add_attribute, v as validate_component } from "./ssr.js";
 import { S as Switch_1 } from "./Switch.js";
 const getFunctions = async (token = "") => {

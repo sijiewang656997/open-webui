@@ -21,9 +21,9 @@
   let checkingStatus = false;
   
   // Configuration
-  const language_local = 'zh-cn';
+  const language_local = 'zh_cn';
   const user_token = "token_59b8b43a_aiurmmm0_test_upload";
-  const apiBaseUrl = "http://192.168.200.118:5002";
+  const apiBaseUrl = "https://192.168.200.118:5002";
   
   // Key to store task in localStorage
   const taskStorageKey = `upload_analysis_task_${user_token}_${language_local}`;

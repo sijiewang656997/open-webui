@@ -939,7 +939,7 @@ app.include_router(
 )
 app.include_router(utils.router, prefix="/api/v1/utils", tags=["utils"])
 print("add router")
-app.include_router(proxy_router, prefix="/proxy", tags=["utils"])
+app.include_router(proxy_router, prefix="/proxy", tags=["proxy"])
 print("======")
 
 try:
@@ -1080,8 +1080,20 @@ async def chat_completion(
             # Get API key from variables or fall back to model configuration
             variables = form_data.get('variables', {})
             api_key = variables.get('{{USER_API_KEY}}', '')
-            user_language = variables.get('{{LOCAL_LANGUAGE}}', 'en_US')
-            local_language = "en" if user_language == "en_US" else "zh_cn"
+            
+            print("variables", variables)
+            
+            user_language = variables.get('{{USER_LANGUAGE}}', 'en')
+            print(f"🌐 Original USER_LANGUAGE: {user_language}")
+            
+            # Transform to compatible format for the agent API
+            # Handle various formats of language codes
+            if user_language.lower().startswith('zh') or user_language.lower().startswith('cn'):
+                local_language = "zh_cn"
+            else:
+                local_language = "en"
+                
+            print(f"🌐 Transformed local_language: {local_language}")
             
             
             # If api_key is empty, try to get it from OPENAI_API_KEYS

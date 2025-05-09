@@ -1,4 +1,4 @@
-import { q as get_store_value } from "./ssr.js";
+import { r as get_store_value } from "./ssr.js";
 import { w as writable } from "./index2.js";
 function cn(...classes) {
   return classes.filter(Boolean).join(" ");

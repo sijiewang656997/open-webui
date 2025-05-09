@@ -1,7 +1,7 @@
 import { c as create_ssr_component, a as add_attribute, g as escape, p as getContext, b as subscribe, v as validate_component } from "../../../../../../chunks/ssr.js";
 import { a as toast } from "../../../../../../chunks/Toaster.svelte_svelte_type_style_lang.js";
 import { g as goto } from "../../../../../../chunks/client.js";
-import { l as WEBUI_API_BASE_URL, F as prompts } from "../../../../../../chunks/index3.js";
+import { p as WEBUI_API_BASE_URL, G as prompts } from "../../../../../../chunks/index3.js";
 import { T as Tooltip } from "../../../../../../chunks/Tooltip.js";
 import { M as Modal } from "../../../../../../chunks/Modal.js";
 import { A as AccessControl } from "../../../../../../chunks/AccessControl.js";

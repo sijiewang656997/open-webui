@@ -1,97 +1,74 @@
-from fastapi import APIRouter, File, UploadFile, HTTPException, Query
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, HTTPException, Request, status
+from fastapi.responses import Response, StreamingResponse
 import httpx
-import chardet
-
+from open_webui.config import OPENAI_API_BASE_URLS
 router = APIRouter()
 
-EXTERNAL_API_BASE = "http://192.168.200.118:5002/api/excel_to_sql"
-AUTH_HEADER = {"Authorization": "Bearer token_59b8b43a_aiurmmm0"}
-
-async def call_external_api(
-    method: str,
-    endpoint: str,
-    params: dict = None,
-    files: dict = None
-):
-    url = f"{EXTERNAL_API_BASE}{endpoint}"
-    async with httpx.AsyncClient(timeout=60) as client:
-        try:
-            if method == "GET":
-                response = await client.get(
-                    url,
-                    params=params,
-                    headers=AUTH_HEADER
-                )
-            elif method == "POST":
-                response = await client.post(
-                    url,
-                    files=files,
-                    headers=AUTH_HEADER
-                )
-            response.raise_for_status()
-            return response.json()
-        except httpx.HTTPStatusError as e:
-            error_detail = f"External API error: {e.response.status_code} - {e.response.text}"
-            print(f"[ERROR] API request failed: {error_detail}")
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=error_detail
-            )
-        except Exception as e:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Internal server error: {str(e)}"
-            )
-
-@router.post("/excel-to-sql")
-async def proxy_external_api(file: UploadFile = File(...)):
+@router.post("/{endpoint:path}")
+@router.get("/{endpoint:path}")
+async def proxy_endpoint(endpoint: str, request: Request):
     try:
-        raw_data = await file.read()
-        encoding = chardet.detect(raw_data)['encoding'] or 'utf-8'
+        # Get the target URL from environment or config
+        base_url = OPENAI_API_BASE_URLS.value[0] if isinstance(OPENAI_API_BASE_URLS.value, list) else OPENAI_API_BASE_URLS.value
+        target_base_url = base_url[:-3] if base_url.endswith('/v1') else base_url
         
-        if file.filename.lower().endswith('.csv'):
-            try:
-                decoded = raw_data.decode(encoding)
-            except UnicodeDecodeError:
-                decoded = raw_data.decode('gb18030')
-            raw_data = decoded.encode('utf-8')
+        # Construct the full target URL
+        target_url = f"{target_base_url}/{endpoint}"
         
-        form_data = {
-            "file": (file.filename, raw_data, file.content_type)
-        }
+        # Get the request body for POST requests
+        body = await request.body() if request.method.upper() == "POST" else None
         
-        return await call_external_api(
-            "POST",
-            "",
-            files=form_data
-        )
-
-    except UnicodeDecodeError as e:
+        # Get headers from the original request
+        headers = dict(request.headers)
+        # Remove host header to avoid conflicts
+        headers.pop('host', None)
+        
+        # Get query parameters for forwarding
+        params = dict(request.query_params)
+        
+        # Detect if this is a streaming endpoint
+        is_streaming = "stream" in endpoint or endpoint.endswith("/stream")
+        
+        # For streaming responses, use StreamingResponse
+        if is_streaming:
+            async def stream_response():
+                async with httpx.AsyncClient(verify=False, timeout=60.0) as client:
+                    async with client.stream(
+                        method=request.method,
+                        url=target_url,
+                        headers=headers,
+                        content=body,
+                        params=params
+                    ) as response:
+                        async for chunk in response.aiter_bytes():
+                            yield chunk
+            
+            # Return a StreamingResponse for streaming endpoints
+            return StreamingResponse(
+                stream_response(),
+                media_type="application/x-ndjson"
+            )
+        else:
+            # Make the request to the target endpoint (non-streaming)
+            async with httpx.AsyncClient(verify=False) as client:
+                response = await client.request(
+                    method=request.method,
+                    url=target_url,
+                    headers=headers,
+                    content=body,
+                    params=params,
+                    timeout=30.0
+                )
+                
+                # Return the response with the same status code and headers
+                return Response(
+                    content=response.content,
+                    status_code=response.status_code,
+                    headers=dict(response.headers)
+                )
+            
+    except Exception as e:
         raise HTTPException(
-            status_code=415,
-            detail=f"File encoding error: Please save file with UTF-8 or GBK encoding ({str(e)})"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
         )
-
-@router.get("/list-files")
-async def list_files(
-    page: int = Query(1, ge=1),
-    per_page: int = Query(50, ge=1, le=200),
-    file_type: str = Query(None, description="Filter by file type (excel/csv)"),
-    search: str = Query(None, description="Search by filename")
-):
-    """
-    Get paginated list of processed files with optional filters
-    """
-    params = {
-        "page": page,
-        "per_page": per_page,
-        "file_type": file_type,
-        "search": search
-    }
-    
-    return await call_external_api(
-        "GET",
-        "/list_files",
-        params=params
-    )

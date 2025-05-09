@@ -4,6 +4,7 @@
   import { user } from '$lib/stores';
   import Spinner from '$lib/components/common/Spinner.svelte';
   import { getApiConfig } from '$lib/utils/api-config';
+  import { WEBUI_BASE_URL } from '$lib/constants';
   
   const i18n = getContext('i18n');
   
@@ -21,7 +22,7 @@
   let isEditMode = false;
   
   // API configuration with fallback defaults
-  let base_url = 'http://192.168.200.118:5002';
+  let base_url = WEBUI_BASE_URL;
   let user_token = 'token_59b8b43a_aiurmmm0';
   let language_local = 'en';
   
@@ -36,13 +37,15 @@
   
   onMount(async () => {
     try {
+
+
       console.log('Loading API configuration...');
       
       // Get API configuration
       const apiConfig = await getApiConfig(i18n);
       
       // Update local variables with config values
-      base_url = apiConfig.baseUrl || base_url;
+      base_url = base_url;
       user_token = apiConfig.userToken || user_token;
       language_local = apiConfig.languageLocal || language_local;
       
@@ -57,12 +60,13 @@
   
   // Function to make requests to the API with the required headers
   async function makeRequest(endpoint, options = {}) {
-    const url = `${base_url}${endpoint}`;
+    // Updated to use the proxy endpoint for all requests
+    const url = `${base_url}/proxy/api${endpoint}`;
     
-    console.log(`[ExcelToSQL Debug] Request to: ${endpoint}`, { options });
+    console.log(`[ExcelToSQL Debug] Sending request to ${url}`);
     
     const defaultOptions = {
-      method: 'GET',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${user_token}`,
@@ -82,21 +86,27 @@
     console.log(`[ExcelToSQL Debug] Full request options:`, mergedOptions);
     
     try {
-      console.log(`[ExcelToSQL Debug] Sending request to ${url}`);
       const response = await fetch(url, mergedOptions);
-      const data = await response.json();
       
-      // Log the raw response as received from the API
-      console.log(`[ExcelToSQL Debug] RAW API RESPONSE:`, JSON.stringify(data, null, 2));
+      console.log(`[ExcelToSQL Debug] Response status: ${response.status}`);
       
-      console.log(`[ExcelToSQL Debug] Response status: ${response.status}`, data);
-      
-      if (!response.ok) {
-        console.error(`[ExcelToSQL Debug] Request failed with status ${response.status}:`, data);
-        throw new Error(data.error || 'An error occurred');
+      // Try to parse the response as JSON
+      try {
+        const data = await response.json();
+        console.log(`[ExcelToSQL Debug] RAW API RESPONSE:`, JSON.stringify(data, null, 2));
+        
+        if (!response.ok) {
+          console.error(`[ExcelToSQL Debug] Request failed with status ${response.status}:`, data);
+          throw new Error(data.error || data.detail || 'An error occurred');
+        }
+        
+        return data;
+      } catch (jsonError) {
+        console.error('[ExcelToSQL Debug] Failed to parse JSON response:', jsonError);
+        const textResponse = await response.text();
+        console.error('[ExcelToSQL Debug] Text response:', textResponse);
+        throw new Error('Invalid JSON response from server');
       }
-      
-      return data;
     } catch (error) {
       console.error('[ExcelToSQL Debug] API request failed:', error);
       throw error;
@@ -109,7 +119,10 @@
     isLoading = true;
     
     try {
-      const response = await makeRequest('/api/excel_to_sql/list_files');
+      // Use correct endpoint for external API through the proxy
+      const response = await makeRequest('/excel_to_sql/list_files', {
+        method: 'GET'
+      });
       
       console.log('[ExcelToSQL Debug] Files loaded:', response);
       
@@ -169,7 +182,8 @@
         isLoading = true;
         try {
           console.log('[ExcelToSQL Debug] Confirmed file deletion for:', file.savedPath);
-          const response = await makeRequest('/api/excel_to_sql/delete_file', {
+          // Update endpoint path to use proper structure
+          const response = await makeRequest('/excel_to_sql/delete_file', {
             method: 'POST',
             body: JSON.stringify({ file_path: file.savedPath })
           });
@@ -222,7 +236,8 @@
     hasUnsavedChanges = false;
     
     try {
-      const response = await makeRequest('/api/excel_to_sql/get_table_data', {
+      // Updated endpoint path to use proper structure
+      const response = await makeRequest('/excel_to_sql/get_table_data', {
         method: 'POST',
         body: JSON.stringify({ 
           table_name: table.table_name
@@ -293,7 +308,7 @@
       
       console.log('[ExcelToSQL Debug] Save request payload:', requestPayload);
       
-      const response = await makeRequest('/api/excel_to_sql/update_table_data', {
+      const response = await makeRequest('/excel_to_sql/update_table_data', {
         method: 'POST',
         body: JSON.stringify(requestPayload)
       });
@@ -332,7 +347,7 @@
       async () => {
         try {
           console.log('[ExcelToSQL Debug] Confirmed table deletion for:', table.table_name);
-          const response = await makeRequest('/api/excel_to_sql/delete_table', {
+          const response = await makeRequest('/excel_to_sql/delete_table', {
             method: 'POST',
             body: JSON.stringify({ table_name: table.table_name })
           });

@@ -6,12 +6,6 @@ import isToday from "dayjs/plugin/isToday.js";
 import isYesterday from "dayjs/plugin/isYesterday.js";
 import localizedFormat from "dayjs/plugin/localizedFormat.js";
 import { g as WEBUI_BASE_URL } from "./index3.js";
-var TTS_RESPONSE_SPLIT = /* @__PURE__ */ ((TTS_RESPONSE_SPLIT2) => {
-  TTS_RESPONSE_SPLIT2["PUNCTUATION"] = "punctuation";
-  TTS_RESPONSE_SPLIT2["PARAGRAPHS"] = "paragraphs";
-  TTS_RESPONSE_SPLIT2["NONE"] = "none";
-  return TTS_RESPONSE_SPLIT2;
-})(TTS_RESPONSE_SPLIT || {});
 dayjs.extend(relativeTime);
 dayjs.extend(isToday);
 dayjs.extend(isYesterday);
@@ -136,37 +130,6 @@ const formatDate = (inputDate) => {
     return `${date.format("L")} at ${date.format("LT")}`;
   }
 };
-const copyToClipboard = async (text) => {
-  let result = false;
-  if (!navigator.clipboard) {
-    const textArea = document.createElement("textarea");
-    textArea.value = text;
-    textArea.style.top = "0";
-    textArea.style.left = "0";
-    textArea.style.position = "fixed";
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-    try {
-      const successful = document.execCommand("copy");
-      const msg = successful ? "successful" : "unsuccessful";
-      console.log("Fallback: Copying text command was " + msg);
-      result = true;
-    } catch (err) {
-      console.error("Fallback: Oops, unable to copy", err);
-    }
-    document.body.removeChild(textArea);
-    return result;
-  }
-  result = await navigator.clipboard.writeText(text).then(() => {
-    console.log("Async: Copying to clipboard was successful!");
-    return true;
-  }).catch((error) => {
-    console.error("Async: Could not copy text: ", error);
-    return false;
-  });
-  return result;
-};
 const getUserPosition = async (raw = false) => {
   const position = await new Promise((resolve, reject) => {
     navigator.geolocation.getCurrentPosition(resolve, reject);
@@ -184,16 +147,6 @@ const getUserPosition = async (raw = false) => {
     return `${latitude.toFixed(3)}, ${longitude.toFixed(3)} (lat, long)`;
   }
 };
-const removeEmojis = (str) => {
-  const emojiRegex = /[\uD800-\uDBFF][\uDC00-\uDFFF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDE4F]/g;
-  return str.replace(emojiRegex, "");
-};
-const removeFormattings = (str) => {
-  return str.replace(/(```[\s\S]*?```)/g, "").replace(/^\|.*\|$/gm, "").replace(/(?:\*\*|__)(.*?)(?:\*\*|__)/g, "$1").replace(/(?:[*_])(.*?)(?:[*_])/g, "$1").replace(/~~(.*?)~~/g, "$1").replace(/`([^`]+)`/g, "$1").replace(/!?\[([^\]]*)\](?:\([^)]+\)|\[[^\]]*\])/g, "$1").replace(/^\[[^\]]+\]:\s*.*$/gm, "").replace(/^#{1,6}\s+/gm, "").replace(/^\s*[-*+]\s+/gm, "").replace(/^\s*(?:\d+\.)\s+/gm, "").replace(/^\s*>[> ]*/gm, "").replace(/^\s*:\s+/gm, "").replace(/\[\^[^\]]*\]/g, "").replace(/[-*_~]/g, "").replace(/\n{2,}/g, "\n");
-};
-const cleanText = (content) => {
-  return removeFormattings(removeEmojis(content.trim()));
-};
 const removeDetails = (content, types) => {
   for (const type of types) {
     content = content.replace(
@@ -203,78 +156,15 @@ const removeDetails = (content, types) => {
   }
   return content;
 };
-const codeBlockRegex = /```[\s\S]*?```/g;
-const extractSentences = (text) => {
-  const codeBlocks = [];
-  let index = 0;
-  text = text.replace(codeBlockRegex, (match) => {
-    const placeholder = `\0${index}\0`;
-    codeBlocks[index++] = match;
-    return placeholder;
-  });
-  let sentences = text.split(/(?<=[.!?])\s+/);
-  sentences = sentences.map((sentence) => {
-    return sentence.replace(/\u0000(\d+)\u0000/g, (_, idx) => codeBlocks[idx]);
-  });
-  return sentences.map(cleanText).filter(Boolean);
-};
-const extractParagraphsForAudio = (text) => {
-  const codeBlocks = [];
-  let index = 0;
-  text = text.replace(codeBlockRegex, (match) => {
-    const placeholder = `\0${index}\0`;
-    codeBlocks[index++] = match;
-    return placeholder;
-  });
-  let paragraphs = text.split(/\n+/);
-  paragraphs = paragraphs.map((paragraph) => {
-    return paragraph.replace(/\u0000(\d+)\u0000/g, (_, idx) => codeBlocks[idx]);
-  });
-  return paragraphs.map(cleanText).filter(Boolean);
-};
-const extractSentencesForAudio = (text) => {
-  return extractSentences(text).reduce((mergedTexts, currentText) => {
-    const lastIndex = mergedTexts.length - 1;
-    if (lastIndex >= 0) {
-      const previousText = mergedTexts[lastIndex];
-      const wordCount = previousText.split(/\s+/).length;
-      const charCount = previousText.length;
-      if (wordCount < 4 || charCount < 50) {
-        mergedTexts[lastIndex] = previousText + " " + currentText;
-      } else {
-        mergedTexts.push(currentText);
-      }
-    } else {
-      mergedTexts.push(currentText);
-    }
-    return mergedTexts;
-  }, []);
-};
-const getMessageContentParts = (content, split_on = "punctuation") => {
-  content = removeDetails(content, ["reasoning", "code_interpreter"]);
-  const messageContentParts = [];
-  switch (split_on) {
-    default:
-    case TTS_RESPONSE_SPLIT.PUNCTUATION:
-      messageContentParts.push(...extractSentencesForAudio(content));
-      break;
-    case TTS_RESPONSE_SPLIT.PARAGRAPHS:
-      messageContentParts.push(...extractParagraphsForAudio(content));
-      break;
-    case TTS_RESPONSE_SPLIT.NONE:
-      messageContentParts.push(cleanText(content));
-      break;
-  }
-  return messageContentParts;
-};
 const blobToFile = (blob, fileName) => {
   const file = new File([blob], fileName, { type: blob.type });
   return file;
 };
-const getPromptVariables = (user_name, user_location) => {
+const getPromptVariables = (user_name, user_location, user_api_key) => {
   return {
     "{{USER_NAME}}": user_name,
     "{{USER_LOCATION}}": user_location || "Unknown",
+    "{{USER_API_KEY}}": user_api_key || "",
     "{{CURRENT_DATETIME}}": getCurrentDateTime(),
     "{{CURRENT_DATE}}": getFormattedDate(),
     "{{CURRENT_TIME}}": getFormattedTime(),
@@ -283,7 +173,7 @@ const getPromptVariables = (user_name, user_location) => {
     "{{USER_LANGUAGE}}": localStorage.getItem("locale") || "en-US"
   };
 };
-const promptTemplate = (template, user_name, user_location) => {
+const promptTemplate = (template, user_name, user_location, user_api_key) => {
   const currentDate = /* @__PURE__ */ new Date();
   const formattedDate = currentDate.getFullYear() + "-" + String(currentDate.getMonth() + 1).padStart(2, "0") + "-" + String(currentDate.getDate()).padStart(2, "0");
   const currentTime = currentDate.toLocaleTimeString("en-US", {
@@ -308,6 +198,11 @@ const promptTemplate = (template, user_name, user_location) => {
     template = template.replace("{{USER_LOCATION}}", user_location);
   } else {
     template = template.replace("{{USER_LOCATION}}", "LOCATION_UNKNOWN");
+  }
+  if (user_api_key) {
+    template = template.replace("{{USER_API_KEY}}", user_api_key);
+  } else {
+    template = template.replace("{{USER_API_KEY}}", "");
   }
   return template;
 };
@@ -390,16 +285,14 @@ export {
   blobToFile as b,
   compressImage as c,
   convertMessagesToHistory as d,
-  getMessageContentParts as e,
-  copyToClipboard as f,
+  getUserPosition as e,
+  formatDate as f,
   getPromptVariables as g,
-  formatDate as h,
-  getUserPosition as i,
-  getTimeRange as j,
-  formatFileSize as k,
-  getLineCount as l,
-  replaceTokens as m,
-  processResponseContent as n,
+  getTimeRange as h,
+  formatFileSize as i,
+  getLineCount as j,
+  replaceTokens as k,
+  processResponseContent as l,
   promptTemplate as p,
   removeDetails as r,
   sanitizeResponseContent as s,

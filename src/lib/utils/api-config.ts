@@ -30,7 +30,7 @@ export const getApiConfig = async (i18n: any) => {
     
     const language = localStorage.getItem('locale') || 'en-US';;
     if (language === 'zh-CN') {
-    languageLocal = 'zh-cn';
+    languageLocal = 'zh_cn';
     } else if (typeof language === 'string' && language.startsWith('en')) {
     languageLocal = 'en';
     }

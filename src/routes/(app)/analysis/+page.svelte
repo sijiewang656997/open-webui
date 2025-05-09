@@ -7,6 +7,7 @@
   import { writable } from 'svelte/store';
   import { downloadWordDocument, createSimpleWordDocument } from '$lib/utils/docUtils';
   import { createDocxTemplateReport, downloadDocxDocument } from '$lib/utils/docxTemplateUtils';
+  import { WEBUI_BASE_URL } from '$lib/constants';
 
   const i18n: any = getContext('i18n');
   
@@ -93,18 +94,30 @@
   }
   
   let language_local = 'en';
+<<<<<<< HEAD
+  let language = 'zh_cn';
+=======
   let language = 'zh-cn';
+>>>>>>> 23efd5c60c10afd92c476d1e2f8d6179707150a1
   //const user_token = "token_59b8b43a_aiurmmm0_test" // This should come from your auth system
   const user_token = "token_59b8b43a_aiurmmm0_upload_long_demo"
 
   if (localStorage.getItem('locale') === "zh-CN") {
+<<<<<<< HEAD
+                    language_local = 'zh_cn';
+=======
                     language_local = 'zh-cn';
+>>>>>>> 23efd5c60c10afd92c476d1e2f8d6179707150a1
                 } else {
                     language_local = 'en';
                 }
   // API base URL with the host IP
+<<<<<<< HEAD
+  const apiBaseUrl = WEBUI_BASE_URL;
+=======
   //const apiBaseUrl = "http://localhost:5002";
   const apiBaseUrl = "http://192.168.200.118:5002";
+>>>>>>> 23efd5c60c10afd92c476d1e2f8d6179707150a1
   
   // Add type definitions at the top of the script section
   interface Company {
@@ -396,7 +409,7 @@
       loading = true;
       
       console.log('=== REQUEST ===');
-      console.log(`URL: ${apiBaseUrl}/api/account_tree`);
+      console.log(`URL: ${apiBaseUrl}/proxy/api/account_tree`);
       console.log('Method: GET');
       console.log('Headers:', {
         'Content-Type': 'application/json',
@@ -405,7 +418,7 @@
       });
       console.log('\n');
       
-      const response = await fetch(`${apiBaseUrl}/api/account_tree`, {
+      const response = await fetch(`${apiBaseUrl}/proxy/api/account_tree`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -536,8 +549,8 @@
     
     try {
       const url = selectedMonth 
-        ? `${apiBaseUrl}/api/is_analysis?month=${selectedMonth}`
-        : `${apiBaseUrl}/api/is_analysis`;
+        ? `${apiBaseUrl}/proxy/api/is_analysis?month=${selectedMonth}`
+        : `${apiBaseUrl}/proxy/api/is_analysis`;
       
       console.log('=== REQUEST ===');
       console.log(`URL: ${url}`);
@@ -1077,7 +1090,7 @@
   
   async function fetchTransactions(company, account, month, isPrevious = false) {
     try {
-      const url = `${apiBaseUrl}/api/transactions?company=${encodeURIComponent(company)}&account=${encodeURIComponent(account)}&month=${encodeURIComponent(month)}`;
+      const url = `${apiBaseUrl}/proxy/api/transactions?company=${encodeURIComponent(company)}&account=${encodeURIComponent(account)}&month=${encodeURIComponent(month)}`;
       
       console.log('=== REQUEST ===');
       console.log(`URL: ${url}`);
@@ -1128,7 +1141,7 @@
     });
     
     try {
-      const url = `${apiBaseUrl}/api/account_trend?company=${encodeURIComponent(company)}&account=${encodeURIComponent(account)}`;
+      const url = `${apiBaseUrl}/proxy/api/account_trend?company=${encodeURIComponent(company)}&account=${encodeURIComponent(account)}`;
       
       console.log('=== REQUEST ===');
       console.log(`URL: ${url}`);
@@ -1358,7 +1371,7 @@
       let result;
       
       try {
-        response = await fetch(`${apiBaseUrl}/api/auto_analysis`, {
+        response = await fetch(`${apiBaseUrl}/proxy/api/auto_analysis`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -1520,7 +1533,7 @@
     try {
       const accountData = data.companies[company].accounts[account];
       
-      const response = await fetch(`${apiBaseUrl}/api/update_graph_analysis`, {
+      const response = await fetch(`${apiBaseUrl}/proxy/api/update_graph_analysis`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1549,7 +1562,7 @@
   
   async function handleDownloadTemplate() {
     try {
-      const response = await fetch(`${apiBaseUrl}/api/download_account_tree_template`, {
+      const response = await fetch(`${apiBaseUrl}/proxy/api/download_account_tree_template`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -2697,7 +2710,7 @@
                   const formData = new FormData();
                   formData.append('file', e.target.files[0]);
                   
-                  fetch(`${apiBaseUrl}/api/upload_account_tree`, {
+                  fetch(`${apiBaseUrl}/proxy/api/upload_account_tree`, {
                     method: 'POST',
                     headers: {
                       'Authorization': `Bearer ${user_token}`

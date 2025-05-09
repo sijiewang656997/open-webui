@@ -7,8 +7,8 @@
   const i18n: any = getContext('i18n');
   const dispatch = createEventDispatcher();
 
-  let language_local = 'zh-cn';
-  let language = 'zh-cn';
+  let language_local = 'zh_cn';
+  let language = 'zh_cn';
   const user_token = "token_59b8b43a_aiurmmm0_test"
   
   // API base URL with the host IP

@@ -66,7 +66,28 @@ except Exception:
 ####################################
 
 GLOBAL_LOG_LEVEL = os.environ.get("GLOBAL_LOG_LEVEL", "").upper()
-if GLOBAL_LOG_LEVEL in logging.getLevelNamesMapping():
+
+# Compatibility function for Python versions that don't have getLevelNamesMapping
+def get_level_names_mapping():
+    level_map = {
+        'CRITICAL': logging.CRITICAL,
+        'FATAL': logging.FATAL,
+        'ERROR': logging.ERROR,
+        'WARNING': logging.WARNING,
+        'WARN': logging.WARN,
+        'INFO': logging.INFO,
+        'DEBUG': logging.DEBUG,
+        'NOTSET': logging.NOTSET
+    }
+    return level_map
+
+# Use getLevelNamesMapping if available, otherwise use our compatibility function
+try:
+    level_names = logging.getLevelNamesMapping()
+except AttributeError:
+    level_names = get_level_names_mapping()
+
+if GLOBAL_LOG_LEVEL in level_names:
     logging.basicConfig(stream=sys.stdout, level=GLOBAL_LOG_LEVEL, force=True)
 else:
     GLOBAL_LOG_LEVEL = "INFO"
@@ -99,7 +120,7 @@ SRC_LOG_LEVELS = {}
 for source in log_sources:
     log_env_var = source + "_LOG_LEVEL"
     SRC_LOG_LEVELS[source] = os.environ.get(log_env_var, "").upper()
-    if SRC_LOG_LEVELS[source] not in logging.getLevelNamesMapping():
+    if SRC_LOG_LEVELS[source] not in level_names:
         SRC_LOG_LEVELS[source] = GLOBAL_LOG_LEVEL
     log.info(f"{log_env_var}: {SRC_LOG_LEVELS[source]}")
 
@@ -368,6 +389,8 @@ WEBUI_SECRET_KEY = os.environ.get(
         "WEBUI_JWT_SECRET_KEY", "t0p-s3cr3t"
     ),  # DEPRECATED: remove at next major version
 )
+
+SKIP_SSL_VERIFY = os.environ.get("OPENWEBUI_SKIP_SSL_VERIFY", "false").lower() == "true"
 
 WEBUI_SESSION_COOKIE_SAME_SITE = os.environ.get("WEBUI_SESSION_COOKIE_SAME_SITE", "lax")
 

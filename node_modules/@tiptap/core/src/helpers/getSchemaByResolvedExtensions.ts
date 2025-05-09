@@ -16,7 +16,7 @@ function cleanUpSchemaItem<T>(data: T) {
   return Object.fromEntries(
     // @ts-ignore
     Object.entries(data).filter(([key, value]) => {
-      if (key === 'attrs' && isEmptyObject(value as {} | undefined)) {
+      if (key === 'attrs' && isEmptyObject(value as object | undefined)) {
         return false
       }
 
@@ -148,7 +148,7 @@ export function getSchemaByResolvedExtensions(extensions: Extensions, editor?: E
 
         return {
           ...fields,
-          ...(extendMarkSchema ? extendMarkSchema(extension) : {}),
+          ...(extendMarkSchema ? extendMarkSchema(extension as any) : {}),
         }
       }, {})
 

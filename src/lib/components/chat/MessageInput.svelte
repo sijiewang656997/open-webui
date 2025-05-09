@@ -621,7 +621,7 @@
 												?.profile_image_url ??
 												($i18n.language === 'dg-DG'
 													? `/doge.png`
-													: `${WEBUI_BASE_URL}/static/favicon.png`)}
+													: `static/favicon.png`)}
 										/>
 										<div class="translate-y-[0.5px]">
 											Talking to <span class=" font-medium">{atSelectedModel.name}</span>
@@ -1288,10 +1288,29 @@
 												chatInput?.focus();
 											}}
 										>
+											<!--
 											<button
 												class="bg-transparent hover:bg-gray-100 text-gray-800 dark:text-white dark:hover:bg-gray-800 transition rounded-full p-1.5 outline-hidden focus:outline-hidden"
 												type="button"
 												aria-label="More"
+											>
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													viewBox="0 0 20 20"
+													fill="currentColor"
+													class="size-5"
+												>
+													<path
+														d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z"
+													/>
+												</svg>
+											</button>
+											-->
+											<button
+												class="bg-transparent text-gray-400 dark:text-gray-600 rounded-full p-1.5 outline-hidden focus:outline-hidden cursor-not-allowed opacity-50"
+												type="button"
+												aria-label="More"
+												disabled
 											>
 												<svg
 													xmlns="http://www.w3.org/2000/svg"
@@ -1369,6 +1388,7 @@
 									</div>
 
 									<div class="self-end flex space-x-1 mr-1 shrink-0">
+										<!--
 										{#if !history?.currentId || history.messages[history.currentId]?.done == true}
 											<Tooltip content={$i18n.t('Record voice')}>
 												<button
@@ -1417,10 +1437,12 @@
 												</button>
 											</Tooltip>
 										{/if}
+										-->
 
 										{#if !history.currentId || history.messages[history.currentId]?.done == true}
 											{#if prompt === '' && files.length === 0}
 												<div class=" flex items-center">
+													<!--
 													<Tooltip content={$i18n.t('Call')}>
 														<button
 															class=" {webSearchEnabled ||
@@ -1485,6 +1507,7 @@
 															<Headphone className="size-5" />
 														</button>
 													</Tooltip>
+													-->
 												</div>
 											{:else}
 												<div class=" flex items-center">

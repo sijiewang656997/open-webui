@@ -131,6 +131,8 @@ export class ImageProcessor extends ImageProcessor_base {
     do_crop_margin: any;
     pad_size: any;
     do_pad: any;
+    min_pixels: any;
+    max_pixels: any;
     do_flip_channel_order: boolean;
     config: ImageProcessorConfig;
     /**

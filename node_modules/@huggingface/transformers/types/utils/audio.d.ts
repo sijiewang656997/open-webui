@@ -26,7 +26,8 @@ export function hamming(M: number): Float64Array;
  * various implementation exist, which differ in the number of filters, the shape of the filters, the way the filters
  * are spaced, the bandwidth of the filters, and the manner in which the spectrum is warped. The goal of these
  * features is to approximate the non-linear human perception of the variation in pitch with respect to the frequency.
- * @param {number} num_frequency_bins Number of frequencies used to compute the spectrogram (should be the same as in `stft`).
+ * @param {number} num_frequency_bins Number of frequency bins (should be the same as `n_fft // 2 + 1`
+ * where `n_fft` is the size of the Fourier Transform used to compute the spectrogram).
  * @param {number} num_mel_filters Number of mel filters to generate.
  * @param {number} min_frequency Lowest frequency of interest in Hz.
  * @param {number} max_frequency Highest frequency of interest in Hz. This should not exceed `sampling_rate / 2`.

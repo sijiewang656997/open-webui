@@ -2,7 +2,7 @@
   import { toast } from 'svelte-sonner';
   import { getContext, onMount } from 'svelte';
   import Spinner from '$lib/components/common/Spinner.svelte';
-  import { userAPIKey } from '$lib/stores';
+  import { userAPIKey, showSidebar } from '$lib/stores';
   import { page } from '$app/stores';
   import { writable } from 'svelte/store';
   import { downloadWordDocument, createSimpleWordDocument } from '$lib/utils/docUtils';
@@ -94,17 +94,30 @@
   }
   
   let language_local = 'en';
+<<<<<<< HEAD
   let language = 'zh_cn';
+=======
+  let language = 'zh-cn';
+>>>>>>> 23efd5c60c10afd92c476d1e2f8d6179707150a1
   //const user_token = "token_59b8b43a_aiurmmm0_test" // This should come from your auth system
   const user_token = "token_59b8b43a_aiurmmm0_upload_long_demo"
 
   if (localStorage.getItem('locale') === "zh-CN") {
+<<<<<<< HEAD
                     language_local = 'zh_cn';
+=======
+                    language_local = 'zh-cn';
+>>>>>>> 23efd5c60c10afd92c476d1e2f8d6179707150a1
                 } else {
                     language_local = 'en';
                 }
   // API base URL with the host IP
+<<<<<<< HEAD
   const apiBaseUrl = WEBUI_BASE_URL;
+=======
+  //const apiBaseUrl = "http://localhost:5002";
+  const apiBaseUrl = "http://192.168.200.118:5002";
+>>>>>>> 23efd5c60c10afd92c476d1e2f8d6179707150a1
   
   // Add type definitions at the top of the script section
   interface Company {
@@ -2518,6 +2531,10 @@
       toast.error($i18n.t('Failed to download report: ') + (error.message || 'Unknown error'));
     }
   }
+
+  function toggleSidebar() {
+		showSidebar.update(value => !value);
+	}
 </script>
 
 <!-- Analysis Modal -->
@@ -2626,6 +2643,28 @@
 <div class="page-container w-full max-w-7xl mx-auto px-4 py-6">
   {#if currentView === 'main'}
     <div class="flex justify-between items-center mb-6">
+      <button
+        class="cursor-pointer p-[7px] flex rounded-xl hover:bg-gray-100 dark:hover:bg-gray-900 transition"
+        on:click={toggleSidebar}
+        aria-label="Toggle Sidebar"
+      >
+        <div class="m-auto self-center">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2"
+            stroke="currentColor"
+            class="size-5"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"
+            />
+          </svg>
+        </div>
+      </button>
       <h1 class="text-2xl font-bold text-blue-800 dark:text-blue-300">{$i18n.t('Account Analysis')}</h1>
       <div class="flex items-center space-x-2">
         <!-- Language dropdown removed -->

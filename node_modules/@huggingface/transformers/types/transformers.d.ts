@@ -5,6 +5,7 @@ export * from "./tokenizers.js";
 export * from "./configs.js";
 export * from "./utils/audio.js";
 export * from "./utils/image.js";
+export * from "./utils/video.js";
 export * from "./utils/tensor.js";
 export * from "./utils/maths.js";
 export * from "./models/feature_extractors.js";

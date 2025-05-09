@@ -6,7 +6,6 @@
  */
 export function getFile(urlOrPath: URL | string): Promise<FileResponse | Response>;
 /**
- *
  * Retrieves a file from either a remote URL using the Fetch API or from the local file system using the FileSystem API.
  * If the filesystem is available and `env.useCache = true`, the file will be downloaded and cached.
  *
@@ -16,11 +15,12 @@ export function getFile(urlOrPath: URL | string): Promise<FileResponse | Respons
  * @param {string} filename The name of the file to locate in `path_or_repo`.
  * @param {boolean} [fatal=true] Whether to throw an error if the file is not found.
  * @param {PretrainedOptions} [options] An object containing optional parameters.
+ * @param {boolean} [return_path=false] Whether to return the path of the file instead of the file content.
  *
  * @throws Will throw an error if the file is not found and `fatal` is true.
- * @returns {Promise<Uint8Array>} A Promise that resolves with the file content as a buffer.
+ * @returns {Promise<string|Uint8Array>} A Promise that resolves with the file content as a Uint8Array if `return_path` is false, or the file path as a string if `return_path` is true.
  */
-export function getModelFile(path_or_repo_id: string, filename: string, fatal?: boolean, options?: PretrainedOptions): Promise<Uint8Array>;
+export function getModelFile(path_or_repo_id: string, filename: string, fatal?: boolean, options?: PretrainedOptions, return_path?: boolean): Promise<string | Uint8Array>;
 /**
  * Fetches a JSON file from a given path and file name.
  *
@@ -32,6 +32,18 @@ export function getModelFile(path_or_repo_id: string, filename: string, fatal?: 
  * @throws Will throw an error if the file is not found and `fatal` is true.
  */
 export function getModelJSON(modelPath: string, fileName: string, fatal?: boolean, options?: PretrainedOptions): Promise<any>;
+/**
+ * @typedef {boolean|number} ExternalData Whether to load the model using the external data format (used for models >= 2GB in size).
+ * If `true`, the model will be loaded using the external data format.
+ * If a number, this many chunks will be loaded using the external data format (of the form: "model.onnx_data[_{chunk_number}]").
+ */
+export const MAX_EXTERNAL_DATA_CHUNKS: 100;
+/**
+ * Whether to load the model using the external data format (used for models >= 2GB in size).
+ * If `true`, the model will be loaded using the external data format.
+ * If a number, this many chunks will be loaded using the external data format (of the form: "model.onnx_data[_{chunk_number}]").
+ */
+export type ExternalData = boolean | number;
 /**
  * Options for loading a pretrained model.
  */
@@ -85,7 +97,7 @@ export type ModelSpecificPretrainedOptions = {
     /**
      * Whether to load the model using the external data format (used for models >= 2GB in size).
      */
-    use_external_data_format?: boolean | Record<string, boolean>;
+    use_external_data_format?: ExternalData | Record<string, ExternalData>;
     /**
      * (Optional) User-specified session options passed to the runtime. If not provided, suitable defaults will be chosen.
      */
@@ -98,10 +110,10 @@ export type PretrainedModelOptions = PretrainedOptions & ModelSpecificPretrained
 declare class FileResponse {
     /**
      * Creates a new `FileResponse` object.
-     * @param {string|URL} filePath
+     * @param {string} filePath
      */
-    constructor(filePath: string | URL);
-    filePath: string | URL;
+    constructor(filePath: string);
+    filePath: string;
     headers: Headers;
     exists: boolean;
     status: number;

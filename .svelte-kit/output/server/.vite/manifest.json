@@ -17,6 +17,15 @@
       "_Badge.js"
     ]
   },
+  "_AdvancedParams.js": {
+    "file": "chunks/AdvancedParams.js",
+    "name": "AdvancedParams",
+    "imports": [
+      "_ssr.js",
+      "_Switch.js",
+      "_Tooltip.js"
+    ]
+  },
   "_ArrowDownTray.js": {
     "file": "chunks/ArrowDownTray.js",
     "name": "ArrowDownTray",
@@ -187,7 +196,7 @@
       "_Markdown.js",
       "_MenuLines.js",
       "_XMark.js",
-      "_Switch.js",
+      "_AdvancedParams.js",
       "_Spinner.js",
       "_Collapsible.js",
       "_ConfirmDialog.js"
@@ -300,6 +309,7 @@
       "_index8.js",
       "_index5.js",
       "_Markdown.js",
+      "_Table.js",
       "_Tooltip.js",
       "_XMark.js",
       "_Spinner.js",
@@ -313,7 +323,7 @@
       "_EllipsisHorizontal.js"
     ],
     "css": [
-      "_app/immutable/assets/Messages.Bbuu_qma.css",
+      "_app/immutable/assets/Messages.M6BbYOEN.css",
       "_app/immutable/assets/ConfirmDialog.kaSBQ3kP.css",
       "_app/immutable/assets/Drawer.CyLKLEmt.css"
     ]
@@ -397,6 +407,16 @@
       "_create.js",
       "_updater.js",
       "_index2.js"
+    ]
+  },
+  "_Table.js": {
+    "file": "chunks/Table.js",
+    "name": "Table",
+    "imports": [
+      "_ssr.js"
+    ],
+    "css": [
+      "_app/immutable/assets/Table.CKkStz_i.css"
     ]
   },
   "_Toaster.svelte_svelte_type_style_lang.js": {
@@ -817,11 +837,12 @@
       "_index7.js",
       "_Modal.js",
       "_index4.js",
+      "_AdvancedParams.js",
       "_index.js",
       "_Search.js"
     ],
     "css": [
-      "_app/immutable/assets/_layout.2d8z5qzr.css",
+      "_app/immutable/assets/_layout.DLw2pzHq.css",
       "_app/immutable/assets/Drawer.CyLKLEmt.css",
       "_app/immutable/assets/ConfirmDialog.kaSBQ3kP.css",
       "_app/immutable/assets/ExcelViewer.CoDNKRNR.css",
@@ -985,6 +1006,39 @@
       "_app/immutable/assets/Drawer.CyLKLEmt.css"
     ]
   },
+  "src/routes/(app)/analysis-chat/+page.svelte": {
+    "file": "entries/pages/(app)/analysis-chat/_page.svelte.js",
+    "name": "entries/pages/(app)/analysis-chat/_page.svelte",
+    "src": "src/routes/(app)/analysis-chat/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_ssr.js",
+      "_client.js",
+      "_index3.js",
+      "_index4.js",
+      "_Table.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.S-mjuKHi.css"
+    ]
+  },
+  "src/routes/(app)/analysis/+page.svelte": {
+    "file": "entries/pages/(app)/analysis/_page.svelte.js",
+    "name": "entries/pages/(app)/analysis/_page.svelte",
+    "src": "src/routes/(app)/analysis/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_ssr.js",
+      "_Toaster.svelte_svelte_type_style_lang.js",
+      "_index2.js",
+      "_Spinner.js",
+      "_index3.js",
+      "_client.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.swUcyBE5.css"
+    ]
+  },
   "src/routes/(app)/c/[id]/+page.svelte": {
     "file": "entries/pages/(app)/c/_id_/_page.svelte.js",
     "name": "entries/pages/(app)/c/_id_/_page.svelte",
@@ -1028,6 +1082,21 @@
     ],
     "css": [
       "_app/immutable/assets/_page.Behhsett.css"
+    ]
+  },
+  "src/routes/(app)/excel-to-sql/+page.svelte": {
+    "file": "entries/pages/(app)/excel-to-sql/_page.svelte.js",
+    "name": "entries/pages/(app)/excel-to-sql/_page.svelte",
+    "src": "src/routes/(app)/excel-to-sql/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_ssr.js",
+      "_Toaster.svelte_svelte_type_style_lang.js",
+      "_index3.js",
+      "_Spinner.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.BKsRFUxS.css"
     ]
   },
   "src/routes/(app)/home/+layout.svelte": {
@@ -1398,7 +1467,7 @@
       "_index5.js"
     ],
     "css": [
-      "_app/immutable/assets/_layout.BXmU2eh0.css"
+      "_app/immutable/assets/_layout.DHWBEG7r.css"
     ]
   },
   "src/routes/auth/+page.svelte": {

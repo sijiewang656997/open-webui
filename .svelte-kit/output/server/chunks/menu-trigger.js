@@ -1,4 +1,4 @@
-import { q as get_store_value, p as getContext, s as setContext, c as create_ssr_component, b as subscribe, h as compute_rest_props, i as spread, k as escape_object, a as add_attribute } from "./ssr.js";
+import { r as get_store_value, p as getContext, s as setContext, c as create_ssr_component, b as subscribe, h as compute_rest_props, i as spread, k as escape_object, a as add_attribute } from "./ssr.js";
 import { d as derived, w as writable, a as readonly } from "./index2.js";
 import { t as toWritableStores, o as overridable, c as createBitAttrs, r as removeUndefined, g as getOptionUpdater, a as createDispatcher } from "./updater.js";
 import "dequal";

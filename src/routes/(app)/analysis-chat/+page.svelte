@@ -19,6 +19,14 @@
 	} from 'chart.js';
 	import Table from '$lib/components/common/Table.svelte';
 	import { createDocxTemplateReport, downloadDocxDocument } from '$lib/utils/docxTemplateUtils';
+	import { WEBUI_BASE_URL } from '$lib/constants';
+	let language_local = ""
+
+	if (localStorage.getItem('locale') === "zh-CN") {
+                    language_local = 'zh_cn';
+                } else {
+                    language_local = 'en';
+                }
 
 	ChartJS.register(
 		LineController,
@@ -82,12 +90,12 @@
 			};
 			const requestHeaders = {
 				'Content-Type': 'application/json',
-				'Authorization': 'Bearer token_59b8b43a_aiurmmm0_upload', //`Bearer ${token}`,
-				'Accept-Language': 'zh-cn'
+				'Authorization': 'Bearer token_59b8b43a_aiurmmm0_upload_long_demo', //`token_59b8b43a_aiurmmm0_upload_long_demoBearer ${token}`,
+				'Accept-Language': language_local
 			};
-			console.log('[DEBUG] Sending fetch to http://192.168.200.118:5002/api/analysis/stream', requestBody, requestHeaders);
+			console.log('[DEBUG] Sending fetch to proxy/api/analysis/stream', requestBody, requestHeaders);
 
-			const response = await fetch('http://192.168.200.118:5002/api/analysis/stream', {
+			const response = await fetch(`${WEBUI_BASE_URL}/proxy/api/analysis/stream`, {
 				method: 'POST',
 				headers: requestHeaders,
 				body: JSON.stringify(requestBody)

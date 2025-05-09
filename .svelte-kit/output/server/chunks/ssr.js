@@ -1,6 +1,10 @@
 function noop() {
 }
 const identity = (x) => x;
+function is_promise(value) {
+  return !!value && (typeof value === "object" || typeof value === "function") && typeof /** @type {any} */
+  value.then === "function";
+}
 function run(fn) {
   return fn();
 }
@@ -276,8 +280,9 @@ function add_styles(style_object) {
   return styles ? ` style="${styles}"` : "";
 }
 export {
-  set_current_component as A,
-  current_component as B,
+  is_function as A,
+  set_current_component as B,
+  current_component as C,
   add_attribute as a,
   subscribe as b,
   create_ssr_component as c,
@@ -294,15 +299,15 @@ export {
   noop as n,
   onDestroy as o,
   getContext as p,
-  get_store_value as q,
-  hasContext as r,
+  is_promise as q,
+  get_store_value as r,
   setContext as s,
-  compute_slots as t,
-  null_to_empty as u,
+  hasContext as t,
+  compute_slots as u,
   validate_component as v,
-  identity as w,
-  run_all as x,
-  safe_not_equal as y,
-  is_function as z
+  null_to_empty as w,
+  identity as x,
+  run_all as y,
+  safe_not_equal as z
 };
 //# sourceMappingURL=ssr.js.map

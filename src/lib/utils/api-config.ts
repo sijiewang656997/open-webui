@@ -15,12 +15,8 @@ export const getApiConfig = async (i18n: any) => {
     const apiUrls = await getOpenAIUrls(localToken);
     
     // Get the first URL
-    let baseUrl = apiUrls?.[0] || '';
+    let baseUrl = "https://192.168.200.118:5002";
     
-    // Remove '/v1' if present
-    if (baseUrl.endsWith('/v1')) {
-      baseUrl = baseUrl.slice(0, -3);
-    }
     
     // Get API key
     const apiKey = await getAPIKey(localToken);
@@ -34,7 +30,7 @@ export const getApiConfig = async (i18n: any) => {
     
     const language = localStorage.getItem('locale') || 'en-US';;
     if (language === 'zh-CN') {
-    languageLocal = 'zh-cn';
+    languageLocal = 'zh_cn';
     } else if (typeof language === 'string' && language.startsWith('en')) {
     languageLocal = 'en';
     }
@@ -51,7 +47,7 @@ export const getApiConfig = async (i18n: any) => {
     console.error('Error getting API configuration:', error);
     // Return default values if there's an error
     return {
-      baseUrl: 'http://192.168.200.118:5002',
+      baseUrl: 'https://192.168.200.118:5002',
       userToken: 'token_59b8b43a_aiurmmm0',
       languageLocal: 'en'
     };

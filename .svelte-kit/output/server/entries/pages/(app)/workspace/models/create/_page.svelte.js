@@ -1,7 +1,7 @@
 import { c as create_ssr_component, b as subscribe, p as getContext, v as validate_component } from "../../../../../../chunks/ssr.js";
 import { a as toast } from "../../../../../../chunks/Toaster.svelte_svelte_type_style_lang.js";
 import { g as goto } from "../../../../../../chunks/client.js";
-import { l as WEBUI_API_BASE_URL, m as models, E as knowledge, n as tools, k as functions, a as settings, c as config } from "../../../../../../chunks/index3.js";
+import { p as WEBUI_API_BASE_URL, m as models, F as knowledge, n as tools, k as functions, a as settings, c as config } from "../../../../../../chunks/index3.js";
 import { g as getModels } from "../../../../../../chunks/index7.js";
 import "dequal";
 import "../../../../../../chunks/create.js";

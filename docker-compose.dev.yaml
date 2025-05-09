@@ -1,0 +1,55 @@
+services:
+  open-webui:
+    image: node:22
+    container_name: open-webui-dev
+    volumes:
+      - .:/app
+      - /app/node_modules
+    working_dir: /app
+    command: npm run dev
+    ports:
+      - ${OPEN_WEBUI_PORT-3000}:3000
+    environment:
+      - 'WEBUI_SECRET_KEY='
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    restart: unless-stopped
+
+  python-backend:
+    image: python:3.11
+    container_name: python-backend-dev
+    volumes:
+      - .:/app
+      - python-data:/app/backend/data
+    working_dir: /app/backend
+    command: >
+      bash -c "
+        pip install --no-cache-dir -r requirements.txt &&
+        python -m uvicorn open_webui.main:app --host 0.0.0.0 --port 8080 --reload
+      "
+    ports:
+      - "8080:8080"
+    environment:
+      - 'WEBUI_SECRET_KEY='
+      - 'HOST=0.0.0.0'
+      - 'PORT=8080'
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-dev
+    ports:
+      - "443:443"
+    volumes:
+      - ./conf.d:/etc/nginx/conf.d
+      - ./ssl:/etc/nginx/ssl
+      - /home/kneox/Documents/ssl:/home/kneox/Documents/ssl
+    depends_on:
+      - open-webui
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
+volumes:
+  python-data: {} 

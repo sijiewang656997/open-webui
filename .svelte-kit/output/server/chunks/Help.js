@@ -1,20 +1,20 @@
-import { c as create_ssr_component, b as subscribe, h as compute_rest_props, i as spread, k as escape_object, a as add_attribute, l as createEventDispatcher, v as validate_component, p as getContext, g as escape, j as escape_attribute_value, o as onDestroy, e as each, q as get_store_value, d as add_styles, f as merge_ssr_styles, s as setContext, m as missing_component, r as hasContext, t as compute_slots, n as noop, u as null_to_empty } from "./ssr.js";
+import { c as create_ssr_component, b as subscribe, h as compute_rest_props, i as spread, k as escape_object, a as add_attribute, l as createEventDispatcher, v as validate_component, p as getContext, g as escape, j as escape_attribute_value, o as onDestroy, e as each, r as get_store_value, d as add_styles, f as merge_ssr_styles, s as setContext, m as missing_component, t as hasContext, u as compute_slots, n as noop, w as null_to_empty } from "./ssr.js";
 import { t as tick } from "./scheduler.js";
 import { v4 } from "uuid";
 import { a as toast } from "./Toaster.svelte_svelte_type_style_lang.js";
 import { g as getCtx, a as generateId, s as styleToString, b as getCursorStyle, F as FilesOverlay, U as UserMenu, D as Drawer, P as Pane$1, c as Pane_group } from "./Drawer.js";
 import { g as goto } from "./client.js";
 import { p as page } from "./stores.js";
-import { m as models, c as config, A as AUDIO_API_BASE_URL, l as WEBUI_API_BASE_URL, R as RETRIEVAL_API_BASE_URL, a as settings, n as tools, o as mobile, u as user, T as TTSWorker, t as temporaryChatEnabled, W as WEBUI_NAME, d as chatId, j as showSidebar, k as functions, p as showCallOverlay, f as theme, q as showControls, r as showArtifacts, v as showOverview, g as WEBUI_BASE_URL, b as currentChatPage, s as socket, w as chatTitle, x as banners, y as chats, z as tags } from "./index3.js";
-import * as XLSX from "xlsx";
-import { c as compressImage, b as blobToFile, a as createMessagesList, s as sanitizeResponseContent, d as convertMessagesToHistory, p as promptTemplate, r as removeDetails, g as getPromptVariables, e as getMessageContentParts, f as copyToClipboard } from "./index5.js";
+import { m as models, c as config, A as AUDIO_API_BASE_URL, R as RETRIEVAL_API_BASE_URL, a as settings, n as tools, o as mobile, u as user, T as TTSWorker, p as WEBUI_API_BASE_URL, t as temporaryChatEnabled, W as WEBUI_NAME, d as chatId, j as showSidebar, k as functions, q as showCallOverlay, f as theme, r as showControls, v as showArtifacts, w as showOverview, g as WEBUI_BASE_URL, b as currentChatPage, s as socket, l as userAPIKey, x as chatTitle, y as banners, z as chats, B as tags } from "./index3.js";
+import { c as compressImage, b as blobToFile, a as createMessagesList, s as sanitizeResponseContent, d as convertMessagesToHistory, p as promptTemplate, r as removeDetails, g as getPromptVariables } from "./index5.js";
 import { a as getChatById, b as getTagsById, u as updateChatById, c as getChatList, d as createNewChat, e as getAllTags } from "./index8.js";
-import { b as generateEmoji, c as chatAction, d as generateOpenAIChatCompletion, s as stopTask, e as generateMoACompletion, f as chatCompleted } from "./index7.js";
+import { b as generateEmoji, c as chatAction, d as generateMoACompletion, e as generateOpenAIChatCompletion, s as stopTask } from "./index7.js";
 import { EventSourceParserStream } from "eventsource-parser/stream";
 import { a as getUserSettings, b as getAndUpdateUserLocation } from "./index6.js";
 import { V as Valves, f as getUserValvesById, h as getUserValvesSpecById, e as getFunctions, i as getTools, H as Heart } from "./Heart.js";
 import "dompurify";
 import { marked } from "marked";
+import * as XLSX from "xlsx";
 import { u as uploadFile } from "./Drawer.svelte_svelte_type_style_lang.js";
 import "dequal";
 import "./create.js";
@@ -42,7 +42,7 @@ import "file-saver";
 import { C as Clipboard, F as FileItem, P as ProfileImage, S as SVGPanZoom } from "./Markdown.js";
 import { M as MenuLines } from "./MenuLines.js";
 import { X as XMark } from "./XMark.js";
-import { S as Switch_1 } from "./Switch.js";
+import { A as AdvancedParams } from "./AdvancedParams.js";
 import { S as Spinner } from "./Spinner.js";
 import { C as Collapsible } from "./Collapsible.js";
 import cc from "classcat";
@@ -293,403 +293,6 @@ const PencilSquare = create_ssr_component(($$result, $$props, $$bindings, slots)
   if ($$props.strokeWidth === void 0 && $$bindings.strokeWidth && strokeWidth !== void 0) $$bindings.strokeWidth(strokeWidth);
   return `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"${add_attribute("stroke-width", strokeWidth, 0)} stroke="currentColor"${add_attribute("class", className, 0)}><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"></path></svg>`;
 });
-const AdvancedParams = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-  let $i18n, $$unsubscribe_i18n;
-  const dispatch = createEventDispatcher();
-  const i18n = getContext("i18n");
-  $$unsubscribe_i18n = subscribe(i18n, (value) => $i18n = value);
-  let { admin = false } = $$props;
-  let { params = {
-    // Advanced
-    stream_response: null,
-    // Set stream responses for this model individually
-    function_calling: null,
-    seed: null,
-    stop: null,
-    temperature: null,
-    reasoning_effort: null,
-    frequency_penalty: null,
-    repeat_last_n: null,
-    mirostat: null,
-    mirostat_eta: null,
-    mirostat_tau: null,
-    top_k: null,
-    top_p: null,
-    min_p: null,
-    tfs_z: null,
-    num_ctx: null,
-    num_batch: null,
-    num_keep: null,
-    max_tokens: null,
-    use_mmap: null,
-    use_mlock: null,
-    num_thread: null,
-    num_gpu: null,
-    template: null
-  } } = $$props;
-  if ($$props.admin === void 0 && $$bindings.admin && admin !== void 0) $$bindings.admin(admin);
-  if ($$props.params === void 0 && $$bindings.params && params !== void 0) $$bindings.params(params);
-  let $$settled;
-  let $$rendered;
-  let previous_head = $$result.head;
-  do {
-    $$settled = true;
-    $$result.head = previous_head;
-    {
-      if (params) {
-        dispatch("change", params);
-      }
-    }
-    $$rendered = `<div class="space-y-1 text-xs pb-safe-bottom"><div>${validate_component(Tooltip, "Tooltip").$$render(
-      $$result,
-      {
-        content: $i18n.t("When enabled, the model will respond to each chat message in real-time, generating a response as soon as the user sends a message. This mode is useful for live chat applications, but may impact performance on slower hardware."),
-        placement: "top-start",
-        className: "inline-tooltip"
-      },
-      {},
-      {
-        default: () => {
-          return `<div class="py-0.5 flex w-full justify-between"><div class="self-center text-xs font-medium">${escape($i18n.t("Stream Chat Response"))}</div> <button class="p-1 px-3 text-xs flex rounded-sm transition" type="button">${params.stream_response === true ? `<span class="ml-2 self-center">${escape($i18n.t("On"))}</span>` : `${params.stream_response === false ? `<span class="ml-2 self-center">${escape($i18n.t("Off"))}</span>` : `<span class="ml-2 self-center">${escape($i18n.t("Default"))}</span>`}`}</button></div>`;
-        }
-      }
-    )}</div> <div>${validate_component(Tooltip, "Tooltip").$$render(
-      $$result,
-      {
-        content: $i18n.t("Default mode works with a wider range of models by calling tools once before execution. Native mode leverages the model’s built-in tool-calling capabilities, but requires the model to inherently support this feature."),
-        placement: "top-start",
-        className: "inline-tooltip"
-      },
-      {},
-      {
-        default: () => {
-          return `<div class="py-0.5 flex w-full justify-between"><div class="self-center text-xs font-medium">${escape($i18n.t("Function Calling"))}</div> <button class="p-1 px-3 text-xs flex rounded-sm transition" type="button">${params.function_calling === "native" ? `<span class="ml-2 self-center">${escape($i18n.t("Native"))}</span>` : `<span class="ml-2 self-center">${escape($i18n.t("Default"))}</span>`}</button></div>`;
-        }
-      }
-    )}</div> <div class="py-0.5 w-full justify-between">${validate_component(Tooltip, "Tooltip").$$render(
-      $$result,
-      {
-        content: $i18n.t("Sets the random number seed to use for generation. Setting this to a specific number will make the model generate the same text for the same prompt. (Default: random)"),
-        placement: "top-start",
-        className: "inline-tooltip"
-      },
-      {},
-      {
-        default: () => {
-          return `<div class="flex w-full justify-between"><div class="self-center text-xs font-medium">${escape($i18n.t("Seed"))}</div> <button class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden" type="button">${(params?.seed ?? null) === null ? `<span class="ml-2 self-center">${escape($i18n.t("Default"))}</span>` : `<span class="ml-2 self-center">${escape($i18n.t("Custom"))}</span>`}</button></div>`;
-        }
-      }
-    )} ${(params?.seed ?? null) !== null ? `<div class="flex mt-0.5 space-x-2"><div class="flex-1"><input class="w-full rounded-lg py-2 px-4 text-sm dark:text-gray-300 dark:bg-gray-850 outline-hidden" type="number"${add_attribute("placeholder", $i18n.t("Enter Seed"), 0)} autocomplete="off" min="0"${add_attribute("value", params.seed, 0)}></div></div>` : ``}</div> <div class="py-0.5 w-full justify-between">${validate_component(Tooltip, "Tooltip").$$render(
-      $$result,
-      {
-        content: $i18n.t("Sets the stop sequences to use. When this pattern is encountered, the LLM will stop generating text and return. Multiple stop patterns may be set by specifying multiple separate stop parameters in a modelfile."),
-        placement: "top-start",
-        className: "inline-tooltip"
-      },
-      {},
-      {
-        default: () => {
-          return `<div class="flex w-full justify-between"><div class="self-center text-xs font-medium">${escape($i18n.t("Stop Sequence"))}</div> <button class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden" type="button">${(params?.stop ?? null) === null ? `<span class="ml-2 self-center">${escape($i18n.t("Default"))}</span>` : `<span class="ml-2 self-center">${escape($i18n.t("Custom"))}</span>`}</button></div>`;
-        }
-      }
-    )} ${(params?.stop ?? null) !== null ? `<div class="flex mt-0.5 space-x-2"><div class="flex-1"><input class="w-full rounded-lg py-2 px-1 text-sm dark:text-gray-300 dark:bg-gray-850 outline-hidden" type="text"${add_attribute("placeholder", $i18n.t("Enter stop sequence"), 0)} autocomplete="off"${add_attribute("value", params.stop, 0)}></div></div>` : ``}</div> <div class="py-0.5 w-full justify-between">${validate_component(Tooltip, "Tooltip").$$render(
-      $$result,
-      {
-        content: $i18n.t("The temperature of the model. Increasing the temperature will make the model answer more creatively. (Default: 0.8)"),
-        placement: "top-start",
-        className: "inline-tooltip"
-      },
-      {},
-      {
-        default: () => {
-          return `<div class="flex w-full justify-between"><div class="self-center text-xs font-medium">${escape($i18n.t("Temperature"))}</div> <button class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden" type="button">${(params?.temperature ?? null) === null ? `<span class="ml-2 self-center">${escape($i18n.t("Default"))}</span>` : `<span class="ml-2 self-center">${escape($i18n.t("Custom"))}</span>`}</button></div>`;
-        }
-      }
-    )} ${(params?.temperature ?? null) !== null ? `<div class="flex mt-0.5 space-x-2"><div class="flex-1"><input id="steps-range" type="range" min="0" max="2" step="0.05" class="w-full h-2 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"${add_attribute("value", params.temperature, 0)}></div> <div><input type="number" class="bg-transparent text-center w-14" min="0" max="2" step="any"${add_attribute("value", params.temperature, 0)}></div></div>` : ``}</div> <div class="py-0.5 w-full justify-between">${validate_component(Tooltip, "Tooltip").$$render(
-      $$result,
-      {
-        content: $i18n.t("Constrains effort on reasoning for reasoning models. Only applicable to reasoning models from specific providers that support reasoning effort. (Default: medium)"),
-        placement: "top-start",
-        className: "inline-tooltip"
-      },
-      {},
-      {
-        default: () => {
-          return `<div class="flex w-full justify-between"><div class="self-center text-xs font-medium">${escape($i18n.t("Reasoning Effort"))}</div> <button class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden" type="button">${(params?.reasoning_effort ?? null) === null ? `<span class="ml-2 self-center">${escape($i18n.t("Default"))}</span>` : `<span class="ml-2 self-center">${escape($i18n.t("Custom"))}</span>`}</button></div>`;
-        }
-      }
-    )} ${(params?.reasoning_effort ?? null) !== null ? `<div class="flex mt-0.5 space-x-2"><div class="flex-1"><input class="w-full rounded-lg py-2 px-1 text-sm dark:text-gray-300 dark:bg-gray-850 outline-hidden" type="text"${add_attribute("placeholder", $i18n.t("Enter reasoning effort"), 0)} autocomplete="off"${add_attribute("value", params.reasoning_effort, 0)}></div></div>` : ``}</div> <div class="py-0.5 w-full justify-between">${validate_component(Tooltip, "Tooltip").$$render(
-      $$result,
-      {
-        content: $i18n.t("Enable Mirostat sampling for controlling perplexity. (Default: 0, 0 = Disabled, 1 = Mirostat, 2 = Mirostat 2.0)"),
-        placement: "top-start",
-        className: "inline-tooltip"
-      },
-      {},
-      {
-        default: () => {
-          return `<div class="flex w-full justify-between"><div class="self-center text-xs font-medium">${escape($i18n.t("Mirostat"))}</div> <button class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden" type="button">${(params?.mirostat ?? null) === null ? `<span class="ml-2 self-center">${escape($i18n.t("Default"))}</span>` : `<span class="ml-2 self-center">${escape($i18n.t("Custom"))}</span>`}</button></div>`;
-        }
-      }
-    )} ${(params?.mirostat ?? null) !== null ? `<div class="flex mt-0.5 space-x-2"><div class="flex-1"><input id="steps-range" type="range" min="0" max="2" step="1" class="w-full h-2 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"${add_attribute("value", params.mirostat, 0)}></div> <div><input type="number" class="bg-transparent text-center w-14" min="0" max="2" step="1"${add_attribute("value", params.mirostat, 0)}></div></div>` : ``}</div> <div class="py-0.5 w-full justify-between">${validate_component(Tooltip, "Tooltip").$$render(
-      $$result,
-      {
-        content: $i18n.t("Influences how quickly the algorithm responds to feedback from the generated text. A lower learning rate will result in slower adjustments, while a higher learning rate will make the algorithm more responsive. (Default: 0.1)"),
-        placement: "top-start",
-        className: "inline-tooltip"
-      },
-      {},
-      {
-        default: () => {
-          return `<div class="flex w-full justify-between"><div class="self-center text-xs font-medium">${escape($i18n.t("Mirostat Eta"))}</div> <button class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden" type="button">${(params?.mirostat_eta ?? null) === null ? `<span class="ml-2 self-center">${escape($i18n.t("Default"))}</span>` : `<span class="ml-2 self-center">${escape($i18n.t("Custom"))}</span>`}</button></div>`;
-        }
-      }
-    )} ${(params?.mirostat_eta ?? null) !== null ? `<div class="flex mt-0.5 space-x-2"><div class="flex-1"><input id="steps-range" type="range" min="0" max="1" step="0.05" class="w-full h-2 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"${add_attribute("value", params.mirostat_eta, 0)}></div> <div><input type="number" class="bg-transparent text-center w-14" min="0" max="1" step="any"${add_attribute("value", params.mirostat_eta, 0)}></div></div>` : ``}</div> <div class="py-0.5 w-full justify-between">${validate_component(Tooltip, "Tooltip").$$render(
-      $$result,
-      {
-        content: $i18n.t("Controls the balance between coherence and diversity of the output. A lower value will result in more focused and coherent text. (Default: 5.0)"),
-        placement: "top-start",
-        className: "inline-tooltip"
-      },
-      {},
-      {
-        default: () => {
-          return `<div class="flex w-full justify-between"><div class="self-center text-xs font-medium">${escape($i18n.t("Mirostat Tau"))}</div> <button class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden" type="button">${(params?.mirostat_tau ?? null) === null ? `<span class="ml-2 self-center">${escape($i18n.t("Default"))}</span>` : `<span class="ml-2 self-center">${escape($i18n.t("Custom"))}</span>`}</button></div>`;
-        }
-      }
-    )} ${(params?.mirostat_tau ?? null) !== null ? `<div class="flex mt-0.5 space-x-2"><div class="flex-1"><input id="steps-range" type="range" min="0" max="10" step="0.5" class="w-full h-2 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"${add_attribute("value", params.mirostat_tau, 0)}></div> <div><input type="number" class="bg-transparent text-center w-14" min="0" max="10" step="any"${add_attribute("value", params.mirostat_tau, 0)}></div></div>` : ``}</div> <div class="py-0.5 w-full justify-between">${validate_component(Tooltip, "Tooltip").$$render(
-      $$result,
-      {
-        content: $i18n.t("Reduces the probability of generating nonsense. A higher value (e.g. 100) will give more diverse answers, while a lower value (e.g. 10) will be more conservative. (Default: 40)"),
-        placement: "top-start",
-        className: "inline-tooltip"
-      },
-      {},
-      {
-        default: () => {
-          return `<div class="flex w-full justify-between"><div class="self-center text-xs font-medium">${escape($i18n.t("Top K"))}</div> <button class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden" type="button">${(params?.top_k ?? null) === null ? `<span class="ml-2 self-center">${escape($i18n.t("Default"))}</span>` : `<span class="ml-2 self-center">${escape($i18n.t("Custom"))}</span>`}</button></div>`;
-        }
-      }
-    )} ${(params?.top_k ?? null) !== null ? `<div class="flex mt-0.5 space-x-2"><div class="flex-1"><input id="steps-range" type="range" min="0" max="1000" step="0.5" class="w-full h-2 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"${add_attribute("value", params.top_k, 0)}></div> <div><input type="number" class="bg-transparent text-center w-14" min="0" max="100" step="any"${add_attribute("value", params.top_k, 0)}></div></div>` : ``}</div> <div class="py-0.5 w-full justify-between">${validate_component(Tooltip, "Tooltip").$$render(
-      $$result,
-      {
-        content: $i18n.t("Works together with top-k. A higher value (e.g., 0.95) will lead to more diverse text, while a lower value (e.g., 0.5) will generate more focused and conservative text. (Default: 0.9)"),
-        placement: "top-start",
-        className: "inline-tooltip"
-      },
-      {},
-      {
-        default: () => {
-          return `<div class="flex w-full justify-between"><div class="self-center text-xs font-medium">${escape($i18n.t("Top P"))}</div> <button class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden" type="button">${(params?.top_p ?? null) === null ? `<span class="ml-2 self-center">${escape($i18n.t("Default"))}</span>` : `<span class="ml-2 self-center">${escape($i18n.t("Custom"))}</span>`}</button></div>`;
-        }
-      }
-    )} ${(params?.top_p ?? null) !== null ? `<div class="flex mt-0.5 space-x-2"><div class="flex-1"><input id="steps-range" type="range" min="0" max="1" step="0.05" class="w-full h-2 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"${add_attribute("value", params.top_p, 0)}></div> <div><input type="number" class="bg-transparent text-center w-14" min="0" max="1" step="any"${add_attribute("value", params.top_p, 0)}></div></div>` : ``}</div> <div class="py-0.5 w-full justify-between">${validate_component(Tooltip, "Tooltip").$$render(
-      $$result,
-      {
-        content: $i18n.t("Alternative to the top_p, and aims to ensure a balance of quality and variety. The parameter p represents the minimum probability for a token to be considered, relative to the probability of the most likely token. For example, with p=0.05 and the most likely token having a probability of 0.9, logits with a value less than 0.045 are filtered out. (Default: 0.0)"),
-        placement: "top-start",
-        className: "inline-tooltip"
-      },
-      {},
-      {
-        default: () => {
-          return `<div class="flex w-full justify-between"><div class="self-center text-xs font-medium">${escape($i18n.t("Min P"))}</div> <button class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden" type="button">${(params?.min_p ?? null) === null ? `<span class="ml-2 self-center">${escape($i18n.t("Default"))}</span>` : `<span class="ml-2 self-center">${escape($i18n.t("Custom"))}</span>`}</button></div>`;
-        }
-      }
-    )} ${(params?.min_p ?? null) !== null ? `<div class="flex mt-0.5 space-x-2"><div class="flex-1"><input id="steps-range" type="range" min="0" max="1" step="0.05" class="w-full h-2 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"${add_attribute("value", params.min_p, 0)}></div> <div><input type="number" class="bg-transparent text-center w-14" min="0" max="1" step="any"${add_attribute("value", params.min_p, 0)}></div></div>` : ``}</div> <div class="py-0.5 w-full justify-between">${validate_component(Tooltip, "Tooltip").$$render(
-      $$result,
-      {
-        content: $i18n.t("Sets a scaling bias against tokens to penalize repetitions, based on how many times they have appeared. A higher value (e.g., 1.5) will penalize repetitions more strongly, while a lower value (e.g., 0.9) will be more lenient. At 0, it is disabled. (Default: 1.1)"),
-        placement: "top-start",
-        className: "inline-tooltip"
-      },
-      {},
-      {
-        default: () => {
-          return `<div class="flex w-full justify-between"><div class="self-center text-xs font-medium">${escape($i18n.t("Frequency Penalty"))}</div> <button class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden" type="button">${(params?.frequency_penalty ?? null) === null ? `<span class="ml-2 self-center">${escape($i18n.t("Default"))}</span>` : `<span class="ml-2 self-center">${escape($i18n.t("Custom"))}</span>`}</button></div>`;
-        }
-      }
-    )} ${(params?.frequency_penalty ?? null) !== null ? `<div class="flex mt-0.5 space-x-2"><div class="flex-1"><input id="steps-range" type="range" min="-2" max="2" step="0.05" class="w-full h-2 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"${add_attribute("value", params.frequency_penalty, 0)}></div> <div><input type="number" class="bg-transparent text-center w-14" min="-2" max="2" step="any"${add_attribute("value", params.frequency_penalty, 0)}></div></div>` : ``}</div> <div class="py-0.5 w-full justify-between">${validate_component(Tooltip, "Tooltip").$$render(
-      $$result,
-      {
-        content: $i18n.t("Sets a flat bias against tokens that have appeared at least once. A higher value (e.g., 1.5) will penalize repetitions more strongly, while a lower value (e.g., 0.9) will be more lenient. At 0, it is disabled. (Default: 0)"),
-        placement: "top-start",
-        className: "inline-tooltip"
-      },
-      {},
-      {
-        default: () => {
-          return `<div class="flex w-full justify-between"><div class="self-center text-xs font-medium">${escape($i18n.t("Presence Penalty"))}</div> <button class="p-1 px-3 text-xs flex rounded transition flex-shrink-0 outline-none" type="button">${(params?.presence_penalty ?? null) === null ? `<span class="ml-2 self-center">${escape($i18n.t("Default"))}</span>` : `<span class="ml-2 self-center">${escape($i18n.t("Custom"))}</span>`}</button></div>`;
-        }
-      }
-    )} ${(params?.presence_penalty ?? null) !== null ? `<div class="flex mt-0.5 space-x-2"><div class="flex-1"><input id="steps-range" type="range" min="-2" max="2" step="0.05" class="w-full h-2 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"${add_attribute("value", params.presence_penalty, 0)}></div> <div><input type="number" class="bg-transparent text-center w-14" min="-2" max="2" step="any"${add_attribute("value", params.presence_penalty, 0)}></div></div>` : ``}</div> <div class="py-0.5 w-full justify-between">${validate_component(Tooltip, "Tooltip").$$render(
-      $$result,
-      {
-        content: $i18n.t("Control the repetition of token sequences in the generated text. A higher value (e.g., 1.5) will penalize repetitions more strongly, while a lower value (e.g., 1.1) will be more lenient. At 1, it is disabled. (Default: 1.1)"),
-        placement: "top-start",
-        className: "inline-tooltip"
-      },
-      {},
-      {
-        default: () => {
-          return `<div class="flex w-full justify-between"><div class="self-center text-xs font-medium">${escape($i18n.t("Repeat Penalty (Ollama)"))}</div> <button class="p-1 px-3 text-xs flex rounded transition flex-shrink-0 outline-none" type="button">${(params?.repeat_penalty ?? null) === null ? `<span class="ml-2 self-center">${escape($i18n.t("Default"))}</span>` : `<span class="ml-2 self-center">${escape($i18n.t("Custom"))}</span>`}</button></div>`;
-        }
-      }
-    )} ${(params?.repeat_penalty ?? null) !== null ? `<div class="flex mt-0.5 space-x-2"><div class="flex-1"><input id="steps-range" type="range" min="-2" max="2" step="0.05" class="w-full h-2 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"${add_attribute("value", params.repeat_penalty, 0)}></div> <div><input type="number" class="bg-transparent text-center w-14" min="-2" max="2" step="any"${add_attribute("value", params.repeat_penalty, 0)}></div></div>` : ``}</div> <div class="py-0.5 w-full justify-between">${validate_component(Tooltip, "Tooltip").$$render(
-      $$result,
-      {
-        content: $i18n.t("Sets how far back for the model to look back to prevent repetition. (Default: 64, 0 = disabled, -1 = num_ctx)"),
-        placement: "top-start",
-        className: "inline-tooltip"
-      },
-      {},
-      {
-        default: () => {
-          return `<div class="flex w-full justify-between"><div class="self-center text-xs font-medium">${escape($i18n.t("Repeat Last N"))}</div> <button class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden" type="button">${(params?.repeat_last_n ?? null) === null ? `<span class="ml-2 self-center">${escape($i18n.t("Default"))}</span>` : `<span class="ml-2 self-center">${escape($i18n.t("Custom"))}</span>`}</button></div>`;
-        }
-      }
-    )} ${(params?.repeat_last_n ?? null) !== null ? `<div class="flex mt-0.5 space-x-2"><div class="flex-1"><input id="steps-range" type="range" min="-1" max="128" step="1" class="w-full h-2 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"${add_attribute("value", params.repeat_last_n, 0)}></div> <div><input type="number" class="bg-transparent text-center w-14" min="-1" max="128" step="1"${add_attribute("value", params.repeat_last_n, 0)}></div></div>` : ``}</div> <div class="py-0.5 w-full justify-between">${validate_component(Tooltip, "Tooltip").$$render(
-      $$result,
-      {
-        content: $i18n.t("Tail free sampling is used to reduce the impact of less probable tokens from the output. A higher value (e.g., 2.0) will reduce the impact more, while a value of 1.0 disables this setting. (default: 1)"),
-        placement: "top-start",
-        className: "inline-tooltip"
-      },
-      {},
-      {
-        default: () => {
-          return `<div class="flex w-full justify-between"><div class="self-center text-xs font-medium">${escape($i18n.t("Tfs Z"))}</div> <button class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden" type="button">${(params?.tfs_z ?? null) === null ? `<span class="ml-2 self-center">${escape($i18n.t("Default"))}</span>` : `<span class="ml-2 self-center">${escape($i18n.t("Custom"))}</span>`}</button></div>`;
-        }
-      }
-    )} ${(params?.tfs_z ?? null) !== null ? `<div class="flex mt-0.5 space-x-2"><div class="flex-1"><input id="steps-range" type="range" min="0" max="2" step="0.05" class="w-full h-2 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"${add_attribute("value", params.tfs_z, 0)}></div> <div><input type="number" class="bg-transparent text-center w-14" min="0" max="2" step="any"${add_attribute("value", params.tfs_z, 0)}></div></div>` : ``}</div> <div class="py-0.5 w-full justify-between">${validate_component(Tooltip, "Tooltip").$$render(
-      $$result,
-      {
-        content: $i18n.t("Sets the size of the context window used to generate the next token. (Default: 2048)"),
-        placement: "top-start",
-        className: "inline-tooltip"
-      },
-      {},
-      {
-        default: () => {
-          return `<div class="flex w-full justify-between"><div class="self-center text-xs font-medium">${escape($i18n.t("Context Length"))}</div> <button class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden" type="button">${(params?.num_ctx ?? null) === null ? `<span class="ml-2 self-center">${escape($i18n.t("Default"))}</span>` : `<span class="ml-2 self-center">${escape($i18n.t("Custom"))}</span>`}</button></div>`;
-        }
-      }
-    )} ${(params?.num_ctx ?? null) !== null ? `<div class="flex mt-0.5 space-x-2"><div class="flex-1"><input id="steps-range" type="range" min="-1" max="10240000" step="1" class="w-full h-2 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"${add_attribute("value", params.num_ctx, 0)}></div> <div class=""><input type="number" class="bg-transparent text-center w-14" min="-1" step="1"${add_attribute("value", params.num_ctx, 0)}></div></div>` : ``}</div> <div class="py-0.5 w-full justify-between">${validate_component(Tooltip, "Tooltip").$$render(
-      $$result,
-      {
-        content: $i18n.t("The batch size determines how many text requests are processed together at once. A higher batch size can increase the performance and speed of the model, but it also requires more memory.  (Default: 512)"),
-        placement: "top-start",
-        className: "inline-tooltip"
-      },
-      {},
-      {
-        default: () => {
-          return `<div class="flex w-full justify-between"><div class="self-center text-xs font-medium">${escape($i18n.t("Batch Size (num_batch)"))}</div> <button class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden" type="button">${(params?.num_batch ?? null) === null ? `<span class="ml-2 self-center">${escape($i18n.t("Default"))}</span>` : `<span class="ml-2 self-center">${escape($i18n.t("Custom"))}</span>`}</button></div>`;
-        }
-      }
-    )} ${(params?.num_batch ?? null) !== null ? `<div class="flex mt-0.5 space-x-2"><div class="flex-1"><input id="steps-range" type="range" min="256" max="8192" step="256" class="w-full h-2 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"${add_attribute("value", params.num_batch, 0)}></div> <div><input type="number" class="bg-transparent text-center w-14" min="256" step="256"${add_attribute("value", params.num_batch, 0)}></div></div>` : ``}</div> <div class="py-0.5 w-full justify-between">${validate_component(Tooltip, "Tooltip").$$render(
-      $$result,
-      {
-        content: $i18n.t("This option controls how many tokens are preserved when refreshing the context. For example, if set to 2, the last 2 tokens of the conversation context will be retained. Preserving context can help maintain the continuity of a conversation, but it may reduce the ability to respond to new topics. (Default: 24)"),
-        placement: "top-start",
-        className: "inline-tooltip"
-      },
-      {},
-      {
-        default: () => {
-          return `<div class="flex w-full justify-between"><div class="self-center text-xs font-medium">${escape($i18n.t("Tokens To Keep On Context Refresh (num_keep)"))}</div> <button class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden" type="button">${(params?.num_keep ?? null) === null ? `<span class="ml-2 self-center">${escape($i18n.t("Default"))}</span>` : `<span class="ml-2 self-center">${escape($i18n.t("Custom"))}</span>`}</button></div>`;
-        }
-      }
-    )} ${(params?.num_keep ?? null) !== null ? `<div class="flex mt-0.5 space-x-2"><div class="flex-1"><input id="steps-range" type="range" min="-1" max="10240000" step="1" class="w-full h-2 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"${add_attribute("value", params.num_keep, 0)}></div> <div class=""><input type="number" class="bg-transparent text-center w-14" min="-1" step="1"${add_attribute("value", params.num_keep, 0)}></div></div>` : ``}</div> <div class="py-0.5 w-full justify-between">${validate_component(Tooltip, "Tooltip").$$render(
-      $$result,
-      {
-        content: $i18n.t("This option sets the maximum number of tokens the model can generate in its response. Increasing this limit allows the model to provide longer answers, but it may also increase the likelihood of unhelpful or irrelevant content being generated.  (Default: 128)"),
-        placement: "top-start",
-        className: "inline-tooltip"
-      },
-      {},
-      {
-        default: () => {
-          return `<div class="flex w-full justify-between"><div class="self-center text-xs font-medium">${escape($i18n.t("Max Tokens (num_predict)"))}</div> <button class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden" type="button">${(params?.max_tokens ?? null) === null ? `<span class="ml-2 self-center">${escape($i18n.t("Default"))}</span>` : `<span class="ml-2 self-center">${escape($i18n.t("Custom"))}</span>`}</button></div>`;
-        }
-      }
-    )} ${(params?.max_tokens ?? null) !== null ? `<div class="flex mt-0.5 space-x-2"><div class="flex-1"><input id="steps-range" type="range" min="-2" max="131072" step="1" class="w-full h-2 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"${add_attribute("value", params.max_tokens, 0)}></div> <div><input type="number" class="bg-transparent text-center w-14" min="-2" step="1"${add_attribute("value", params.max_tokens, 0)}></div></div>` : ``}</div> ${admin ? `<div class="py-0.5 w-full justify-between">${validate_component(Tooltip, "Tooltip").$$render(
-      $$result,
-      {
-        content: $i18n.t("Enable Memory Mapping (mmap) to load model data. This option allows the system to use disk storage as an extension of RAM by treating disk files as if they were in RAM. This can improve model performance by allowing for faster data access. However, it may not work correctly with all systems and can consume a significant amount of disk space."),
-        placement: "top-start",
-        className: "inline-tooltip"
-      },
-      {},
-      {
-        default: () => {
-          return `<div class="flex w-full justify-between"><div class="self-center text-xs font-medium">${escape($i18n.t("use_mmap (Ollama)"))}</div> <button class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden" type="button">${(params?.use_mmap ?? null) === null ? `<span class="ml-2 self-center">${escape($i18n.t("Default"))}</span>` : `<span class="ml-2 self-center">${escape($i18n.t("Custom"))}</span>`}</button></div>`;
-        }
-      }
-    )} ${(params?.use_mmap ?? null) !== null ? `<div class="flex justify-between items-center mt-1"><div class="text-xs text-gray-500">${escape(params.use_mmap ? "Enabled" : "Disabled")}</div> <div class="pr-2">${validate_component(Switch_1, "Switch").$$render(
-      $$result,
-      { state: params.use_mmap },
-      {
-        state: ($$value) => {
-          params.use_mmap = $$value;
-          $$settled = false;
-        }
-      },
-      {}
-    )}</div></div>` : ``}</div> <div class="py-0.5 w-full justify-between">${validate_component(Tooltip, "Tooltip").$$render(
-      $$result,
-      {
-        content: $i18n.t("Enable Memory Locking (mlock) to prevent model data from being swapped out of RAM. This option locks the model's working set of pages into RAM, ensuring that they will not be swapped out to disk. This can help maintain performance by avoiding page faults and ensuring fast data access."),
-        placement: "top-start",
-        className: "inline-tooltip"
-      },
-      {},
-      {
-        default: () => {
-          return `<div class="flex w-full justify-between"><div class="self-center text-xs font-medium">${escape($i18n.t("use_mlock (Ollama)"))}</div> <button class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden" type="button">${(params?.use_mlock ?? null) === null ? `<span class="ml-2 self-center">${escape($i18n.t("Default"))}</span>` : `<span class="ml-2 self-center">${escape($i18n.t("Custom"))}</span>`}</button></div>`;
-        }
-      }
-    )} ${(params?.use_mlock ?? null) !== null ? `<div class="flex justify-between items-center mt-1"><div class="text-xs text-gray-500">${escape(params.use_mlock ? "Enabled" : "Disabled")}</div> <div class="pr-2">${validate_component(Switch_1, "Switch").$$render(
-      $$result,
-      { state: params.use_mlock },
-      {
-        state: ($$value) => {
-          params.use_mlock = $$value;
-          $$settled = false;
-        }
-      },
-      {}
-    )}</div></div>` : ``}</div> <div class="py-0.5 w-full justify-between">${validate_component(Tooltip, "Tooltip").$$render(
-      $$result,
-      {
-        content: $i18n.t("Set the number of worker threads used for computation. This option controls how many threads are used to process incoming requests concurrently. Increasing this value can improve performance under high concurrency workloads but may also consume more CPU resources."),
-        placement: "top-start",
-        className: "inline-tooltip"
-      },
-      {},
-      {
-        default: () => {
-          return `<div class="flex w-full justify-between"><div class="self-center text-xs font-medium">${escape($i18n.t("num_thread (Ollama)"))}</div> <button class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden" type="button">${(params?.num_thread ?? null) === null ? `<span class="ml-2 self-center">${escape($i18n.t("Default"))}</span>` : `<span class="ml-2 self-center">${escape($i18n.t("Custom"))}</span>`}</button></div>`;
-        }
-      }
-    )} ${(params?.num_thread ?? null) !== null ? `<div class="flex mt-0.5 space-x-2"><div class="flex-1"><input id="steps-range" type="range" min="1" max="256" step="1" class="w-full h-2 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"${add_attribute("value", params.num_thread, 0)}></div> <div class=""><input type="number" class="bg-transparent text-center w-14" min="1" max="256" step="1"${add_attribute("value", params.num_thread, 0)}></div></div>` : ``}</div> <div class="py-0.5 w-full justify-between">${validate_component(Tooltip, "Tooltip").$$render(
-      $$result,
-      {
-        content: $i18n.t("Set the number of layers, which will be off-loaded to GPU. Increasing this value can significantly improve performance for models that are optimized for GPU acceleration but may also consume more power and GPU resources."),
-        placement: "top-start",
-        className: "inline-tooltip"
-      },
-      {},
-      {
-        default: () => {
-          return `<div class="flex w-full justify-between"><div class="self-center text-xs font-medium">${escape($i18n.t("num_gpu (Ollama)"))}</div> <button class="p-1 px-3 text-xs flex rounded-sm transition shrink-0 outline-hidden" type="button">${(params?.num_gpu ?? null) === null ? `<span class="ml-2 self-center">${escape($i18n.t("Default"))}</span>` : `<span class="ml-2 self-center">${escape($i18n.t("Custom"))}</span>`}</button></div>`;
-        }
-      }
-    )} ${(params?.num_gpu ?? null) !== null ? `<div class="flex mt-0.5 space-x-2"><div class="flex-1"><input id="steps-range" type="range" min="0" max="256" step="1" class="w-full h-2 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"${add_attribute("value", params.num_gpu, 0)}></div> <div class=""><input type="number" class="bg-transparent text-center w-14" min="0" max="256" step="1"${add_attribute("value", params.num_gpu, 0)}></div></div>` : ``}</div> ` : ``}</div>`;
-  } while (!$$settled);
-  $$unsubscribe_i18n();
-  return $$rendered;
-});
 const transcribeAudio = async (token, file) => {
   const data = new FormData();
   data.append("file", file);
@@ -730,31 +333,6 @@ const synthesizeOpenAISpeech = async (token = "", speaker = "alloy", text = "", 
   }).then(async (res2) => {
     if (!res2.ok) throw await res2.json();
     return res2;
-  }).catch((err) => {
-    error = err.detail;
-    console.log(err);
-    return null;
-  });
-  if (error) {
-    throw error;
-  }
-  return res;
-};
-const queryMemory = async (token, content) => {
-  let error = null;
-  const res = await fetch(`${WEBUI_API_BASE_URL}/memories/query`, {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify({
-      content
-    })
-  }).then(async (res2) => {
-    if (!res2.ok) throw await res2.json();
-    return res2.json();
   }).catch((err) => {
     error = err.detail;
     console.log(err);
@@ -5930,61 +5508,22 @@ const Placeholder = create_ssr_component(($$result, $$props, $$bindings, slots) 
   $$unsubscribe_user();
   return $$rendered;
 });
-function isExcelFile(file) {
-  const excelTypes = [
-    "application/vnd.ms-excel",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    "application/vnd.oasis.opendocument.spreadsheet",
-    "text/csv"
-  ];
-  const excelExtensions = [".xls", ".xlsx", ".csv", ".ods"];
-  return file.file && excelTypes.includes(file.file.type) || file.name && excelExtensions.some((ext) => file.name.toLowerCase().endsWith(ext));
-}
-function createExcelSummaryText(excelSummaries) {
-  let summaryText = "## Excel File Analysis\n\n";
-  excelSummaries.forEach((summary, index) => {
-    summaryText += `### File ${index + 1}: ${summary.fileName}
-`;
-    summaryText += `- Sheets: ${summary.sheetNames.join(", ")}
-`;
-    summaryText += `- Dimensions: ${summary.rowCount} rows × ${summary.columnCount} columns
-`;
-    if (summary.headers && summary.headers.length > 0) {
-      summaryText += `- Headers: ${summary.headers.join(", ")}
-`;
-    }
-    if (summary.previewData && summary.previewData.length > 0) {
-      summaryText += "- Preview of data:\n```\n";
-      const previewTable = formatPreviewDataAsTable(summary.previewData, summary.headers);
-      summaryText += previewTable;
-      summaryText += "\n```\n";
-    }
-    summaryText += "\n";
-  });
-  return summaryText;
-}
-function formatPreviewDataAsTable(previewData, headers) {
-  let table = "";
-  if (headers && headers.length > 0) {
-    table += headers.join("	") + "\n";
-    table += headers.map(() => "--------").join("	") + "\n";
-  }
-  previewData.forEach((row) => {
-    table += row.join("	") + "\n";
-  });
-  return table;
-}
+let eventConfirmationTitle = "";
+let eventConfirmationMessage = "";
+let eventConfirmationInput = false;
+let eventConfirmationInputPlaceholder = "";
+let eventConfirmationInputValue = "";
 const Chat = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-  let $i18n, $$unsubscribe_i18n;
   let $currentChatPage, $$unsubscribe_currentChatPage;
   let $temporaryChatEnabled, $$unsubscribe_temporaryChatEnabled;
   let $chatId, $$unsubscribe_chatId;
   let $settings, $$unsubscribe_settings;
+  let $i18n, $$unsubscribe_i18n;
   let $models, $$unsubscribe_models;
   let $socket, $$unsubscribe_socket;
+  let $userAPIKey, $$unsubscribe_userAPIKey;
   let $user, $$unsubscribe_user;
   let $config, $$unsubscribe_config;
-  let $showCallOverlay, $$unsubscribe_showCallOverlay;
   let $page, $$unsubscribe_page;
   let $$unsubscribe_mobile;
   let $tools, $$unsubscribe_tools;
@@ -5998,9 +5537,9 @@ const Chat = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   $$unsubscribe_settings = subscribe(settings, (value) => $settings = value);
   $$unsubscribe_models = subscribe(models, (value) => $models = value);
   $$unsubscribe_socket = subscribe(socket, (value) => $socket = value);
+  $$unsubscribe_userAPIKey = subscribe(userAPIKey, (value) => $userAPIKey = value);
   $$unsubscribe_user = subscribe(user, (value) => $user = value);
   $$unsubscribe_config = subscribe(config, (value) => $config = value);
-  $$unsubscribe_showCallOverlay = subscribe(showCallOverlay, (value) => $showCallOverlay = value);
   $$unsubscribe_page = subscribe(page, (value) => $page = value);
   $$unsubscribe_mobile = subscribe(mobile, (value) => value);
   $$unsubscribe_tools = subscribe(tools, (value) => $tools = value);
@@ -6019,11 +5558,6 @@ const Chat = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   let messagesContainerElement;
   let navbarElement;
   let showEventConfirmation = false;
-  let eventConfirmationTitle = "";
-  let eventConfirmationMessage = "";
-  let eventConfirmationInput = false;
-  let eventConfirmationInputPlaceholder = "";
-  let eventConfirmationInputValue = "";
   let selectedModels = [""];
   let atSelectedModel;
   let selectedModelIds = [];
@@ -6057,41 +5591,6 @@ const Chat = create_ssr_component(($$result, $$props, $$bindings, slots) => {
       selectedToolIds = (model?.info?.meta?.toolIds ?? []).filter((id) => $tools.find((t) => t.id === id));
     }
   };
-  async function processExcelFile(file) {
-    try {
-      const arrayBuffer = await file.file.arrayBuffer();
-      const workbook = XLSX.read(arrayBuffer);
-      const sheetNames = workbook.SheetNames;
-      let summaryInfo = {
-        fileName: file.name,
-        sheets: [],
-        totalSheets: sheetNames.length
-      };
-      const processLimit = Math.min(3, sheetNames.length);
-      for (let i = 0; i < processLimit; i++) {
-        const sheetName = sheetNames[i];
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet);
-        const range = XLSX.utils.decode_range(worksheet["!ref"] || "A1");
-        summaryInfo.sheets.push({
-          name: sheetName,
-          rowCount: range.e.r + 1,
-          columnCount: range.e.c + 1,
-          sampleRows: jsonData.slice(0, 5)
-        });
-      }
-      if (sheetNames.length > processLimit) {
-        summaryInfo.note = `Only showing details for ${processLimit} of ${sheetNames.length} sheets`;
-      }
-      return summaryInfo;
-    } catch (error) {
-      console.error("Error processing Excel file:", error);
-      return {
-        error: "Failed to process Excel file",
-        details: error.message
-      };
-    }
-  }
   const showMessage = async (message) => {
     const _chatId = JSON.parse(JSON.stringify($chatId));
     let _messageId = JSON.parse(JSON.stringify(message.id));
@@ -6112,14 +5611,36 @@ const Chat = create_ssr_component(($$result, $$props, $$bindings, slots) => {
     saveChatHandler(_chatId, history);
   };
   const chatEventHandler = async (event, cb) => {
-    console.log(event);
+    console.log("📥 Socket event received:", event && JSON.stringify(event).substring(0, 200) + "...");
     if (event.chat_id === $chatId) {
       await tick();
       let message = history.messages[event.message_id];
       if (message) {
         const type = event?.data?.type ?? null;
         const data = event?.data?.data ?? null;
-        if (type === "status") {
+        console.log("📥 Event type:", type, "Data ID:", data?.id);
+        console.log("📥 Content preview:", data?.content ? data.content.substring(0, 50) + "..." : "No content");
+        if (type === "chat:completion") {
+          console.log("🤖 Processing agent API response from socket event");
+          if (data.content) {
+            console.log("📝 Content length:", data.content.length);
+            if (message.isLoading) {
+              message.isLoading = false;
+            }
+            message.content = data.content;
+            if (data.done !== false) {
+              message.done = true;
+              console.log("✅ Marking message as done");
+            }
+            history.messages[event.message_id] = { ...message };
+            console.log("✅ Updated message in history.messages");
+            await tick();
+            console.log("✅ Forced UI update");
+            if (data.done && autoScroll) {
+              scrollToBottom();
+            }
+          }
+        } else if (type === "status") {
           if (message?.statusHistory) {
             message.statusHistory.push(data);
           } else {
@@ -6127,25 +5648,29 @@ const Chat = create_ssr_component(($$result, $$props, $$bindings, slots) => {
           }
         } else if (type === "source" || type === "citation") {
           if (data?.type === "code_execution") {
-            if (!message?.code_executions) {
-              message.code_executions = [];
+            if (!message.codeExecutions) {
+              message.codeExecutions = [];
             }
-            const existingCodeExecutionIndex = message.code_executions.findIndex((execution) => execution.id === data.id);
-            if (existingCodeExecutionIndex !== -1) {
-              message.code_executions[existingCodeExecutionIndex] = data;
+            const existingIndex = message.codeExecutions.findIndex((exec) => exec.id === data.execution_id);
+            if (existingIndex !== -1) {
+              message.codeExecutions[existingIndex] = {
+                ...message.codeExecutions[existingIndex],
+                ...data,
+                updated: Date.now()
+              };
             } else {
-              message.code_executions.push(data);
+              message.codeExecutions.push({
+                ...data,
+                created: Date.now(),
+                updated: Date.now()
+              });
             }
-            message.code_executions = message.code_executions;
           } else {
-            if (message?.sources) {
-              message.sources.push(data);
-            } else {
-              message.sources = [data];
+            if (!message.sources) {
+              message.sources = [];
             }
+            message.sources.push(data);
           }
-        } else if (type === "chat:completion") {
-          chatCompletionEventHandler(data, message, event.chat_id);
         } else if (type === "chat:title") {
           chatTitle.set(data);
           currentChatPage.set(1);
@@ -6154,8 +5679,16 @@ const Chat = create_ssr_component(($$result, $$props, $$bindings, slots) => {
           chat = await getChatById(localStorage.token, $chatId);
           tags.set(await getAllTags(localStorage.token));
         } else if (type === "message") {
+          console.log("📝 Appending message content:", data.content);
+          if (message.isLoading) {
+            message.isLoading = false;
+          }
           message.content += data.content;
         } else if (type === "replace") {
+          console.log("📝 Replacing message content:", data.content);
+          if (message.isLoading) {
+            message.isLoading = false;
+          }
           message.content = data.content;
         } else if (type === "action") {
           if (data.action === "continue") {
@@ -6164,44 +5697,15 @@ const Chat = create_ssr_component(($$result, $$props, $$bindings, slots) => {
               continueButton.click();
             }
           }
-        } else if (type === "confirmation") {
-          eventConfirmationInput = false;
-          showEventConfirmation = true;
-          eventConfirmationTitle = data.title;
-          eventConfirmationMessage = data.message;
-        } else if (type === "execute") {
-          try {
-            const asyncFunction = new Function(`return (async () => { ${data.code} })()`);
-            const result = await asyncFunction();
-            if (cb) {
-              cb(result);
-            }
-          } catch (error) {
-            console.error("Error executing code:", error);
-          }
-        } else if (type === "input") {
-          eventConfirmationInput = true;
-          showEventConfirmation = true;
-          eventConfirmationTitle = data.title;
-          eventConfirmationMessage = data.message;
-          eventConfirmationInputPlaceholder = data.placeholder;
-          eventConfirmationInputValue = data?.value ?? "";
-        } else if (type === "notification") {
-          const toastType = data?.type ?? "info";
-          const toastContent = data?.content ?? "";
-          if (toastType === "success") {
-            toast.success(toastContent);
-          } else if (toastType === "error") {
-            toast.error(toastContent);
-          } else if (toastType === "warning") {
-            toast.warning(toastContent);
-          } else {
-            toast.info(toastContent);
-          }
         } else {
-          console.log("Unknown message type", data);
+          console.log("❓ Unknown message type:", type, data);
         }
-        history.messages[event.message_id] = message;
+        history = { ...history };
+        if (cb && typeof cb === "function") {
+          cb(event, message);
+        }
+      } else {
+        console.warn("⚠️ No message found for ID:", event.message_id);
       }
     }
   };
@@ -6395,55 +5899,6 @@ const Chat = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   const scrollToBottom = async () => {
     await tick();
   };
-  const chatCompletedHandler = async (chatId2, modelId, responseMessageId, messages) => {
-    const res = await chatCompleted(localStorage.token, {
-      model: modelId,
-      messages: messages.map((m) => ({
-        id: m.id,
-        role: m.role,
-        content: m.content,
-        info: m.info ? m.info : void 0,
-        timestamp: m.timestamp,
-        ...m.usage ? { usage: m.usage } : {},
-        ...m.sources ? { sources: m.sources } : {}
-      })),
-      model_item: $models.find((m) => m.id === modelId),
-      chat_id: chatId2,
-      session_id: $socket?.id,
-      id: responseMessageId
-    }).catch((error) => {
-      toast.error(`${error}`);
-      messages.at(-1).error = { content: error };
-      return null;
-    });
-    if (res !== null && res.messages) {
-      for (const message of res.messages) {
-        if (message?.id) {
-          history.messages[message.id] = {
-            ...history.messages[message.id],
-            ...history.messages[message.id].content !== message.content ? {
-              originalContent: history.messages[message.id].content
-            } : {},
-            ...message
-          };
-        }
-      }
-    }
-    await tick();
-    if ($chatId == chatId2) {
-      if (!$temporaryChatEnabled) {
-        chat = await updateChatById(localStorage.token, chatId2, {
-          models: selectedModels,
-          messages,
-          history,
-          params,
-          files: chatFiles
-        });
-        currentChatPage.set(1);
-        await chats.set(await getChatList(localStorage.token, $currentChatPage));
-      }
-    }
-  };
   const chatActionHandler = async (chatId2, actionId, modelId, responseMessageId, event = null) => {
     const messages = createMessagesList(history, responseMessageId);
     const res = await chatAction(localStorage.token, actionId, {
@@ -6490,18 +5945,6 @@ const Chat = create_ssr_component(($$result, $$props, $$bindings, slots) => {
         await chats.set(await getChatList(localStorage.token, $currentChatPage));
       }
     }
-  };
-  const getChatEventEmitter = async (modelId, chatId2 = "") => {
-    return setInterval(
-      () => {
-        $socket?.emit("usage", {
-          action: "chat",
-          model: modelId,
-          chat_id: chatId2
-        });
-      },
-      1e3
-    );
   };
   const createMessagePair = async (userPrompt) => {
     prompt = "";
@@ -6605,109 +6048,19 @@ const Chat = create_ssr_component(($$result, $$props, $$bindings, slots) => {
       await saveChatHandler($chatId, history);
     }
   };
-  const chatCompletionEventHandler = async (data, message, chatId2) => {
-    const { id, done, choices, content, sources, selected_model_id, error, usage } = data;
-    if (error) {
-      await handleOpenAIError(error, message);
-    }
-    if (sources) {
-      message.sources = sources;
-    }
-    if (choices) {
-      if (choices[0]?.message?.content) {
-        message.content += choices[0]?.message?.content;
-      } else {
-        let value = choices[0]?.delta?.content ?? "";
-        if (message.content == "" && value == "\n") {
-          console.log("Empty response");
-        } else {
-          message.content += value;
-          if (navigator.vibrate && ($settings?.hapticFeedback ?? false)) {
-            navigator.vibrate(5);
-          }
-          const messageContentParts = getMessageContentParts(message.content, $config?.audio?.tts?.split_on ?? "punctuation");
-          messageContentParts.pop();
-          if (messageContentParts.length > 0 && messageContentParts[messageContentParts.length - 1] !== message.lastSentence) {
-            message.lastSentence = messageContentParts[messageContentParts.length - 1];
-            eventTarget.dispatchEvent(new CustomEvent(
-              "chat",
-              {
-                detail: {
-                  id: message.id,
-                  content: messageContentParts[messageContentParts.length - 1]
-                }
-              }
-            ));
-          }
-        }
-      }
-    }
-    if (content) {
-      message.content = content;
-      if (navigator.vibrate && ($settings?.hapticFeedback ?? false)) {
-        navigator.vibrate(5);
-      }
-      const messageContentParts = getMessageContentParts(message.content, $config?.audio?.tts?.split_on ?? "punctuation");
-      messageContentParts.pop();
-      if (messageContentParts.length > 0 && messageContentParts[messageContentParts.length - 1] !== message.lastSentence) {
-        message.lastSentence = messageContentParts[messageContentParts.length - 1];
-        eventTarget.dispatchEvent(new CustomEvent(
-          "chat",
-          {
-            detail: {
-              id: message.id,
-              content: messageContentParts[messageContentParts.length - 1]
-            }
-          }
-        ));
-      }
-    }
-    if (selected_model_id) {
-      message.selectedModelId = selected_model_id;
-      message.arena = true;
-    }
-    if (usage) {
-      message.usage = usage;
-    }
-    history.messages[message.id] = message;
-    if (done) {
-      message.done = true;
-      if ($settings.responseAutoCopy) {
-        copyToClipboard(message.content);
-      }
-      if ($settings.responseAutoPlayback && !$showCallOverlay) {
-        await tick();
-        document.getElementById(`speak-button-${message.id}`)?.click();
-      }
-      let lastMessageContentPart = getMessageContentParts(message.content, $config?.audio?.tts?.split_on ?? "punctuation")?.at(-1) ?? "";
-      if (lastMessageContentPart) {
-        eventTarget.dispatchEvent(new CustomEvent(
-          "chat",
-          {
-            detail: {
-              id: message.id,
-              content: lastMessageContentPart
-            }
-          }
-        ));
-      }
-      eventTarget.dispatchEvent(new CustomEvent(
-        "chat:finish",
-        {
-          detail: { id: message.id, content: message.content }
-        }
-      ));
-      history.messages[message.id] = message;
-      await chatCompletedHandler(chatId2, message.model, message.id, createMessagesList(history, message.id));
-    }
-    console.log(data);
-    if (autoScroll) {
-      scrollToBottom();
-    }
-  };
   const submitPrompt = async (userPrompt, { _raw = false } = {}) => {
-    console.log("submitPrompt", userPrompt, $chatId);
+    console.log("🚀 submitPrompt", userPrompt, $chatId);
+    console.log("📋 Current history IDs:", {
+      currentId: history.currentId,
+      messagesCount: Object.keys(history.messages).length
+    });
     const messages = createMessagesList(history, history.currentId);
+    if (messages) {
+      console.log("📋 Last message:", messages.length > 0 ? {
+        role: messages[messages.length - 1].role,
+        content: messages[messages.length - 1].content.slice(0, 50) + "..."
+      } : "No messages");
+    }
     const _selectedModels = selectedModels.map((modelId) => $models.map((m) => m.id).includes(modelId) ? modelId : "");
     if (JSON.stringify(selectedModels) !== JSON.stringify(_selectedModels)) {
       selectedModels = _selectedModels;
@@ -6772,115 +6125,12 @@ const Chat = create_ssr_component(($$result, $$props, $$bindings, slots) => {
     saveSessionSelectedModels();
     await sendPrompt(history, userPrompt, userMessageId, { newChat: true });
   };
-  const sendPrompt = async (_history, prompt2, parentId, { modelId = null, modelIdx = null, newChat = false } = {}) => {
-    let _chatId = JSON.parse(JSON.stringify($chatId));
-    _history = JSON.parse(JSON.stringify(_history));
-    let excelSummaries = [];
-    for (const file of files) {
-      if (isExcelFile(file)) {
-        const summary = await processExcelFile(file);
-        excelSummaries.push(summary);
-      }
-    }
-    if (excelSummaries.length > 0) {
-      createExcelSummaryText(excelSummaries);
-      const userMessageId = v4();
-      history.messages[userMessageId] = {
-        id: userMessageId,
-        role: "user",
-        content: prompt2,
-        files,
-        excelSummaries,
-        // Store the summaries for UI display
-        timestamp: Math.floor(Date.now() / 1e3),
-        childrenIds: [],
-        parentId: history.currentId
-      };
-    }
-    const responseMessageIds = {};
-    let selectedModelIds2 = modelId ? [modelId] : atSelectedModel !== void 0 ? [atSelectedModel.id] : selectedModels;
-    for (const [_modelIdx, modelId2] of selectedModelIds2.entries()) {
-      const model = $models.filter((m) => m.id === modelId2).at(0);
-      if (model) {
-        let responseMessageId = v4();
-        let responseMessage = {
-          parentId,
-          id: responseMessageId,
-          childrenIds: [],
-          role: "assistant",
-          content: "",
-          model: model.id,
-          modelName: model.name ?? model.id,
-          modelIdx: modelIdx ? modelIdx : _modelIdx,
-          userContext: null,
-          timestamp: Math.floor(Date.now() / 1e3)
-        };
-        history.messages[responseMessageId] = responseMessage;
-        history.currentId = responseMessageId;
-        if (parentId !== null && history.messages[parentId]) {
-          history.messages[parentId].childrenIds = [...history.messages[parentId].childrenIds, responseMessageId];
-        }
-        responseMessageIds[`${modelId2}-${modelIdx ? modelIdx : _modelIdx}`] = responseMessageId;
-      }
-    }
-    history = history;
-    const currentParentId = _history.messages[_history.currentId].parentId;
-    let create_new_chat = newChat && !currentParentId;
-    let has_assistant_greeting = _history.messages[currentParentId]?.role === "assistant" && !(_history.messages[currentParentId]?.parentId ?? false);
-    create_new_chat = create_new_chat || has_assistant_greeting;
-    if (create_new_chat) {
-      _chatId = await initChatHandler(_history);
-    }
-    await tick();
-    _history = JSON.parse(JSON.stringify(history));
-    await saveChatHandler(_chatId, _history);
-    await Promise.all(selectedModelIds2.map(async (modelId2, _modelIdx) => {
-      console.log("modelId", modelId2);
-      const model = $models.filter((m) => m.id === modelId2).at(0);
-      if (model) {
-        const messages = createMessagesList(_history, parentId);
-        const hasImages = messages.some((message) => message.files?.some((file) => file.type === "image"));
-        if (hasImages && !(model.info?.meta?.capabilities?.vision ?? true)) {
-          toast.error($i18n.t("Model {{modelName}} is not vision capable", { modelName: model.name ?? model.id }));
-        }
-        let responseMessageId = responseMessageIds[`${modelId2}-${modelIdx ? modelIdx : _modelIdx}`];
-        let responseMessage = _history.messages[responseMessageId];
-        let userContext = null;
-        if ($settings?.memory ?? false) {
-          if (userContext === null) {
-            const res = await queryMemory(localStorage.token, prompt2).catch((error) => {
-              toast.error(`${error}`);
-              return null;
-            });
-            if (res) {
-              if (res.documents[0].length > 0) {
-                userContext = res.documents[0].reduce(
-                  (acc, doc, index) => {
-                    const createdAtTimestamp = res.metadatas[0][index].created_at;
-                    const createdAtDate = new Date(createdAtTimestamp * 1e3).toISOString().split("T")[0];
-                    return `${acc}${index + 1}. [${createdAtDate}]. ${doc}
-`;
-                  },
-                  ""
-                );
-              }
-              console.log(userContext);
-            }
-          }
-        }
-        responseMessage.userContext = userContext;
-        const chatEventEmitter = await getChatEventEmitter(model.id, _chatId);
-        scrollToBottom();
-        await sendPromptSocket(_history, model, responseMessageId);
-        if (chatEventEmitter) clearInterval(chatEventEmitter);
-      } else {
-        toast.error($i18n.t(`Model {{modelId}} not found`, { modelId: modelId2 }));
-      }
-    }));
-    currentChatPage.set(1);
-    chats.set(await getChatList(localStorage.token, $currentChatPage));
-  };
   const sendPromptSocket = async (_history, model, responseMessageId, _chatId) => {
+    console.log("🔌 sendPromptSocket:", {
+      modelId: model.id,
+      responseMessageId,
+      chatId: _chatId
+    });
     const responseMessage = _history.messages[responseMessageId];
     const userMessage = _history.messages[responseMessage.parentId];
     let files2 = JSON.parse(JSON.stringify(chatFiles));
@@ -6889,14 +6139,28 @@ const Chat = create_ssr_component(($$result, $$props, $$bindings, slots) => {
     scrollToBottom();
     eventTarget.dispatchEvent(new CustomEvent("chat:start", { detail: { id: responseMessageId } }));
     await tick();
+    const getUserLocation = async () => {
+      if ($settings?.userLocation) {
+        try {
+          return await getAndUpdateUserLocation(localStorage.token);
+        } catch (err) {
+          console.error(err);
+          return void 0;
+        }
+      }
+      return void 0;
+    };
+    const userLocation = await getUserLocation();
+    console.log("Sending userAPIKey to backend:", $userAPIKey ? "Present" : "Empty/None");
+    responseMessage.content = "";
+    if ($settings?.processingMessage ?? false) {
+      responseMessage.content = $settings.processingMessage === true ? "..." : $settings.processingMessage;
+    }
     const stream = model?.info?.params?.stream_response ?? $settings?.params?.stream_response ?? params?.stream_response ?? true;
     let messages = [
       params?.system || $settings.system || (responseMessage?.userContext ?? null) ? {
         role: "system",
-        content: `${promptTemplate(params?.system ?? $settings?.system ?? "", $user.name, $settings?.userLocation ? await getAndUpdateUserLocation(localStorage.token).catch((err) => {
-          console.error(err);
-          return void 0;
-        }) : void 0)}${responseMessage?.userContext ?? null ? `
+        content: `${promptTemplate(params?.system ?? $settings?.system ?? "", $user.name, userLocation, $userAPIKey)}${responseMessage?.userContext ?? null ? `
 
 User Context:
 ${responseMessage?.userContext ?? ""}` : ""}`
@@ -6905,7 +6169,7 @@ ${responseMessage?.userContext ?? ""}` : ""}`
         ...message,
         content: removeDetails(message.content, ["reasoning", "code_interpreter"])
       }))
-    ].filter((message) => message);
+    ].filter(Boolean);
     messages = messages.map((message, idx, arr) => ({
       role: message.role,
       ...message.files?.filter((file) => file.type === "image").length > 0 && message.role === "user" ? {
@@ -6943,15 +6207,14 @@ ${responseMessage?.userContext ?? ""}` : ""}`
           code_interpreter: $config?.features?.enable_code_interpreter && ($user.role === "admin" || $user?.permissions?.features?.code_interpreter) ? codeInterpreterEnabled : false,
           web_search: $config?.features?.enable_web_search && ($user.role === "admin" || $user?.permissions?.features?.web_search) ? webSearchEnabled || ($settings?.webSearch ?? false) === "always" : false
         },
-        variables: {
-          ...getPromptVariables($user.name, $settings?.userLocation ? await getAndUpdateUserLocation(localStorage.token).catch((err) => {
-            console.error(err);
-            return void 0;
-          }) : void 0)
-        },
+        variables: (() => {
+          console.log("Sending userAPIKey to backend:", $userAPIKey ? "Present" : "Empty/None");
+          const promptVars = getPromptVariables($user.name, userLocation, $userAPIKey);
+          return promptVars;
+        })(),
         model_item: $models.find((m) => m.id === model.id),
         session_id: $socket?.id,
-        chat_id: $chatId,
+        chat_id: _chatId,
         id: responseMessageId,
         ...!$temporaryChatEnabled && (messages.length == 1 || messages.length == 2 && messages.at(0)?.role === "system" && messages.at(1)?.role === "user") && (selectedModels[0] === model.id || atSelectedModel !== void 0) ? {
           background_tasks: {
@@ -6977,36 +6240,107 @@ ${responseMessage?.userContext ?? ""}` : ""}`
     await tick();
     scrollToBottom();
   };
-  const handleOpenAIError = async (error, responseMessage) => {
-    let errorMessage = "";
-    let innerError;
-    if (error) {
-      innerError = error;
-    }
-    console.error(innerError);
-    if ("detail" in innerError) {
-      toast.error(innerError.detail);
-      errorMessage = innerError.detail;
-    } else if ("error" in innerError) {
-      if ("message" in innerError.error) {
-        toast.error(innerError.error.message);
-        errorMessage = innerError.error.message;
-      } else {
-        toast.error(innerError.error);
-        errorMessage = innerError.error;
+  const sendPrompt = async (_history, userPrompt, userMessageId, options = {}) => {
+    const { modelId, modelIdx = 0, newChat = false } = options;
+    let _chatId = $chatId;
+    if (newChat && !$temporaryChatEnabled && !_chatId) {
+      console.log("🆕 Creating new chat for prompt");
+      try {
+        chat = await createNewChat(localStorage.token, {
+          id: _chatId,
+          title: $i18n.t("New Chat"),
+          models: selectedModels,
+          system: $settings.system ?? void 0,
+          params,
+          history,
+          messages: createMessagesList(history, history.currentId),
+          tags: [],
+          timestamp: Date.now()
+        });
+        _chatId = chat.id;
+        await chatId.set(_chatId);
+        await chats.set(await getChatList(localStorage.token, $currentChatPage));
+        currentChatPage.set(1);
+        try {
+          window.history.pushState({}, "", `/c/${_chatId}`);
+        } catch (e) {
+          console.error("❌ Error updating URL:", e);
+        }
+      } catch (e) {
+        console.error("❌ Error creating chat:", e);
+        _chatId = null;
       }
-    } else if ("message" in innerError) {
-      toast.error(innerError.message);
-      errorMessage = innerError.message;
     }
-    responseMessage.error = {
-      content: $i18n.t(`Uh-oh! There was an issue with the response.`) + "\n" + errorMessage
+    const messages = createMessagesList(_history, userMessageId);
+    const userMessage = messages.at(-1);
+    const responseMessageId = v4();
+    let model;
+    if (modelId) {
+      model = $models.find((m) => m.id === modelId);
+    } else {
+      const userModelId = (userMessage?.models ?? selectedModels)[0];
+      model = $models.find((m) => m.id === userModelId);
+    }
+    if (!model) {
+      toast.error($i18n.t("Model not selected"));
+      return;
+    }
+    const isAgentModel = model.id === "accounting_en" || model.id.includes("accounting");
+    console.log(`🏷️ Model ${model.id} is agent model: ${isAgentModel}`);
+    const agentLoadingText = isAgentModel ? $i18n.t("Agent is helping...") : "";
+    const responseMessage = {
+      id: responseMessageId,
+      parentId: userMessageId,
+      childrenIds: [],
+      role: "assistant",
+      content: agentLoadingText,
+      model: model.id,
+      modelName: model?.name ?? model.id,
+      modelIdx,
+      timestamp: Math.floor(Date.now() / 1e3),
+      // Flag to indicate this is an agent response
+      isAgentResponse: isAgentModel,
+      // Add loading indicator for agents
+      isLoading: isAgentModel
     };
-    responseMessage.done = true;
-    if (responseMessage.statusHistory) {
-      responseMessage.statusHistory = responseMessage.statusHistory.filter((status) => status.action !== "knowledge_search");
+    _history.messages[responseMessageId] = responseMessage;
+    _history.currentId = responseMessageId;
+    _history.messages[userMessageId].childrenIds.push(responseMessageId);
+    await tick();
+    if (autoScroll) {
+      scrollToBottom();
     }
-    history.messages[responseMessage.id] = responseMessage;
+    if (isAgentModel) {
+      startAgentAnimation(responseMessageId);
+    }
+    await sendPromptSocket(_history, model, responseMessageId, _chatId);
+    return responseMessageId;
+  };
+  const startAgentAnimation = async (messageId) => {
+    const loadingTexts = [
+      $i18n.t("Agent is helping..."),
+      $i18n.t("Agent is processing your request..."),
+      $i18n.t("Agent is working on it..."),
+      $i18n.t("Agent is analyzing...")
+    ];
+    let textIndex = 0;
+    let dotCount = 0;
+    const animateText = () => {
+      const message = history.messages[messageId];
+      if (!message || !message.isLoading || message.content && message.content.length > 30) {
+        return;
+      }
+      const baseText = loadingTexts[textIndex];
+      const dots = ".".repeat(dotCount % 4);
+      history.messages[messageId].content = baseText + dots;
+      history = { ...history };
+      dotCount++;
+      if (dotCount % 12 === 0) {
+        textIndex = (textIndex + 1) % loadingTexts.length;
+      }
+      setTimeout(animateText, 400);
+    };
+    animateText();
   };
   const stopResponse = () => {
     if (taskId) {
@@ -7067,7 +6401,10 @@ ${responseMessage?.userContext ?? ""}` : ""}`
       await tick();
       const model = $models.filter((m) => m.id === (responseMessage?.selectedModelId ?? responseMessage.model)).at(0);
       if (model) {
-        await sendPromptSocket(history, model, responseMessage.id);
+        await sendPrompt(history, responseMessage.content, responseMessage.parentId, {
+          modelId: model.id,
+          modelIdx: responseMessage.modelIdx
+        });
       }
     }
   };
@@ -7147,12 +6484,14 @@ ${responseMessage?.userContext ?? ""}` : ""}`
   };
   const initHistoryWithGreetings = () => {
     let messageId = v4();
+    const locale = localStorage.getItem("locale");
+    const greeting = locale === "zh-CN" ? "您好！我是您的会计助手。请告诉我您需要分析的财务数据或有什么财务问题。" : "Hello! I'm your accounting assistant. How can I help with your financial data analysis?";
     history.messages[messageId] = {
       id: messageId,
       role: "assistant",
-      content: $i18n.t("Hi! I'm Kneron Analytics Agent, your financial analysis assistant. I can analyze statements, identify trends, calculate metrics and generate reports. What financial data would you like to examine - balance sheets, income statements, cash flows, or other information?"),
+      content: greeting,
       model: "Assistant",
-      modelName: "Kneron Analytics Agent",
+      modelName: "Assistant",
       parentId: null,
       timestamp: Math.floor(Date.now() / 1e3),
       childrenIds: [],
@@ -7496,16 +6835,16 @@ ${responseMessage?.userContext ?? ""}` : ""}`
       }
     )}` : `${loading ? `<div class="flex items-center justify-center h-full w-full"><div class="m-auto">${validate_component(Spinner, "Spinner").$$render($$result, {}, {}, {})}</div></div>` : ``}`}</div>`;
   } while (!$$settled);
-  $$unsubscribe_i18n();
   $$unsubscribe_currentChatPage();
   $$unsubscribe_temporaryChatEnabled();
   $$unsubscribe_chatId();
   $$unsubscribe_settings();
+  $$unsubscribe_i18n();
   $$unsubscribe_models();
   $$unsubscribe_socket();
+  $$unsubscribe_userAPIKey();
   $$unsubscribe_user();
   $$unsubscribe_config();
-  $$unsubscribe_showCallOverlay();
   $$unsubscribe_page();
   $$unsubscribe_mobile();
   $$unsubscribe_tools();

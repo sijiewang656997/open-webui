@@ -69,7 +69,7 @@
                 
                 // Set language based on locale
                 if (localStorage.getItem('locale') === "zh-CN") {
-                    language_local = 'zh-cn';
+                    language_local = 'zh_cn';
                 } else {
                     language_local = 'en';
                 }

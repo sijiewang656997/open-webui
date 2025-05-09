@@ -2572,7 +2572,7 @@
     {:else}
       <!-- Viewing Mode -->
       <div class="analysis-content prose dark:prose-invert max-w-none">
-        {#each ($analysisModal.content || '').split('<br>') as line}
+        {#each ($analysisModal.content || '').split(';') as line}
           <p class="mb-1">{@html line}</p>
         {/each}
       </div>

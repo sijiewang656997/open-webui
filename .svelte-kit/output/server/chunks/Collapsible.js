@@ -1,4 +1,4 @@
-import { c as create_ssr_component, p as getContext, b as subscribe, l as createEventDispatcher, a as add_attribute, g as escape, v as validate_component } from "./ssr.js";
+import { c as create_ssr_component, p as getContext, b as subscribe, l as createEventDispatcher, a as add_attribute, v as validate_component, f as escape } from "./ssr.js";
 import dayjs from "dayjs";
 import "dayjs/locale/af.js";
 import "dayjs/locale/am.js";

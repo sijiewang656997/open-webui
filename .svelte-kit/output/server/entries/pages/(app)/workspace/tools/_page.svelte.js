@@ -1,6 +1,6 @@
-import { c as create_ssr_component, b as subscribe, p as getContext, g as escape, v as validate_component } from "../../../../../chunks/ssr.js";
+import { c as create_ssr_component, b as subscribe, p as getContext, v as validate_component, f as escape } from "../../../../../chunks/ssr.js";
 import "../../../../../chunks/Toaster.svelte_svelte_type_style_lang.js";
-import "file-saver";
+import fileSaver from "file-saver";
 import { W as WEBUI_NAME, u as user, c as config } from "../../../../../chunks/index3.js";
 import "../../../../../chunks/client.js";
 import "dompurify";
@@ -19,6 +19,7 @@ const Tools = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   $$unsubscribe_WEBUI_NAME = subscribe(WEBUI_NAME, (value) => $WEBUI_NAME = value);
   $$unsubscribe_user = subscribe(user, (value) => value);
   $$unsubscribe_config = subscribe(config, (value) => value);
+  const { saveAs } = fileSaver;
   const i18n = getContext("i18n");
   $$unsubscribe_i18n = subscribe(i18n, (value) => $i18n = value);
   let $$settled;

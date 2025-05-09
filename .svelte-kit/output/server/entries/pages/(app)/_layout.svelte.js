@@ -1,7 +1,7 @@
-import { c as create_ssr_component, b as subscribe, l as createEventDispatcher, p as getContext, g as escape, e as each, a as add_attribute, v as validate_component } from "../../../chunks/ssr.js";
+import { c as create_ssr_component, b as subscribe, l as createEventDispatcher, p as getContext, f as escape, e as each, v as validate_component, a as add_attribute } from "../../../chunks/ssr.js";
 import "../../../chunks/Toaster.svelte_svelte_type_style_lang.js";
 import "idb";
-import "file-saver";
+import fileSaver from "file-saver";
 import "../../../chunks/client.js";
 import { p as page } from "../../../chunks/stores.js";
 import "../../../chunks/index5.js";
@@ -563,6 +563,7 @@ const Layout = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   $$unsubscribe_settings = subscribe(settings, (value) => value);
   $$unsubscribe_temporaryChatEnabled = subscribe(temporaryChatEnabled, (value) => value);
   $$unsubscribe_showSettings = subscribe(showSettings, (value) => $showSettings = value);
+  const { saveAs } = fileSaver;
   const i18n = getContext("i18n");
   $$unsubscribe_i18n = subscribe(i18n, (value) => value);
   $$result.css.add(css);

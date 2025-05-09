@@ -1,8 +1,8 @@
-import { r as get_store_value, p as getContext, s as setContext, c as create_ssr_component, b as subscribe, h as compute_rest_props, i as spread, k as escape_object, a as add_attribute } from "./ssr.js";
+import { r as get_store_value, p as getContext, s as setContext, c as create_ssr_component, b as subscribe, h as compute_rest_props, i as spread, a as add_attribute, k as escape_object } from "./ssr.js";
 import { d as derived, w as writable, a as readonly } from "./index2.js";
 import { t as toWritableStores, o as overridable, c as createBitAttrs, r as removeUndefined, g as getOptionUpdater, a as createDispatcher } from "./updater.js";
 import "dequal";
-import { n as noop, b as isBrowser, i as isHTMLElement, w as withGet, d as isFunction, f as isElement, u as useEscapeKeydown, e as executeCallbacks, g as addEventListener, m as makeElement, s as styleToString, p as portalAttr, h as effect, a as addMeltEventListener, j as safeOnMount, l as isElementDisabled, c as createElHelpers, F as FIRST_LAST_KEYS, k as kbd, S as SELECTION_KEYS, q as disabledAttr, o as omit } from "./create.js";
+import { n as noop, b as isBrowser, i as isHTMLElement, w as withGet, d as isFunction, f as isElement, u as useEscapeKeydown, e as executeCallbacks, g as addEventListener, m as makeElement, h as effect, a as addMeltEventListener, F as FIRST_LAST_KEYS, k as kbd, p as portalAttr, s as styleToString, c as createElHelpers, S as SELECTION_KEYS, j as isElementDisabled, l as safeOnMount, q as disabledAttr, o as omit } from "./create.js";
 import { nanoid } from "nanoid/non-secure";
 import { t as tick } from "./scheduler.js";
 import { flip, offset, shift, arrow, size, autoUpdate, computePosition } from "@floating-ui/dom";
@@ -692,12 +692,10 @@ function getOwnerDocument(el) {
   return el?.ownerDocument ?? document;
 }
 const SUB_OPEN_KEYS = {
-  ltr: [...SELECTION_KEYS, kbd.ARROW_RIGHT],
-  rtl: [...SELECTION_KEYS, kbd.ARROW_LEFT]
+  ltr: [...SELECTION_KEYS, kbd.ARROW_RIGHT]
 };
 const SUB_CLOSE_KEYS = {
-  ltr: [kbd.ARROW_LEFT],
-  rtl: [kbd.ARROW_RIGHT]
+  ltr: [kbd.ARROW_LEFT]
 };
 const menuIdParts = ["menu", "trigger"];
 const defaults$2 = {
@@ -1941,7 +1939,6 @@ function createDropdownMenu(props) {
     nextFocusable: withGet(nextFocusable),
     prevFocusable: withGet(prevFocusable),
     selector: "dropdown-menu",
-    removeScroll: true,
     ids: withDefaults.ids
   });
   return {

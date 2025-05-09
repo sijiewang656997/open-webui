@@ -3,6 +3,8 @@
   import { getContext, onMount, createEventDispatcher } from 'svelte';
   import Spinner from '../common/Spinner.svelte';
   import { userAPIKey } from '$lib/stores';
+  import { getApiConfig } from '$lib/utils/api-config';
+  import { WEBUI_BASE_URL } from '$lib/constants';
   
   const i18n = getContext('i18n');
   const dispatch = createEventDispatcher();
@@ -13,20 +15,25 @@
   let hasUploadError = false;
   let progress = 0;
   let statusMessage = '';
-  let selectedFiles = [];
+  let selectedFiles: File[] = [];
   let uploadInProgress = false;
   let uploadCompleted = false;
   let recentTaskAvailable = false;
-  let recentTaskId = null;
+  let recentTaskId: string | null = null;
   let checkingStatus = false;
   
-  // Configuration
-  const language_local = 'zh_cn';
-  const user_token = "token_59b8b43a_aiurmmm0_test_upload";
-  const apiBaseUrl = "https://192.168.200.118:5002";
+  // Initialize API config
+  let apiConfig = {
+    baseUrl: WEBUI_BASE_URL,
+    userToken: '',
+    languageLocal: 'en'
+  };
+  
+  // API base URL
+  const apiBaseUrl = WEBUI_BASE_URL;
   
   // Key to store task in localStorage
-  const taskStorageKey = `upload_analysis_task_${user_token}_${language_local}`;
+  let taskStorageKey = `upload_analysis_task_`;
   
   async function fetchApiKey() {
     try {
@@ -59,6 +66,18 @@
   
   onMount(async () => {
     console.log('Current user API key:', $userAPIKey);
+    
+    // Initialize API config
+    try {
+      apiConfig = await getApiConfig(i18n);
+      console.log('API config initialized:', apiConfig);
+      
+      // Update taskStorageKey with the proper values
+      taskStorageKey = `upload_analysis_task_${apiConfig.userToken}_${apiConfig.languageLocal}`;
+      console.log('Task storage key updated:', taskStorageKey);
+    } catch (error) {
+      console.error('Failed to initialize API config:', error);
+    }
     
     // If API key is null, fetch it first
     if ($userAPIKey === null) {
@@ -103,10 +122,11 @@
           console.log(`🔍 Checking status for task ID: ${recentTaskId}`);
           updateProgressBar(20, $i18n.t('Checking recent analysis status...'));
           
-          const statusResponse = await fetch(`${apiBaseUrl}/api/upload/status?task_id=${recentTaskId}`, {
+          const statusResponse = await fetch(`${apiBaseUrl}/proxy/api/upload/status?task_id=${recentTaskId}`, {
             method: 'GET',
             headers: {
-              'Authorization': `Bearer ${user_token}`
+              'Authorization': `Bearer ${apiConfig.userToken}`,
+              'Accept-Language': apiConfig.languageLocal
             }
           });
           
@@ -130,7 +150,9 @@
                 $i18n.t('Analysis from previous upload is still processing...')
               );
               // Start polling for this task
-              pollUploadStatus(recentTaskId);
+              if (recentTaskId) {
+                pollUploadStatus(recentTaskId);
+              }
             } else if (statusData.status?.status === "error") {
               // Clear failed task
               console.log("❌ Found failed analysis task - clearing from storage");
@@ -176,7 +198,7 @@
     recentTaskId = null;
   }
   
-  function updateProgressBar(newProgress, message, isError = false) {
+  function updateProgressBar(newProgress: number, message: string, isError = false) {
     progress = newProgress;
     statusMessage = message;
     if (isError) {
@@ -186,21 +208,23 @@
   
   function viewRecentAnalysis() {
     // Redirect to analysis page with the task ID
-    window.location.href = `/analysis?task_id=${recentTaskId}`;
+    if (recentTaskId) {
+      window.location.href = `/analysis?task_id=${recentTaskId}`;
+    }
   }
   
   // Add function to cancel a task
-  async function cancelPreviousTask(taskId) {
+  async function cancelPreviousTask(taskId: string) {
     try {
       console.log(`🚫 Attempting to cancel previous task: ${taskId}`);
       updateProgressBar(10, $i18n.t('Cancelling previous upload...'));
       
-      const response = await fetch(`${apiBaseUrl}/api/upload/cancel`, {
+      const response = await fetch(`${apiBaseUrl}/proxy/api/upload/cancel`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept-Language': language_local,
-          'Authorization': `Bearer ${user_token}`
+          'Accept-Language': apiConfig.languageLocal,
+          'Authorization': `Bearer ${apiConfig.userToken}`
         },
         body: JSON.stringify({
           task_id: taskId,
@@ -251,12 +275,12 @@
           
           // Check if task is still running
           console.log("📡 Checking if task is still running...");
-          const statusResponse = await fetch(`${apiBaseUrl}/api/upload/status?task_id=${existingTaskId}`, {
+          const statusResponse = await fetch(`${apiBaseUrl}/proxy/api/upload/status?task_id=${existingTaskId}`, {
             method: 'GET',
             headers: {
                
-            'Accept-Language': language_local,
-            'Authorization': `Bearer ${user_token}`
+            'Accept-Language': apiConfig.languageLocal,
+            'Authorization': `Bearer ${apiConfig.userToken}`
             }
           });
           
@@ -298,10 +322,10 @@
     fileInput.multiple = false; // Only allow single file selection
     
     // Define change handler
-    fileInput.onchange = async (e) => {
+    fileInput.onchange = async (e: Event) => {
       try {
         console.log("📄 File input change detected");
-        const files = e.target?.files;
+        const files = (e.target as HTMLInputElement)?.files;
         if (!files || files.length === 0) {
           console.log("❌ No files were selected");
           toast.warning($i18n.t('No files were selected.'));
@@ -330,19 +354,20 @@
         formData.append('file', file);
         
         // Add metadata
-        formData.append('language', language_local);
-        console.log(`🌐 Using language: ${language_local}`);
+        formData.append('language', apiConfig.languageLocal);
+        console.log(`🌐 Using language: ${apiConfig.languageLocal}`);
         
         try {
           updateProgressBar(10, $i18n.t('Starting upload...'));
           console.log("🚀 Starting upload to API...");
+          console.log("apiBaseUrl", apiBaseUrl);
           
           // Send the upload request
-          const uploadResponse = await fetch(`${apiBaseUrl}/api/upload`, {
+          const uploadResponse = await fetch(`${apiBaseUrl}/proxy/api/upload`, {
             method: 'POST',
             headers: {
-              'Accept-Language': language_local,
-              'Authorization': `Bearer ${user_token}`
+              'Accept-Language': apiConfig.languageLocal,
+              'Authorization': `Bearer ${apiConfig.userToken}`
             },
             body: formData
           });
@@ -402,7 +427,7 @@
     fileInput.click();
   }
   
-  async function pollUploadStatus(taskId) {
+  async function pollUploadStatus(taskId: string) {
     console.log(`⏱️ Starting status polling for task: ${taskId}`);
     // Polling intervals in milliseconds
     const pollingIntervals = [
@@ -429,11 +454,11 @@
       try {
         // Check upload status
         console.log(`📡 Checking status for task: ${taskId}`);
-        const statusResponse = await fetch(`${apiBaseUrl}/api/upload/status?task_id=${taskId}`, {
+        const statusResponse = await fetch(`${apiBaseUrl}/proxy/api/upload/status?task_id=${taskId}`, {
           method: 'GET',
           headers: {
-            'Accept-Language': language_local,
-            'Authorization': `Bearer ${user_token}`
+            'Accept-Language': apiConfig.languageLocal,
+            'Authorization': `Bearer ${apiConfig.userToken}`
           }
         });
         
@@ -610,24 +635,9 @@
             </div>
           {/if}
           
-          <div class="mb-4">
-            <div class="flex justify-between mb-1 text-sm">
-              <span>{statusMessage || $i18n.t('Processing...')}</span>
-              <span>{progress.toFixed(0)}%</span>
-            </div>
-            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-              <div 
-                class="h-2.5 rounded-full {hasUploadError ? 'bg-red-600' : 'bg-blue-600'}" 
-                style="width: {progress}%"
-              ></div>
-            </div>
+          <div class="flex justify-center my-4">
+            <Spinner className="size-6" />
           </div>
-          
-          {#if uploadInProgress}
-            <div class="flex justify-center my-4">
-              <Spinner className="size-6" />
-            </div>
-          {/if}
           
           {#if uploadCompleted && !recentTaskAvailable}
             <div class="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg text-green-800 dark:text-green-200">

@@ -1,4 +1,4 @@
-import { c as create_ssr_component, b as subscribe, p as getContext, g as escape, v as validate_component } from "../../../../chunks/ssr.js";
+import { c as create_ssr_component, b as subscribe, p as getContext, v as validate_component, f as escape } from "../../../../chunks/ssr.js";
 import { W as WEBUI_NAME, j as showSidebar } from "../../../../chunks/index3.js";
 import { M as MenuLines } from "../../../../chunks/MenuLines.js";
 import { p as page } from "../../../../chunks/stores.js";

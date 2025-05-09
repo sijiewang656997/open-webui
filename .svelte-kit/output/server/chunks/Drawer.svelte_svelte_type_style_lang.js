@@ -1,4 +1,4 @@
-import { c as create_ssr_component, p as getContext, b as subscribe, g as escape } from "./ssr.js";
+import { c as create_ssr_component, p as getContext, b as subscribe, f as escape } from "./ssr.js";
 import { p as WEBUI_API_BASE_URL } from "./index3.js";
 const AddFilesPlaceholder = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   let $i18n, $$unsubscribe_i18n;

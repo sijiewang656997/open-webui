@@ -1,4 +1,4 @@
-import { x as identity, c as create_ssr_component, a as add_attribute, b as subscribe, p as getContext, l as createEventDispatcher, v as validate_component, g as escape, o as onDestroy, r as get_store_value, s as setContext, t as hasContext, h as compute_rest_props, i as spread, j as escape_attribute_value, k as escape_object } from "./ssr.js";
+import { x as identity, c as create_ssr_component, a as add_attribute, b as subscribe, p as getContext, l as createEventDispatcher, v as validate_component, f as escape, o as onDestroy, r as get_store_value, s as setContext, t as hasContext, h as compute_rest_props, i as spread, j as escape_attribute_value, k as escape_object } from "./ssr.js";
 import "dequal";
 import "./create.js";
 import { b as Menu, c as Menu_trigger, M as Menu_content } from "./menu-trigger.js";
@@ -1354,12 +1354,6 @@ const FilesOverlay = create_ssr_component(($$result, $$props, $$bindings, slots)
   let { show = false } = $$props;
   let overlayElement = null;
   if ($$props.show === void 0 && $$bindings.show && show !== void 0) $$bindings.show(show);
-  {
-    if (show && overlayElement) {
-      document.body.appendChild(overlayElement);
-      document.body.style.overflow = "hidden";
-    }
-  }
   $$unsubscribe_showSidebar();
   return `${show ? `<div class="${"fixed " + escape(
     $showSidebar ? "left-0 md:left-[260px] md:w-[calc(100%-260px)]" : "left-0",
@@ -1377,29 +1371,12 @@ const Drawer = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   let { show = false } = $$props;
   let { className = "" } = $$props;
   let modalElement = null;
-  const handleKeyDown = (event) => {
-    if (event.key === "Escape" && isTopModal()) {
-      console.log("Escape");
-      show = false;
-    }
-  };
-  const isTopModal = () => {
-    const modals = document.getElementsByClassName("modal");
-    return modals.length && modals[modals.length - 1] === modalElement;
-  };
   onDestroy(() => {
     show = false;
   });
   if ($$props.show === void 0 && $$bindings.show && show !== void 0) $$bindings.show(show);
   if ($$props.className === void 0 && $$bindings.className && className !== void 0) $$bindings.className(className);
   $$result.css.add(css);
-  {
-    if (show && modalElement) {
-      document.body.appendChild(modalElement);
-      window.addEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "hidden";
-    }
-  }
   $$unsubscribe_isApp();
   return `  <div class="${"modal fixed right-0 " + escape($isApp ? " ml-[4.5rem] max-w-[calc(100%-4.5rem)]" : "", true) + " left-0 bottom-0 bg-black/60 w-full h-screen max-h-[100dvh] flex justify-center z-999 overflow-hidden overscroll-contain"}"${add_attribute("this", modalElement, 0)}><div class="${"mt-auto w-full bg-gray-50 dark:bg-gray-900 dark:text-gray-100 " + escape(className, true) + " max-h-[100dvh] overflow-y-auto scrollbar-hidden svelte-fq1rhy"}">${slots.default ? slots.default({}) : ``}</div> </div>`;
 });

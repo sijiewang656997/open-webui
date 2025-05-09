@@ -288,8 +288,8 @@ export {
   create_ssr_component as c,
   add_styles as d,
   each as e,
-  merge_ssr_styles as f,
-  escape as g,
+  escape as f,
+  merge_ssr_styles as g,
   compute_rest_props as h,
   spread as i,
   escape_attribute_value as j,
@@ -307,7 +307,7 @@ export {
   validate_component as v,
   null_to_empty as w,
   identity as x,
-  run_all as y,
-  safe_not_equal as z
+  safe_not_equal as y,
+  run_all as z
 };
 //# sourceMappingURL=ssr.js.map

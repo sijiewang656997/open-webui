@@ -1,4 +1,4 @@
-import { c as create_ssr_component, a as add_attribute, b as subscribe, l as createEventDispatcher, v as validate_component, g as escape, e as each, p as getContext, o as onDestroy } from "../../../../../chunks/ssr.js";
+import { c as create_ssr_component, a as add_attribute, b as subscribe, l as createEventDispatcher, v as validate_component, f as escape, e as each, p as getContext, o as onDestroy } from "../../../../../chunks/ssr.js";
 import { p as page } from "../../../../../chunks/stores.js";
 import { t as tick } from "../../../../../chunks/scheduler.js";
 import { a as toast } from "../../../../../chunks/Toaster.svelte_svelte_type_style_lang.js";
@@ -5689,7 +5689,7 @@ const Message = create_ssr_component(($$result, $$props, $$bindings, slots) => {
         return `${validate_component(ProfileImage, "ProfileImage").$$render(
           $$result,
           {
-            src: message.user?.profile_image_url ?? ($i18n.language === "dg-DG" ? `/doge.png` : `${WEBUI_BASE_URL}/static/favicon.png`),
+            src: message.user?.profile_image_url ?? ($i18n.language === "dg-DG" ? `/doge.png` : `static/favicon.png`),
             className: "size-8 translate-y-1 ml-0.5"
           },
           {},

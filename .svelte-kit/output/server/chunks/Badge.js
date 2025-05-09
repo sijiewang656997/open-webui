@@ -1,4 +1,4 @@
-import { c as create_ssr_component, g as escape } from "./ssr.js";
+import { c as create_ssr_component, f as escape } from "./ssr.js";
 const Badge = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   let { type = "info" } = $$props;
   let { content = "" } = $$props;

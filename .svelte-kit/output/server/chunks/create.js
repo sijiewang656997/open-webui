@@ -13,10 +13,6 @@ function disabledAttr(disabled) {
   return disabled ? true : void 0;
 }
 ({
-  type: "hidden",
-  "aria-hidden": true,
-  hidden: true,
-  tabIndex: -1,
   style: styleToString({
     position: "absolute",
     opacity: 0,
@@ -267,41 +263,18 @@ withGet.derived = function(stores, fn) {
   };
 };
 const kbd = {
-  ALT: "Alt",
   ARROW_DOWN: "ArrowDown",
   ARROW_LEFT: "ArrowLeft",
   ARROW_RIGHT: "ArrowRight",
   ARROW_UP: "ArrowUp",
-  BACKSPACE: "Backspace",
-  CAPS_LOCK: "CapsLock",
-  CONTROL: "Control",
-  DELETE: "Delete",
   END: "End",
   ENTER: "Enter",
   ESCAPE: "Escape",
-  F1: "F1",
-  F10: "F10",
-  F11: "F11",
-  F12: "F12",
-  F2: "F2",
-  F3: "F3",
-  F4: "F4",
-  F5: "F5",
-  F6: "F6",
-  F7: "F7",
-  F8: "F8",
-  F9: "F9",
   HOME: "Home",
-  META: "Meta",
   PAGE_DOWN: "PageDown",
   PAGE_UP: "PageUp",
-  SHIFT: "Shift",
   SPACE: " ",
-  TAB: "Tab",
-  CTRL: "Control",
-  ASTERISK: "*",
-  A: "a",
-  P: "p"
+  TAB: "Tab"
 };
 const FIRST_KEYS = [kbd.ARROW_DOWN, kbd.PAGE_UP, kbd.HOME];
 const LAST_KEYS = [kbd.ARROW_UP, kbd.PAGE_DOWN, kbd.END];
@@ -391,7 +364,6 @@ const useEscapeKeydown = (node, config = {}) => {
   };
 };
 ({
-  prefix: "",
   disabled: readable(false),
   required: readable(false),
   name: readable(void 0)
@@ -414,24 +386,6 @@ const defaults = {
   weekdayFormat: "narrow"
 };
 ({
-  isDateDisabled: void 0,
-  isDateUnavailable: void 0,
-  value: void 0,
-  positioning: {
-    placement: "bottom"
-  },
-  closeOnEscape: true,
-  closeOnOutsideClick: true,
-  onOutsideClick: void 0,
-  preventScroll: false,
-  forceVisible: false,
-  locale: "en",
-  granularity: void 0,
-  disabled: false,
-  readonly: false,
-  minValue: void 0,
-  maxValue: void 0,
-  weekdayFormat: "narrow",
   ...omit(defaults, "isDateDisabled", "isDateUnavailable", "value", "locale", "disabled", "readonly", "minValue", "maxValue", "weekdayFormat")
 });
 export {
@@ -446,9 +400,9 @@ export {
   addEventListener as g,
   effect as h,
   isHTMLElement as i,
-  safeOnMount as j,
+  isElementDisabled as j,
   kbd as k,
-  isElementDisabled as l,
+  safeOnMount as l,
   makeElement as m,
   noop as n,
   omit as o,

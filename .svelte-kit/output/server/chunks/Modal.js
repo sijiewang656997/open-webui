@@ -1,4 +1,4 @@
-import { c as create_ssr_component, o as onDestroy, g as escape, a as add_attribute } from "./ssr.js";
+import { c as create_ssr_component, o as onDestroy, a as add_attribute, f as escape } from "./ssr.js";
 /* empty css                                    */
 const css = {
   code: ".modal-content.svelte-fq1rhy{animation:svelte-fq1rhy-scaleUp 0.1s ease-out forwards}@keyframes svelte-fq1rhy-scaleUp{from{transform:scale(0.985);opacity:0}to{transform:scale(1);opacity:1}}",
@@ -33,16 +33,6 @@ const Modal = create_ssr_component(($$result, $$props, $$bindings, slots) => {
     } else {
       return "w-[56rem]";
     }
-  };
-  const handleKeyDown = (event) => {
-    if (event.key === "Escape" && isTopModal() && !minimized) {
-      console.log("Escape");
-      show = false;
-    }
-  };
-  const isTopModal = () => {
-    const modals = document.getElementsByClassName("modal");
-    return modals.length && modals[modals.length - 1] === modalElement;
   };
   function drag(e) {
     if (!isDragging) return;
@@ -109,13 +99,6 @@ const Modal = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   {
     if (!show) {
       minimized = false;
-    }
-  }
-  {
-    if (show && modalElement) {
-      document.body.appendChild(modalElement);
-      window.addEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "hidden";
     }
   }
   return `${show ? `  <div class="${"modal fixed top-0 right-0 left-0 bottom-0 " + escape(minimized ? "pointer-events-none" : "bg-black/60", true) + " w-full h-screen max-h-[100dvh] " + escape(containerClassName, true) + " flex justify-center z-9999 overflow-y-auto overscroll-contain svelte-fq1rhy"}"${add_attribute("this", modalElement, 0)}> ${!minimized ? `<div class="${"m-auto max-w-full " + escape(sizeToWidth(size), true) + " " + escape(size !== "full" ? "mx-2" : "", true) + " shadow-3xl min-h-fit scrollbar-hidden " + escape(className, true) + " " + escape(draggable ? "cursor-move" : "", true) + " svelte-fq1rhy"}"${add_attribute("style", draggable ? "position: relative;" : "", 0)}${add_attribute("this", modalContentElement, 0)}> ${draggable ? `<div class="absolute top-0 w-full h-8 cursor-move flex items-center justify-between px-2">${minimizable ? `<button class="h-5 w-5 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300" title="Minimize" data-svelte-h="svelte-16zgt96"><span class="block w-3 h-0.5 bg-current"></span></button>` : ``}</div>` : ``} ${slots.default ? slots.default({}) : ``}</div>` : ``}  ${minimized ? `  <div class="fixed pointer-events-auto bg-blue-500 text-white shadow-lg rounded-full w-12 h-12 flex items-center justify-center cursor-move" style="${"left: " + escape(minimizedPosition.x, true) + "px; top: " + escape(minimizedPosition.y, true) + "px;"}"><div class="w-full h-full rounded-full flex items-center justify-center hover:bg-blue-600"><span class="text-xs font-medium">${escape(title.slice(0, 2).toUpperCase())}</span></div>  <div class="absolute left-full ml-2 py-1 px-2 bg-gray-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">${escape(title || "Window")} <div class="absolute right-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-r-gray-800"></div></div></div>` : ``}</div>` : ``}`;

@@ -1,4 +1,4 @@
-import { c as create_ssr_component, b as subscribe, p as getContext, g as escape, v as validate_component } from "../../../../../chunks/ssr.js";
+import { c as create_ssr_component, b as subscribe, p as getContext, v as validate_component, f as escape } from "../../../../../chunks/ssr.js";
 import { W as WEBUI_NAME, F as knowledge } from "../../../../../chunks/index3.js";
 import Fuse from "fuse.js";
 import dayjs from "dayjs";

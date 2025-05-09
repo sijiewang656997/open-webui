@@ -1,4 +1,4 @@
-import { c as create_ssr_component, l as createEventDispatcher, o as onDestroy, a as add_attribute, p as getContext, v as validate_component, g as escape, b as subscribe, e as each } from "./ssr.js";
+import { c as create_ssr_component, l as createEventDispatcher, o as onDestroy, a as add_attribute, p as getContext, v as validate_component, f as escape, b as subscribe, e as each } from "./ssr.js";
 import { i as formatFileSize, j as getLineCount, u as unescapeHtml, k as replaceTokens, l as processResponseContent } from "./index5.js";
 import { p as WEBUI_API_BASE_URL, g as WEBUI_BASE_URL, c as config, u as user } from "./index3.js";
 import { M as Modal } from "./Modal.js";
@@ -12,7 +12,7 @@ import { marked } from "marked";
 import katex from "katex";
 import { A as ArrowDownTray, i as is_void } from "./ArrowDownTray.js";
 import DOMPurify from "dompurify";
-import "file-saver";
+import fileSaver from "file-saver";
 import mermaid from "mermaid";
 import { v4 } from "uuid";
 import { basicSetup, EditorView } from "codemirror";
@@ -69,7 +69,6 @@ const FileItemModal = create_ssr_component(($$result, $$props, $$bindings, slots
   let { show = false } = $$props;
   let { edit = false } = $$props;
   let enableFullContent = false;
-  let isExcelModified = false;
   if ($$props.item === void 0 && $$bindings.item && item !== void 0) $$bindings.item(item);
   if ($$props.show === void 0 && $$bindings.show && show !== void 0) $$bindings.show(show);
   if ($$props.edit === void 0 && $$bindings.edit && edit !== void 0) $$bindings.edit(edit);
@@ -98,7 +97,7 @@ const FileItemModal = create_ssr_component(($$result, $$props, $$bindings, slots
       },
       {
         default: () => {
-          return `<div class="font-primary px-6 py-5 w-full flex flex-col justify-center dark:text-gray-400"><div class="pb-2"><div class="flex items-start justify-between"><div><div class="font-medium text-lg dark:text-gray-100"><a href="#" class="hover:underline line-clamp-1">${escape(item?.name ?? "File")}</a></div></div>  ${isExcel && isExcelModified ? `<div class="ml-auto mr-2"><button class="px-3 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700" data-svelte-h="svelte-bjbfma">Save</button></div>` : ``} <div><button>${validate_component(XMark, "XMark").$$render($$result, {}, {}, {})}</button></div></div> <div><div class="flex flex-col items-center md:flex-row gap-1 justify-between w-full"><div class="flex flex-wrap text-sm gap-1 text-gray-500">${item.size ? `<div class="capitalize shrink-0">${escape(formatFileSize(item.size))}</div>
+          return `<div class="font-primary px-6 py-5 w-full flex flex-col justify-center dark:text-gray-400"><div class="pb-2"><div class="flex items-start justify-between"><div><div class="font-medium text-lg dark:text-gray-100"><a href="#" class="hover:underline line-clamp-1">${escape(item?.name ?? "File")}</a></div></div>  ${``} <div><button>${validate_component(XMark, "XMark").$$render($$result, {}, {}, {})}</button></div></div> <div><div class="flex flex-col items-center md:flex-row gap-1 justify-between w-full"><div class="flex flex-wrap text-sm gap-1 text-gray-500">${item.size ? `<div class="capitalize shrink-0">${escape(formatFileSize(item.size))}</div>
                             •` : ``} ${item?.file?.data?.content ? `<div class="capitalize shrink-0">${escape(getLineCount(item?.file?.data?.content ?? ""))} extracted lines</div> <div class="flex items-center gap-1 shrink-0">${validate_component(Info, "Info").$$render($$result, {}, {}, {})}
                                 Formatting may be inconsistent from source.</div>` : ``}</div> ${edit ? `<div>${validate_component(Tooltip, "Tooltip").$$render(
             $$result,
@@ -216,25 +215,12 @@ const ImagePreview = create_ssr_component(($$result, $$props, $$bindings, slots)
   let { src = "" } = $$props;
   let { alt = "" } = $$props;
   let previewElement = null;
-  const handleKeyDown = (event) => {
-    if (event.key === "Escape") {
-      console.log("Escape");
-      show = false;
-    }
-  };
   onDestroy(() => {
     show = false;
   });
   if ($$props.show === void 0 && $$bindings.show && show !== void 0) $$bindings.show(show);
   if ($$props.src === void 0 && $$bindings.src && src !== void 0) $$bindings.src(src);
   if ($$props.alt === void 0 && $$bindings.alt && alt !== void 0) $$bindings.alt(alt);
-  {
-    if (show && previewElement) {
-      document.body.appendChild(previewElement);
-      window.addEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "hidden";
-    }
-  }
   return `${show ? `  <div class="modal fixed top-0 right-0 left-0 bottom-0 bg-black text-white w-full min-h-screen h-screen flex justify-center z-9999 overflow-hidden overscroll-contain"${add_attribute("this", previewElement, 0)}><div class="absolute left-0 w-full flex justify-between select-none"><div><button class="p-5" data-svelte-h="svelte-1klk9rz"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path></svg></button></div> <div><button class="p-5" data-svelte-h="svelte-658bhs"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-6 h-6"><path d="M10.75 2.75a.75.75 0 0 0-1.5 0v8.614L6.295 8.235a.75.75 0 1 0-1.09 1.03l4.25 4.5a.75.75 0 0 0 1.09 0l4.25-4.5a.75.75 0 0 0-1.09-1.03l-2.955 3.129V2.75Z"></path><path d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z"></path></svg></button></div></div> <img${add_attribute("src", src, 0)}${add_attribute("alt", alt, 0)} class="mx-auto h-full object-scale-down select-none" draggable="false"></div>` : ``}`;
 });
 const Image = create_ssr_component(($$result, $$props, $$bindings, slots) => {
@@ -337,12 +323,7 @@ const CodeEditor = create_ssr_component(($$result, $$props, $$bindings, slots) =
     editorLanguage.of([])
   ];
   const setLanguage = async () => {
-    const language = await getLang();
-    if (language && codeEditor) {
-      codeEditor.dispatch({
-        effects: editorLanguage.reconfigure(language)
-      });
-    }
+    await getLang();
   };
   if ($$props.boilerplate === void 0 && $$bindings.boilerplate && boilerplate !== void 0) $$bindings.boilerplate(boilerplate);
   if ($$props.value === void 0 && $$bindings.value && value2 !== void 0) $$bindings.value(value2);
@@ -381,6 +362,7 @@ const Reset = create_ssr_component(($$result, $$props, $$bindings, slots) => {
 });
 const SVGPanZoom = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   let $i18n, $$unsubscribe_i18n;
+  const { saveAs } = fileSaver;
   const i18n = getContext("i18n");
   $$unsubscribe_i18n = subscribe(i18n, (value2) => $i18n = value2);
   let { className = "" } = $$props;
@@ -871,6 +853,7 @@ const MarkdownTokens = create_ssr_component(($$result, $$props, $$bindings, slot
   let $i18n, $$unsubscribe_i18n;
   const i18n = getContext("i18n");
   $$unsubscribe_i18n = subscribe(i18n, (value2) => $i18n = value2);
+  const { saveAs } = fileSaver;
   const dispatch = createEventDispatcher();
   let { id } = $$props;
   let { tokens } = $$props;
@@ -1094,7 +1077,7 @@ const Markdown = create_ssr_component(($$result, $$props, $$bindings, slots) => 
   let { onTaskClick = () => {
   } } = $$props;
   let tokens = [];
-  const options = { throwOnError: false };
+  const options = {};
   marked.use(markedKatexExtension(options));
   marked.use(markedExtension(options));
   if ($$props.id === void 0 && $$bindings.id && id !== void 0) $$bindings.id(id);

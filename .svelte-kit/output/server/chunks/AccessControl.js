@@ -1,4 +1,4 @@
-import { c as create_ssr_component, a as add_attribute, p as getContext, b as subscribe, g as escape, e as each, v as validate_component } from "./ssr.js";
+import { c as create_ssr_component, a as add_attribute, p as getContext, b as subscribe, f as escape, e as each, v as validate_component } from "./ssr.js";
 import "dompurify";
 import "marked";
 import { X as XMark } from "./XMark.js";

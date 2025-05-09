@@ -22,12 +22,7 @@
   let isEditMode = false;
   
   // API configuration with fallback defaults
-<<<<<<< HEAD
   let base_url = WEBUI_BASE_URL;
-=======
-  //let base_url = 'http://localhost:5002';
-  let base_url = 'http://192.168.200.118:5002';
->>>>>>> 23efd5c60c10afd92c476d1e2f8d6179707150a1
   let user_token = 'token_59b8b43a_aiurmmm0';
   let language_local = 'en';
   
@@ -65,14 +60,8 @@
   
   // Function to make requests to the API with the required headers
   async function makeRequest(endpoint, options = {}) {
-<<<<<<< HEAD
     // Updated to use the proxy endpoint for all requests
     const url = `${base_url}/proxy/api${endpoint}`;
-=======
-    //const base_url = 'http://localhost:5002'
-    const base_url = 'http://192.168.200.118:5002'
-    const url = `${base_url}${endpoint}`;
->>>>>>> 23efd5c60c10afd92c476d1e2f8d6179707150a1
     
     console.log(`[ExcelToSQL Debug] Sending request to ${url}`);
     

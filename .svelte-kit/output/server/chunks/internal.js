@@ -322,11 +322,7 @@ const options = {
 		<div class="error">
 			<span class="status">` + status + '</span>\n			<div class="message">\n				<h1>' + message + "</h1>\n			</div>\n		</div>\n	</body>\n</html>\n"
   },
-<<<<<<< HEAD
-  version_hash: "1874yn0"
-=======
-  version_hash: "1ac15cn"
->>>>>>> 23efd5c60c10afd92c476d1e2f8d6179707150a1
+  version_hash: "1r908ce"
 };
 async function get_hooks() {
   let handle;
@@ -351,9 +347,9 @@ export {
   read_implementation as d,
   options as e,
   set_private_env as f,
-  prerendering as g,
-  set_public_env as h,
-  get_hooks as i,
+  get_hooks as g,
+  prerendering as h,
+  set_public_env as i,
   set_safe_public_env as j,
   set_read_implementation as k,
   set_assets as l,

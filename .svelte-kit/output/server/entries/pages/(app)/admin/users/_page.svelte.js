@@ -1,4 +1,4 @@
-import { s as setContext, p as getContext, c as create_ssr_component, h as compute_rest_props, b as subscribe, i as spread, k as escape_object, a as add_attribute, g as escape, v as validate_component, e as each, l as createEventDispatcher } from "../../../../../chunks/ssr.js";
+import { s as setContext, p as getContext, c as create_ssr_component, h as compute_rest_props, b as subscribe, i as spread, a as add_attribute, k as escape_object, f as escape, v as validate_component, e as each, l as createEventDispatcher } from "../../../../../chunks/ssr.js";
 import "../../../../../chunks/Toaster.svelte_svelte_type_style_lang.js";
 import "../../../../../chunks/client.js";
 import { u as user, c as config, g as WEBUI_BASE_URL } from "../../../../../chunks/index3.js";
@@ -8,9 +8,9 @@ import relativeTime from "dayjs/plugin/relativeTime.js";
 import localizedFormat from "dayjs/plugin/localizedFormat.js";
 import "../../../../../chunks/index5.js";
 import "dequal";
-import { o as omit, w as withGet, m as makeElement, e as executeCallbacks, a as addMeltEventListener, c as createElHelpers, i as isHTMLElement, k as kbd } from "../../../../../chunks/create.js";
+import { o as omit, w as withGet, m as makeElement, c as createElHelpers, e as executeCallbacks, a as addMeltEventListener, i as isHTMLElement, k as kbd } from "../../../../../chunks/create.js";
 import { o as overridable, t as toWritableStores, c as createBitAttrs, r as removeUndefined, g as getOptionUpdater, a as createDispatcher } from "../../../../../chunks/updater.js";
-import { d as derived, a as readonly, w as writable } from "../../../../../chunks/index2.js";
+import { w as writable, d as derived, a as readonly } from "../../../../../chunks/index2.js";
 import { C as ChevronRight } from "../../../../../chunks/ChevronRight.js";
 import { T as Tooltip } from "../../../../../chunks/Tooltip.js";
 import { M as Modal } from "../../../../../chunks/Modal.js";
@@ -426,7 +426,6 @@ const EditUserModal = create_ssr_component(($$result, $$props, $$bindings, slots
   let { selectedUser } = $$props;
   let { sessionUser } = $$props;
   let _user = {
-    profile_image_url: "",
     name: "",
     email: "",
     password: ""
@@ -534,8 +533,7 @@ const AddUserModal = create_ssr_component(($$result, $$props, $$bindings, slots)
   let _user = {
     name: "",
     email: "",
-    password: "",
-    role: "user"
+    password: ""
   };
   if ($$props.show === void 0 && $$bindings.show && show !== void 0) $$bindings.show(show);
   $$result.css.add(css);

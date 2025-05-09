@@ -1,4 +1,4 @@
-import { B as set_current_component, y as run_all, C as current_component } from "./ssr.js";
+import { B as set_current_component, C as current_component, z as run_all } from "./ssr.js";
 const dirty_components = [];
 const binding_callbacks = [];
 let render_callbacks = [];

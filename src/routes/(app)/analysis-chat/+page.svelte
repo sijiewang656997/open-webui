@@ -20,21 +20,14 @@
 	import Table from '$lib/components/common/Table.svelte';
 	import { createDocxTemplateReport, downloadDocxDocument } from '$lib/utils/docxTemplateUtils';
 	import { WEBUI_BASE_URL } from '$lib/constants';
-	let language_local = ""
+	import { getApiConfig } from '$lib/utils/api-config';
 
-	if (localStorage.getItem('locale') === "zh-CN") {
-                    language_local = 'zh_cn';
-                } else {
-                    language_local = 'en';
-                }
-
-	let language_local = ""
-
-	if (localStorage.getItem('locale') === "zh-CN") {
-                    language_local = 'zh-cn';
-                } else {
-                    language_local = 'en';
-                }
+	// Initialize API config
+	let apiConfig = {
+		baseUrl: WEBUI_BASE_URL,
+		userToken: '',
+		languageLocal: 'en'
+	};
 
 	ChartJS.register(
 		LineController,
@@ -73,6 +66,16 @@
 	let error = '';
 	let isDownloading = false;
 
+	onMount(async () => {
+		// Initialize API config
+		try {
+			apiConfig = await getApiConfig(i18n);
+			console.log('API config initialized:', apiConfig);
+		} catch (error) {
+			console.error('Failed to initialize API config:', error);
+		}
+	});
+
 	async function handleSubmit() {
 		if (!input.trim()) return;
 		if (!input.startsWith('@analysis')) {
@@ -98,8 +101,8 @@
 			};
 			const requestHeaders = {
 				'Content-Type': 'application/json',
-				'Authorization': 'Bearer token_59b8b43a_aiurmmm0_upload_long_demo', //`token_59b8b43a_aiurmmm0_upload_long_demoBearer ${token}`,
-				'Accept-Language': language_local
+				'Authorization': `Bearer ${apiConfig.userToken}`,
+				'Accept-Language': apiConfig.languageLocal
 			};
 			console.log('[DEBUG] Sending fetch to proxy/api/analysis/stream', requestBody, requestHeaders);
 

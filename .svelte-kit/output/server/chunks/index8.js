@@ -208,10 +208,10 @@ const getTagsById = async (token, id) => {
 };
 export {
   getChatById as a,
-  getTagsById as b,
-  getChatList as c,
-  createNewChat as d,
-  getAllTags as e,
+  getChatList as b,
+  getAllTags as c,
+  getTagsById as d,
+  createNewChat as e,
   getChatByShareId as f,
   getChatListByUserId as g,
   updateChatById as u

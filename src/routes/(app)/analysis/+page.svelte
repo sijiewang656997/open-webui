@@ -8,6 +8,7 @@
   import { downloadWordDocument, createSimpleWordDocument } from '$lib/utils/docUtils';
   import { createDocxTemplateReport, downloadDocxDocument } from '$lib/utils/docxTemplateUtils';
   import { WEBUI_BASE_URL } from '$lib/constants';
+  import { getApiConfig } from '$lib/utils/api-config';
 
   const i18n: any = getContext('i18n');
   
@@ -93,31 +94,15 @@
     });
   }
   
-  let language_local = 'en';
-<<<<<<< HEAD
-  let language = 'zh_cn';
-=======
-  let language = 'zh-cn';
->>>>>>> 23efd5c60c10afd92c476d1e2f8d6179707150a1
-  //const user_token = "token_59b8b43a_aiurmmm0_test" // This should come from your auth system
-  const user_token = "token_59b8b43a_aiurmmm0_upload_long_demo"
-
-  if (localStorage.getItem('locale') === "zh-CN") {
-<<<<<<< HEAD
-                    language_local = 'zh_cn';
-=======
-                    language_local = 'zh-cn';
->>>>>>> 23efd5c60c10afd92c476d1e2f8d6179707150a1
-                } else {
-                    language_local = 'en';
-                }
-  // API base URL with the host IP
-<<<<<<< HEAD
+  // Initialize apiConfig and language variables
+  let apiConfig = {
+    baseUrl: WEBUI_BASE_URL,
+    userToken: '',
+    languageLocal: 'en'
+  };
+  
+  // API base URL
   const apiBaseUrl = WEBUI_BASE_URL;
-=======
-  //const apiBaseUrl = "http://localhost:5002";
-  const apiBaseUrl = "http://192.168.200.118:5002";
->>>>>>> 23efd5c60c10afd92c476d1e2f8d6179707150a1
   
   // Add type definitions at the top of the script section
   interface Company {
@@ -229,9 +214,17 @@
   let isProcessingEvent = false;
   
   // Add Chart.js initialization in onMount
-  onMount(() => {
+  onMount(async () => {
     console.log('Current user language:', $i18n.language);
     console.log('Current user API key:', $userAPIKey);
+    
+    // Initialize API config
+    try {
+      apiConfig = await getApiConfig(i18n);
+      console.log('API config initialized:', apiConfig);
+    } catch (error) {
+      console.error('Failed to initialize API config:', error);
+    }
     
     console.log('Component mounted, loading account tree...');
     loadAccountTree();
@@ -413,8 +406,8 @@
       console.log('Method: GET');
       console.log('Headers:', {
         'Content-Type': 'application/json',
-        'Accept-Language': language_local,
-        'Authorization': `Bearer ${user_token}`
+        'Accept-Language': apiConfig.languageLocal,
+        'Authorization': `Bearer ${apiConfig.userToken}`
       });
       console.log('\n');
       
@@ -422,8 +415,8 @@
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Accept-Language': language_local,
-          'Authorization': `Bearer ${user_token}`
+          'Accept-Language': apiConfig.languageLocal,
+          'Authorization': `Bearer ${apiConfig.userToken}`
         }
       });
       
@@ -557,8 +550,8 @@
       console.log('Method: GET');
       console.log('Headers:', {
         'Content-Type': 'application/json',
-        'Accept-Language': language_local,
-        'Authorization': `Bearer ${user_token}`
+        'Accept-Language': apiConfig.languageLocal,
+        'Authorization': `Bearer ${apiConfig.userToken}`
       });
       console.log('\n');
       
@@ -566,8 +559,8 @@
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Accept-Language': language_local,
-          'Authorization': `Bearer ${user_token}`
+          'Accept-Language': apiConfig.languageLocal,
+          'Authorization': `Bearer ${apiConfig.userToken}`
         }
       });
       
@@ -1097,8 +1090,8 @@
       console.log('Method: GET');
       console.log('Headers:', {
         'Content-Type': 'application/json',
-        'Accept-Language': language_local,
-        'Authorization': `Bearer ${user_token}`
+        'Accept-Language': apiConfig.languageLocal,
+        'Authorization': `Bearer ${apiConfig.userToken}`
       });
       console.log('\n');
       
@@ -1106,8 +1099,8 @@
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Accept-Language': language_local,
-          'Authorization': `Bearer ${user_token}`
+          'Accept-Language': apiConfig.languageLocal,
+          'Authorization': `Bearer ${apiConfig.userToken}`
         }
       });
       
@@ -1148,8 +1141,8 @@
       console.log('Method: GET');
       console.log('Headers:', {
         'Content-Type': 'application/json',
-        'Accept-Language': language_local,
-        'Authorization': `Bearer ${user_token}`
+        'Accept-Language': apiConfig.languageLocal,
+        'Authorization': `Bearer ${apiConfig.userToken}`
       });
       console.log('\n');
       
@@ -1157,8 +1150,8 @@
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Accept-Language': language_local,
-          'Authorization': `Bearer ${user_token}`
+          'Accept-Language': apiConfig.languageLocal,
+          'Authorization': `Bearer ${apiConfig.userToken}`
         }
       });
       
@@ -1375,8 +1368,8 @@
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Accept-Language': language_local,
-            'Authorization': `Bearer ${user_token}`
+            'Accept-Language': apiConfig.languageLocal,
+            'Authorization': `Bearer ${apiConfig.userToken}`
           },
           body: JSON.stringify(requestData),
           signal: controller.signal
@@ -1537,8 +1530,8 @@
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept-Language': language_local,
-          'Authorization': `Bearer ${user_token}`
+          'Accept-Language': apiConfig.languageLocal,
+          'Authorization': `Bearer ${apiConfig.userToken}`
         },
         body: JSON.stringify({
           company,
@@ -1566,8 +1559,8 @@
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Accept-Language': language_local,
-          'Authorization': `Bearer ${user_token}`
+          'Accept-Language': apiConfig.languageLocal,
+          'Authorization': `Bearer ${apiConfig.userToken}`
         }
       });
       
@@ -2713,7 +2706,7 @@
                   fetch(`${apiBaseUrl}/proxy/api/upload_account_tree`, {
                     method: 'POST',
                     headers: {
-                      'Authorization': `Bearer ${user_token}`
+                      'Authorization': `Bearer ${apiConfig.userToken}`
                     },
                     body: formData
                   })

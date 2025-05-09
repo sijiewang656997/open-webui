@@ -1,9 +1,9 @@
-import { c as create_ssr_component, b as subscribe, p as getContext, g as escape, v as validate_component } from "../../../../../chunks/ssr.js";
+import { c as create_ssr_component, b as subscribe, p as getContext, v as validate_component, f as escape } from "../../../../../chunks/ssr.js";
 import { a as settings, c as config, W as WEBUI_NAME, u as user, m as models } from "../../../../../chunks/index3.js";
 import "marked";
 import "../../../../../chunks/Toaster.svelte_svelte_type_style_lang.js";
 import "sortablejs";
-import "file-saver";
+import fileSaver from "file-saver";
 import "../../../../../chunks/client.js";
 import "dequal";
 import "../../../../../chunks/create.js";
@@ -23,6 +23,7 @@ const Models = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   $$unsubscribe_WEBUI_NAME = subscribe(WEBUI_NAME, (value) => $WEBUI_NAME = value);
   $$unsubscribe_user = subscribe(user, (value) => value);
   $$unsubscribe__models = subscribe(models, (value) => value);
+  const { saveAs } = fileSaver;
   const i18n = getContext("i18n");
   $$unsubscribe_i18n = subscribe(i18n, (value) => $i18n = value);
   let $$settled;

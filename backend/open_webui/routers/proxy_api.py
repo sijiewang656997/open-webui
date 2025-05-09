@@ -1,9 +1,5 @@
 from fastapi import APIRouter, HTTPException, Request, status
-<<<<<<< HEAD
 from fastapi.responses import Response, StreamingResponse
-=======
-from fastapi.responses import Response
->>>>>>> 23efd5c60c10afd92c476d1e2f8d6179707150a1
 import httpx
 from open_webui.config import OPENAI_API_BASE_URLS
 router = APIRouter()
@@ -30,14 +26,13 @@ async def proxy_endpoint(endpoint: str, request: Request):
         # Get query parameters for forwarding
         params = dict(request.query_params)
         
-<<<<<<< HEAD
         # Detect if this is a streaming endpoint
         is_streaming = "stream" in endpoint or endpoint.endswith("/stream")
         
         # For streaming responses, use StreamingResponse
         if is_streaming:
             async def stream_response():
-                async with httpx.AsyncClient(verify=False, timeout=60.0) as client:
+                async with httpx.AsyncClient(verify=False, timeout=300) as client:
                     async with client.stream(
                         method=request.method,
                         url=target_url,
@@ -62,7 +57,7 @@ async def proxy_endpoint(endpoint: str, request: Request):
                     headers=headers,
                     content=body,
                     params=params,
-                    timeout=30.0
+                    timeout=300
                 )
                 
                 # Return the response with the same status code and headers
@@ -71,25 +66,6 @@ async def proxy_endpoint(endpoint: str, request: Request):
                     status_code=response.status_code,
                     headers=dict(response.headers)
                 )
-=======
-        # Make the request to the target endpoint
-        async with httpx.AsyncClient(verify=False) as client:
-            response = await client.request(
-                method=request.method,
-                url=target_url,
-                headers=headers,
-                content=body,
-                params=params,
-                timeout=30.0
-            )
-            
-            # Return the response with the same status code and headers
-            return Response(
-                content=response.content,
-                status_code=response.status_code,
-                headers=dict(response.headers)
-            )
->>>>>>> 23efd5c60c10afd92c476d1e2f8d6179707150a1
             
     except Exception as e:
         raise HTTPException(

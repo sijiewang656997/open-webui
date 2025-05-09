@@ -1,4 +1,4 @@
-import { c as create_ssr_component, a as add_attribute, b as subscribe, p as getContext, l as createEventDispatcher, v as validate_component, g as escape, e as each } from "./ssr.js";
+import { c as create_ssr_component, a as add_attribute, b as subscribe, p as getContext, l as createEventDispatcher, v as validate_component, f as escape, e as each } from "./ssr.js";
 import "dequal";
 import "./create.js";
 import { b as Menu, c as Menu_trigger, M as Menu_content, f as flyAndScale } from "./menu-trigger.js";
@@ -193,7 +193,7 @@ const Selector = create_ssr_component(($$result, $$props, $$bindings, slots) => 
                       }
                     })}`;
                   })} </div>` : ``} </div></div> ${value === item.value ? `<div class="ml-auto pl-2 pr-2 md:pr-0">${validate_component(Check, "Check").$$render($$result, {}, {}, {})} </div>` : ``} </button>`;
-                }) : `<div><div class="block px-3 py-2 text-sm text-gray-700 dark:text-gray-100">${escape($i18n.t("No results found"))}</div> </div>`} ${!(searchValue.trim() in $MODEL_DOWNLOAD_POOL) && searchValue && ollamaVersion && $user.role === "admin" ? `${validate_component(Tooltip, "Tooltip").$$render(
+                }) : `<div><div class="block px-3 py-2 text-sm text-gray-700 dark:text-gray-100">${escape($i18n.t("No results found"))}</div> </div>`} ${!(searchValue.trim() in $MODEL_DOWNLOAD_POOL) && searchValue && ollamaVersion ? `${validate_component(Tooltip, "Tooltip").$$render(
                   $$result,
                   {
                     content: $i18n.t(`Pull "{{searchValue}}" from Ollama.com`, { searchValue }),

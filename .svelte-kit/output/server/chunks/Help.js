@@ -1,13 +1,13 @@
-import { c as create_ssr_component, b as subscribe, h as compute_rest_props, i as spread, k as escape_object, a as add_attribute, l as createEventDispatcher, v as validate_component, p as getContext, g as escape, j as escape_attribute_value, o as onDestroy, e as each, r as get_store_value, d as add_styles, f as merge_ssr_styles, s as setContext, m as missing_component, t as hasContext, u as compute_slots, n as noop, w as null_to_empty } from "./ssr.js";
+import { c as create_ssr_component, b as subscribe, h as compute_rest_props, i as spread, a as add_attribute, k as escape_object, l as createEventDispatcher, v as validate_component, p as getContext, f as escape, j as escape_attribute_value, o as onDestroy, e as each, r as get_store_value, d as add_styles, g as merge_ssr_styles, s as setContext, m as missing_component, t as hasContext, u as compute_slots, n as noop, w as null_to_empty } from "./ssr.js";
 import { t as tick } from "./scheduler.js";
 import { v4 } from "uuid";
 import { a as toast } from "./Toaster.svelte_svelte_type_style_lang.js";
 import { g as getCtx, a as generateId, s as styleToString, b as getCursorStyle, F as FilesOverlay, U as UserMenu, D as Drawer, P as Pane$1, c as Pane_group } from "./Drawer.js";
 import { g as goto } from "./client.js";
 import { p as page } from "./stores.js";
-import { m as models, c as config, A as AUDIO_API_BASE_URL, R as RETRIEVAL_API_BASE_URL, a as settings, n as tools, o as mobile, u as user, T as TTSWorker, p as WEBUI_API_BASE_URL, t as temporaryChatEnabled, W as WEBUI_NAME, d as chatId, j as showSidebar, k as functions, q as showCallOverlay, f as theme, r as showControls, v as showArtifacts, w as showOverview, g as WEBUI_BASE_URL, b as currentChatPage, s as socket, l as userAPIKey, x as chatTitle, y as banners, z as chats, B as tags } from "./index3.js";
+import { m as models, c as config, A as AUDIO_API_BASE_URL, R as RETRIEVAL_API_BASE_URL, a as settings, n as tools, o as mobile, u as user, p as WEBUI_API_BASE_URL, t as temporaryChatEnabled, W as WEBUI_NAME, d as chatId, j as showSidebar, k as functions, T as TTSWorker, q as showCallOverlay, f as theme, r as showControls, v as showArtifacts, w as showOverview, b as currentChatPage, s as socket, l as userAPIKey, x as chatTitle, y as banners, z as chats, B as tags, g as WEBUI_BASE_URL } from "./index3.js";
 import { c as compressImage, b as blobToFile, a as createMessagesList, s as sanitizeResponseContent, d as convertMessagesToHistory, p as promptTemplate, r as removeDetails, g as getPromptVariables } from "./index5.js";
-import { a as getChatById, b as getTagsById, u as updateChatById, c as getChatList, d as createNewChat, e as getAllTags } from "./index8.js";
+import { a as getChatById, b as getChatList, c as getAllTags, d as getTagsById, u as updateChatById, e as createNewChat } from "./index8.js";
 import { b as generateEmoji, c as chatAction, d as generateMoACompletion, e as generateOpenAIChatCompletion, s as stopTask } from "./index7.js";
 import { EventSourceParserStream } from "eventsource-parser/stream";
 import { a as getUserSettings, b as getAndUpdateUserLocation } from "./index6.js";
@@ -38,7 +38,7 @@ import { d as derived, w as writable, r as readable } from "./index2.js";
 import { s as setSubMenuCtx, g as getSubmenuCtx, u as updateSubPositioning, a as getSubTrigger, M as Menu_content, f as flyAndScale } from "./menu-trigger.js";
 import { D as Dropdown, M as Menu_item } from "./Dropdown.js";
 import { a as createDispatcher, d as disabledAttrs } from "./updater.js";
-import "file-saver";
+import fileSaver from "file-saver";
 import { C as Clipboard, F as FileItem, P as ProfileImage, S as SVGPanZoom } from "./Markdown.js";
 import { M as MenuLines } from "./MenuLines.js";
 import { X as XMark } from "./XMark.js";
@@ -46,7 +46,7 @@ import { A as AdvancedParams } from "./AdvancedParams.js";
 import { S as Spinner } from "./Spinner.js";
 import { C as Collapsible } from "./Collapsible.js";
 import cc from "classcat";
-import { Position, ConnectionMode, areConnectionMapsEqual, handleConnectionChange, errorMessages, getBezierPath, getSmoothStepPath, getStraightPath, infiniteExtent, adoptUserNodes, updateConnectionLookup, getInternalNodesBounds, getViewportForBounds, SelectionMode, initialConnection, ConnectionLineType, devWarn, isEdgeVisible, getEdgePosition, getElevatedEdgeZIndex, getNodesInside, getElementsToRemove, pointToRendererPoint, createMarkerIds, addEdge, updateNodeInternals, getFitViewNodes, fitView, panBy, nodeHasDimensions, getMarkerId, MarkerType, isNumeric, isMacOs, getConnectionStatus, PanOnScrollMode, isNodeBase, isRectObject, nodeToRect, getOverlappingArea, rendererPointToPoint, getNodesBounds, evaluateAbsolutePosition } from "@xyflow/system";
+import { Position, ConnectionMode, areConnectionMapsEqual, handleConnectionChange, errorMessages, getBezierPath, getSmoothStepPath, getStraightPath, infiniteExtent, updateConnectionLookup, adoptUserNodes, fitViewport, getInternalNodesBounds, getViewportForBounds, devWarn, ConnectionLineType, initialConnection, SelectionMode, isEdgeVisible, getEdgePosition, getElevatedEdgeZIndex, getNodesInside, getElementsToRemove, createMarkerIds, pointToRendererPoint, panBy, withResolvers, updateNodeInternals, updateAbsolutePositions, addEdge, nodeHasDimensions, getMarkerId, MarkerType, isNumeric, isMacOs, getConnectionStatus, PanOnScrollMode, isNodeBase, getNodesBounds, rendererPointToPoint, isRectObject, getOverlappingArea, nodeToRect, evaluateAbsolutePosition } from "@xyflow/system";
 import { C as ConfirmDialog } from "./ConfirmDialog.js";
 const Menu_sub = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   let $idValues, $$unsubscribe_idValues;
@@ -117,7 +117,7 @@ const Menu_sub_content = create_ssr_component(($$result, $$props, $$bindings, sl
   let { avoidCollisions = true } = $$props;
   let { collisionBoundary = void 0 } = $$props;
   let { sameWidth = false } = $$props;
-  let { fitViewport = false } = $$props;
+  let { fitViewport: fitViewport2 = false } = $$props;
   let { strategy = "absolute" } = $$props;
   let { overlap = false } = $$props;
   let { el = void 0 } = $$props;
@@ -142,7 +142,7 @@ const Menu_sub_content = create_ssr_component(($$result, $$props, $$bindings, sl
   if ($$props.avoidCollisions === void 0 && $$bindings.avoidCollisions && avoidCollisions !== void 0) $$bindings.avoidCollisions(avoidCollisions);
   if ($$props.collisionBoundary === void 0 && $$bindings.collisionBoundary && collisionBoundary !== void 0) $$bindings.collisionBoundary(collisionBoundary);
   if ($$props.sameWidth === void 0 && $$bindings.sameWidth && sameWidth !== void 0) $$bindings.sameWidth(sameWidth);
-  if ($$props.fitViewport === void 0 && $$bindings.fitViewport && fitViewport !== void 0) $$bindings.fitViewport(fitViewport);
+  if ($$props.fitViewport === void 0 && $$bindings.fitViewport && fitViewport2 !== void 0) $$bindings.fitViewport(fitViewport2);
   if ($$props.strategy === void 0 && $$bindings.strategy && strategy !== void 0) $$bindings.strategy(strategy);
   if ($$props.overlap === void 0 && $$bindings.overlap && overlap !== void 0) $$bindings.overlap(overlap);
   if ($$props.el === void 0 && $$bindings.el && el !== void 0) $$bindings.el(el);
@@ -165,7 +165,7 @@ const Menu_sub_content = create_ssr_component(($$result, $$props, $$bindings, sl
       avoidCollisions,
       collisionBoundary,
       sameWidth,
-      fitViewport,
+      fitViewport: fitViewport2,
       strategy,
       overlap
     });
@@ -538,23 +538,8 @@ const Banner = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   return `${!dismissed ? `${``}` : ``}`;
 });
 ({
-  sdk: "8.0",
-  entry: {
-    oneDrive: {
-      files: {}
-    }
-  },
-  authentication: {},
   messaging: {
-    origin: window?.location?.origin,
     channelId: v4()
-  },
-  typesAndSources: {
-    mode: "files",
-    pivots: {
-      oneDrive: true,
-      recent: true
-    }
   }
 });
 const MessageInput = create_ssr_component(($$result, $$props, $$bindings, slots) => {
@@ -565,14 +550,12 @@ const MessageInput = create_ssr_component(($$result, $$props, $$bindings, slots)
   let $$unsubscribe_tools;
   let $$unsubscribe_mobile;
   let $$unsubscribe__user;
-  let $$unsubscribe_TTSWorker;
   $$unsubscribe_settings = subscribe(settings, (value) => $settings = value);
   $$unsubscribe_config = subscribe(config, (value) => $config = value);
   $$unsubscribe_models = subscribe(models, (value) => $models = value);
   $$unsubscribe_tools = subscribe(tools, (value) => value);
   $$unsubscribe_mobile = subscribe(mobile, (value) => value);
   $$unsubscribe__user = subscribe(user, (value) => value);
-  $$unsubscribe_TTSWorker = subscribe(TTSWorker, (value) => value);
   createEventDispatcher();
   const i18n = getContext("i18n");
   $$unsubscribe_i18n = subscribe(i18n, (value) => $i18n = value);
@@ -844,7 +827,6 @@ const MessageInput = create_ssr_component(($$result, $$props, $$bindings, slots)
   $$unsubscribe_tools();
   $$unsubscribe_mobile();
   $$unsubscribe__user();
-  $$unsubscribe_TTSWorker();
   return $$rendered;
 });
 const ModelSelector = create_ssr_component(($$result, $$props, $$bindings, slots) => {
@@ -939,6 +921,7 @@ const Menu = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   let $i18n, $$unsubscribe_i18n;
   $$unsubscribe_temporaryChatEnabled = subscribe(temporaryChatEnabled, (value) => $temporaryChatEnabled = value);
   $$unsubscribe_mobile = subscribe(mobile, (value) => $mobile = value);
+  const { saveAs } = fileSaver;
   const i18n = getContext("i18n");
   $$unsubscribe_i18n = subscribe(i18n, (value) => $i18n = value);
   let { shareEnabled = false } = $$props;
@@ -1274,7 +1257,7 @@ const Handle = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   handleId = id || null;
   {
     if (onconnect || ondisconnect) {
-      connections = $connectionLookup.get(`${nodeId}-${type}-${id || null}`);
+      connections = $connectionLookup.get(`${nodeId}-${type}${id ? `-${id}` : ""}`);
     }
   }
   {
@@ -1775,19 +1758,35 @@ const syncViewportStores = (panZoomStore, viewportStore, userViewportStore) => {
     userViewportStore.set(fn(val));
   };
 };
-const createNodesStore = (nodes, nodeLookup, parentLookup, nodeOrigin = [0, 0], nodeExtent = infiniteExtent) => {
+const createNodesStore = (nodes, nodeLookup, parentLookup, nodeOrigin = [0, 0], nodeExtent = infiniteExtent, fitViewQueued, fitViewOptions, fitViewResolver, panZoom, width, height, minZoom, maxZoom) => {
   const { subscribe: subscribe2, set, update } = writable([]);
   let value = nodes;
   let defaults = {};
   let elevateNodesOnSelect = true;
   const _set = (nds) => {
-    adoptUserNodes(nds, nodeLookup, parentLookup, {
+    const nodesInitialized = adoptUserNodes(nds, nodeLookup, parentLookup, {
       elevateNodesOnSelect,
       nodeOrigin,
       nodeExtent,
       defaults,
       checkEquality: false
     });
+    if (get_store_value(fitViewQueued) && nodesInitialized && get_store_value(panZoom)) {
+      const fitViewPromise = fitViewport({
+        nodes: nodeLookup,
+        width: get_store_value(width),
+        height: get_store_value(height),
+        panZoom: get_store_value(panZoom),
+        minZoom: get_store_value(minZoom),
+        maxZoom: get_store_value(maxZoom)
+      }, get_store_value(fitViewOptions));
+      fitViewPromise.then((value2) => {
+        get_store_value(fitViewResolver)?.resolve(value2);
+        fitViewResolver.set(null);
+      });
+      fitViewQueued.set(false);
+      fitViewOptions.set(void 0);
+    }
     value = nds;
     set(value);
     return value;
@@ -1842,7 +1841,7 @@ const initialEdgeTypes = {
   default: BezierEdgeInternal,
   step: StepEdgeInternal
 };
-const getInitialStore = ({ nodes = [], edges = [], width, height, fitView: fitView2, nodeOrigin, nodeExtent }) => {
+const getInitialStore = ({ nodes = [], edges = [], width, height, fitView, nodeOrigin, nodeExtent }) => {
   const nodeLookup = /* @__PURE__ */ new Map();
   const parentLookup = /* @__PURE__ */ new Map();
   const connectionLookup = /* @__PURE__ */ new Map();
@@ -1857,15 +1856,23 @@ const getInitialStore = ({ nodes = [], edges = [], width, height, fitView: fitVi
   });
   updateConnectionLookup(connectionLookup, edgeLookup, edges);
   let viewport = { x: 0, y: 0, zoom: 1 };
-  if (fitView2 && width && height) {
+  if (fitView && width && height) {
     const bounds = getInternalNodesBounds(nodeLookup, {
       filter: (node) => !!((node.width || node.initialWidth) && (node.height || node.initialHeight))
     });
     viewport = getViewportForBounds(bounds, width, height, 0.5, 2, 0.1);
   }
+  const fitViewQueued = writable(false);
+  const fitViewOptions = writable(void 0);
+  const fitViewResolver = writable(null);
+  const panZoom = writable(null);
+  const widthStore = writable(500);
+  const heightStore = writable(500);
+  const minZoom = writable(0.5);
+  const maxZoom = writable(2);
   return {
     flowId: writable(null),
-    nodes: createNodesStore(nodes, nodeLookup, parentLookup, storeNodeOrigin, storeNodeExtent),
+    nodes: createNodesStore(nodes, nodeLookup, parentLookup, storeNodeOrigin, storeNodeExtent, fitViewQueued, fitViewOptions, fitViewResolver, panZoom, widthStore, heightStore, minZoom, maxZoom),
     nodeLookup: readable(nodeLookup),
     parentLookup: readable(parentLookup),
     edgeLookup: readable(edgeLookup),
@@ -1873,20 +1880,20 @@ const getInitialStore = ({ nodes = [], edges = [], width, height, fitView: fitVi
     edges: createEdgesStore(edges, connectionLookup, edgeLookup),
     visibleEdges: readable([]),
     connectionLookup: readable(connectionLookup),
-    height: writable(500),
-    width: writable(500),
-    minZoom: writable(0.5),
-    maxZoom: writable(2),
+    width: widthStore,
+    height: heightStore,
+    minZoom,
+    maxZoom,
     nodeOrigin: writable(storeNodeOrigin),
     nodeDragThreshold: writable(1),
     nodeExtent: writable(storeNodeExtent),
     translateExtent: writable(infiniteExtent),
     autoPanOnNodeDrag: writable(true),
     autoPanOnConnect: writable(true),
-    fitViewOnInit: writable(false),
-    fitViewOnInitDone: writable(false),
-    fitViewOptions: writable(void 0),
-    panZoom: writable(null),
+    fitViewQueued,
+    fitViewOptions,
+    fitViewResolver,
+    panZoom,
     snapGrid: writable(null),
     dragging: writable(false),
     selectionRect: writable(null),
@@ -2038,18 +2045,12 @@ function createStore({ nodes, edges, width, height, fitView: fitViewOnCreate, no
   };
   function updateNodeInternals$1(updates) {
     const nodeLookup = get_store_value(store.nodeLookup);
+    const parentLookup = get_store_value(store.parentLookup);
     const { changes, updatedInternals } = updateNodeInternals(updates, nodeLookup, get_store_value(store.parentLookup), get_store_value(store.domNode), get_store_value(store.nodeOrigin));
     if (!updatedInternals) {
       return;
     }
-    if (!get_store_value(store.fitViewOnInitDone) && get_store_value(store.fitViewOnInit)) {
-      const fitViewOptions = get_store_value(store.fitViewOptions);
-      const fitViewOnInitDone = fitViewSync({
-        ...fitViewOptions,
-        nodes: fitViewOptions?.nodes
-      });
-      store.fitViewOnInitDone.set(fitViewOnInitDone);
-    }
+    updateAbsolutePositions(nodeLookup, parentLookup, { nodeOrigin, nodeExtent });
     for (const change of changes) {
       const node = nodeLookup.get(change.id)?.internals.userNode;
       if (!node) {
@@ -2075,36 +2076,13 @@ function createStore({ nodes, edges, width, height, fitView: fitViewOnCreate, no
       store.nodesInitialized.set(true);
     }
   }
-  function fitView$1(options) {
-    const panZoom = get_store_value(store.panZoom);
-    if (!panZoom) {
-      return Promise.resolve(false);
-    }
-    const fitViewNodes = getFitViewNodes(get_store_value(store.nodeLookup), options);
-    return fitView({
-      nodes: fitViewNodes,
-      width: get_store_value(store.width),
-      height: get_store_value(store.height),
-      minZoom: get_store_value(store.minZoom),
-      maxZoom: get_store_value(store.maxZoom),
-      panZoom
-    }, options);
-  }
-  function fitViewSync(options) {
-    const panZoom = get_store_value(store.panZoom);
-    if (!panZoom) {
-      return false;
-    }
-    const fitViewNodes = getFitViewNodes(get_store_value(store.nodeLookup), options);
-    fitView({
-      nodes: fitViewNodes,
-      width: get_store_value(store.width),
-      height: get_store_value(store.height),
-      minZoom: get_store_value(store.minZoom),
-      maxZoom: get_store_value(store.maxZoom),
-      panZoom
-    }, options);
-    return fitViewNodes.size > 0;
+  function fitView(options) {
+    const fitViewResolver = get_store_value(store.fitViewResolver) ?? withResolvers();
+    store.fitViewQueued.set(true);
+    store.fitViewOptions.set(options);
+    store.fitViewResolver.set(fitViewResolver);
+    store.nodes.set(get_store_value(store.nodes));
+    return fitViewResolver.promise;
   }
   function zoomBy(factor, options) {
     const panZoom = get_store_value(store.panZoom);
@@ -2247,7 +2225,6 @@ function createStore({ nodes, edges, width, height, fitView: fitViewOnCreate, no
     _connection.set(initialConnection);
   }
   function reset() {
-    store.fitViewOnInitDone.set(false);
     store.selectionRect.set(null);
     store.selectionRectMode.set(null);
     store.snapGrid.set(null);
@@ -2296,7 +2273,7 @@ function createStore({ nodes, edges, width, height, fitView: fitViewOnCreate, no
     updateNodeInternals: updateNodeInternals$1,
     zoomIn,
     zoomOut,
-    fitView: (options) => fitView$1(options),
+    fitView: (options) => fitView(options),
     setMinZoom,
     setMaxZoom,
     setTranslateExtent,
@@ -2318,8 +2295,8 @@ function useStore() {
   }
   return store.getStore();
 }
-function createStoreContext({ nodes, edges, width, height, fitView: fitView2, nodeOrigin, nodeExtent }) {
-  const store = createStore({ nodes, edges, width, height, fitView: fitView2, nodeOrigin, nodeExtent });
+function createStoreContext({ nodes, edges, width, height, fitView, nodeOrigin, nodeExtent }) {
+  const store = createStore({ nodes, edges, width, height, fitView, nodeOrigin, nodeExtent });
   setContext(key, {
     getStore: () => store
   });
@@ -2384,7 +2361,7 @@ const Zoom = create_ssr_component(($$result, $$props, $$bindings, slots) => {
 });
 const css$6 = {
   code: ".svelte-flow__pane.svelte-1esy7hx{position:absolute;top:0;left:0;width:100%;height:100%}",
-  map: `{"version":3,"file":"Pane.svelte","sources":["Pane.svelte"],"sourcesContent":["<script context=\\"module\\">export function wrapHandler(handler, container) {\\n    return (event) => {\\n        if (event.target !== container) {\\n            return;\\n        }\\n        handler?.(event);\\n    };\\n}\\nexport function toggleSelected(ids) {\\n    return (item) => {\\n        const isSelected = ids.includes(item.id);\\n        if (item.selected !== isSelected) {\\n            item.selected = isSelected;\\n        }\\n        return item;\\n    };\\n}\\n<\/script>\\n\\n<script>import { createEventDispatcher } from 'svelte';\\nimport { SelectionMode, getEventPosition, getNodesInside, getConnectedEdges } from '@xyflow/system';\\nimport { useStore } from '../../store';\\nexport let panOnDrag = undefined;\\nexport let selectionOnDrag = undefined;\\nconst dispatch = createEventDispatcher();\\nconst { nodes, nodeLookup, edges, viewport, dragging, elementsSelectable, selectionRect, selectionRectMode, selectionKeyPressed, selectionMode, panActivationKeyPressed, unselectNodesAndEdges } = useStore();\\nlet container;\\nlet containerBounds = null;\\nlet selectedNodes = [];\\n$: _panOnDrag = $panActivationKeyPressed || panOnDrag;\\n$: isSelecting =\\n    $selectionKeyPressed || $selectionRect || (selectionOnDrag && _panOnDrag !== true);\\n$: hasActiveSelection = $elementsSelectable && (isSelecting || $selectionRectMode === 'user');\\n// Used to prevent click events when the user lets go of the selectionKey during a selection\\nlet selectionInProgress = false;\\nfunction onClick(event) {\\n    // We prevent click events when the user let go of the selectionKey during a selection\\n    if (selectionInProgress) {\\n        selectionInProgress = false;\\n        return;\\n    }\\n    dispatch('paneclick', { event });\\n    unselectNodesAndEdges();\\n    selectionRectMode.set(null);\\n}\\nfunction onPointerDown(event) {\\n    containerBounds = container.getBoundingClientRect();\\n    if (!elementsSelectable ||\\n        !isSelecting ||\\n        event.button !== 0 ||\\n        event.target !== container ||\\n        !containerBounds) {\\n        return;\\n    }\\n    event.target?.setPointerCapture?.(event.pointerId);\\n    const { x, y } = getEventPosition(event, containerBounds);\\n    unselectNodesAndEdges();\\n    selectionRect.set({\\n        width: 0,\\n        height: 0,\\n        startX: x,\\n        startY: y,\\n        x,\\n        y\\n    });\\n    // onSelectionStart?.(event);\\n}\\nfunction onPointerMove(event) {\\n    if (!isSelecting || !containerBounds || !$selectionRect) {\\n        return;\\n    }\\n    selectionInProgress = true;\\n    const mousePos = getEventPosition(event, containerBounds);\\n    const startX = $selectionRect.startX ?? 0;\\n    const startY = $selectionRect.startY ?? 0;\\n    const nextUserSelectRect = {\\n        ...$selectionRect,\\n        x: mousePos.x < startX ? mousePos.x : startX,\\n        y: mousePos.y < startY ? mousePos.y : startY,\\n        width: Math.abs(mousePos.x - startX),\\n        height: Math.abs(mousePos.y - startY)\\n    };\\n    const prevSelectedNodeIds = selectedNodes.map((n) => n.id);\\n    const prevSelectedEdgeIds = getConnectedEdges(selectedNodes, $edges).map((e) => e.id);\\n    selectedNodes = getNodesInside($nodeLookup, nextUserSelectRect, [$viewport.x, $viewport.y, $viewport.zoom], $selectionMode === SelectionMode.Partial, true);\\n    const selectedEdgeIds = getConnectedEdges(selectedNodes, $edges).map((e) => e.id);\\n    const selectedNodeIds = selectedNodes.map((n) => n.id);\\n    // this prevents unnecessary updates while updating the selection rectangle\\n    if (prevSelectedNodeIds.length !== selectedNodeIds.length ||\\n        selectedNodeIds.some((id) => !prevSelectedNodeIds.includes(id))) {\\n        nodes.update((nodes) => nodes.map(toggleSelected(selectedNodeIds)));\\n    }\\n    if (prevSelectedEdgeIds.length !== selectedEdgeIds.length ||\\n        selectedEdgeIds.some((id) => !prevSelectedEdgeIds.includes(id))) {\\n        edges.update((edges) => edges.map(toggleSelected(selectedEdgeIds)));\\n    }\\n    selectionRectMode.set('user');\\n    selectionRect.set(nextUserSelectRect);\\n}\\nfunction onPointerUp(event) {\\n    if (event.button !== 0) {\\n        return;\\n    }\\n    event.target?.releasePointerCapture?.(event.pointerId);\\n    // We only want to trigger click functions when in selection mode if\\n    // the user did not move the mouse.\\n    if (!isSelecting && $selectionRectMode === 'user' && event.target === container) {\\n        onClick?.(event);\\n    }\\n    selectionRect.set(null);\\n    if (selectedNodes.length > 0) {\\n        $selectionRectMode = 'nodes';\\n    }\\n    // If the user kept holding the selectionKey during the selection,\\n    // we need to reset the selectionInProgress, so the next click event is not prevented\\n    if ($selectionKeyPressed) {\\n        selectionInProgress = false;\\n    }\\n    // onSelectionEnd?.(event);\\n}\\nconst onContextMenu = (event) => {\\n    if (Array.isArray(_panOnDrag) && _panOnDrag?.includes(2)) {\\n        event.preventDefault();\\n        return;\\n    }\\n    dispatch('panecontextmenu', { event });\\n};\\n<\/script>\\n\\n<!-- svelte-ignore a11y-no-static-element-interactions -->\\n<!-- svelte-ignore a11y-click-events-have-key-events -->\\n<div\\n  bind:this={container}\\n  class=\\"svelte-flow__pane\\"\\n  class:draggable={panOnDrag === true || (Array.isArray(panOnDrag) && panOnDrag.includes(0))}\\n  class:dragging={$dragging}\\n  class:selection={isSelecting}\\n  on:click={hasActiveSelection ? undefined : wrapHandler(onClick, container)}\\n  on:pointerdown={hasActiveSelection ? onPointerDown : undefined}\\n  on:pointermove={hasActiveSelection ? onPointerMove : undefined}\\n  on:pointerup={hasActiveSelection ? onPointerUp : undefined}\\n  on:contextmenu={wrapHandler(onContextMenu, container)}\\n>\\n  <slot />\\n</div>\\n\\n<style>\\n  .svelte-flow__pane {\\n    position: absolute;\\n    top: 0;\\n    left: 0;\\n    width: 100%;\\n    height: 100%;\\n  }\\n</style>\\n"],"names":[],"mappings":"AAmJE,iCAAmB,CACjB,QAAQ,CAAE,QAAQ,CAClB,GAAG,CAAE,CAAC,CACN,IAAI,CAAE,CAAC,CACP,KAAK,CAAE,IAAI,CACX,MAAM,CAAE,IACV"}`
+  map: `{"version":3,"file":"Pane.svelte","sources":["Pane.svelte"],"sourcesContent":["<script context=\\"module\\">export function wrapHandler(handler, container) {\\n    return (event) => {\\n        if (event.target !== container) {\\n            return;\\n        }\\n        handler?.(event);\\n    };\\n}\\nexport function toggleSelected(ids) {\\n    return (item) => {\\n        const isSelected = ids.includes(item.id);\\n        if (item.selected !== isSelected) {\\n            item.selected = isSelected;\\n        }\\n        return item;\\n    };\\n}\\n<\/script>\\n\\n<script>import { createEventDispatcher } from 'svelte';\\nimport { SelectionMode, getEventPosition, getNodesInside, getConnectedEdges } from '@xyflow/system';\\nimport { useStore } from '../../store';\\nexport let panOnDrag = undefined;\\nexport let selectionOnDrag = undefined;\\nconst dispatch = createEventDispatcher();\\nconst { nodes, nodeLookup, edges, viewport, dragging, elementsSelectable, selectionRect, selectionRectMode, selectionKeyPressed, selectionMode, panActivationKeyPressed, unselectNodesAndEdges, connection, } = useStore();\\nlet container;\\nlet containerBounds = null;\\nlet selectedNodes = [];\\n$: _panOnDrag = $panActivationKeyPressed || panOnDrag;\\n$: isSelecting =\\n    $selectionKeyPressed || $selectionRect || (selectionOnDrag && _panOnDrag !== true);\\n$: hasActiveSelection = $elementsSelectable && (isSelecting || $selectionRectMode === 'user');\\n// Used to prevent click events when the user lets go of the selectionKey during a selection\\nlet selectionInProgress = false;\\nfunction onClick(event) {\\n    // We prevent click events when the user let go of the selectionKey during a selection\\n    // We also prevent click events when a connection is in progress\\n    if (selectionInProgress || $connection.inProgress) {\\n        selectionInProgress = false;\\n        return;\\n    }\\n    dispatch('paneclick', { event });\\n    unselectNodesAndEdges();\\n    selectionRectMode.set(null);\\n}\\nfunction onPointerDown(event) {\\n    containerBounds = container.getBoundingClientRect();\\n    if (!elementsSelectable ||\\n        !isSelecting ||\\n        event.button !== 0 ||\\n        event.target !== container ||\\n        !containerBounds) {\\n        return;\\n    }\\n    event.target?.setPointerCapture?.(event.pointerId);\\n    const { x, y } = getEventPosition(event, containerBounds);\\n    unselectNodesAndEdges();\\n    selectionRect.set({\\n        width: 0,\\n        height: 0,\\n        startX: x,\\n        startY: y,\\n        x,\\n        y\\n    });\\n    // onSelectionStart?.(event);\\n}\\nfunction onPointerMove(event) {\\n    if (!isSelecting || !containerBounds || !$selectionRect) {\\n        return;\\n    }\\n    selectionInProgress = true;\\n    const mousePos = getEventPosition(event, containerBounds);\\n    const startX = $selectionRect.startX ?? 0;\\n    const startY = $selectionRect.startY ?? 0;\\n    const nextUserSelectRect = {\\n        ...$selectionRect,\\n        x: mousePos.x < startX ? mousePos.x : startX,\\n        y: mousePos.y < startY ? mousePos.y : startY,\\n        width: Math.abs(mousePos.x - startX),\\n        height: Math.abs(mousePos.y - startY)\\n    };\\n    const prevSelectedNodeIds = selectedNodes.map((n) => n.id);\\n    const prevSelectedEdgeIds = getConnectedEdges(selectedNodes, $edges).map((e) => e.id);\\n    selectedNodes = getNodesInside($nodeLookup, nextUserSelectRect, [$viewport.x, $viewport.y, $viewport.zoom], $selectionMode === SelectionMode.Partial, true);\\n    const selectedEdgeIds = getConnectedEdges(selectedNodes, $edges).map((e) => e.id);\\n    const selectedNodeIds = selectedNodes.map((n) => n.id);\\n    // this prevents unnecessary updates while updating the selection rectangle\\n    if (prevSelectedNodeIds.length !== selectedNodeIds.length ||\\n        selectedNodeIds.some((id) => !prevSelectedNodeIds.includes(id))) {\\n        nodes.update((nodes) => nodes.map(toggleSelected(selectedNodeIds)));\\n    }\\n    if (prevSelectedEdgeIds.length !== selectedEdgeIds.length ||\\n        selectedEdgeIds.some((id) => !prevSelectedEdgeIds.includes(id))) {\\n        edges.update((edges) => edges.map(toggleSelected(selectedEdgeIds)));\\n    }\\n    selectionRectMode.set('user');\\n    selectionRect.set(nextUserSelectRect);\\n}\\nfunction onPointerUp(event) {\\n    if (event.button !== 0) {\\n        return;\\n    }\\n    event.target?.releasePointerCapture?.(event.pointerId);\\n    // We only want to trigger click functions when in selection mode if\\n    // the user did not move the mouse.\\n    if (!isSelecting && $selectionRectMode === 'user' && event.target === container) {\\n        onClick?.(event);\\n    }\\n    selectionRect.set(null);\\n    if (selectedNodes.length > 0) {\\n        $selectionRectMode = 'nodes';\\n    }\\n    // If the user kept holding the selectionKey during the selection,\\n    // we need to reset the selectionInProgress, so the next click event is not prevented\\n    if ($selectionKeyPressed) {\\n        selectionInProgress = false;\\n    }\\n    // onSelectionEnd?.(event);\\n}\\nconst onContextMenu = (event) => {\\n    if (Array.isArray(_panOnDrag) && _panOnDrag?.includes(2)) {\\n        event.preventDefault();\\n        return;\\n    }\\n    dispatch('panecontextmenu', { event });\\n};\\n<\/script>\\n\\n<!-- svelte-ignore a11y-no-static-element-interactions -->\\n<!-- svelte-ignore a11y-click-events-have-key-events -->\\n<div\\n  bind:this={container}\\n  class=\\"svelte-flow__pane\\"\\n  class:draggable={panOnDrag === true || (Array.isArray(panOnDrag) && panOnDrag.includes(0))}\\n  class:dragging={$dragging}\\n  class:selection={isSelecting}\\n  on:click={hasActiveSelection ? undefined : wrapHandler(onClick, container)}\\n  on:pointerdown={hasActiveSelection ? onPointerDown : undefined}\\n  on:pointermove={hasActiveSelection ? onPointerMove : undefined}\\n  on:pointerup={hasActiveSelection ? onPointerUp : undefined}\\n  on:contextmenu={wrapHandler(onContextMenu, container)}\\n>\\n  <slot />\\n</div>\\n\\n<style>\\n  .svelte-flow__pane {\\n    position: absolute;\\n    top: 0;\\n    left: 0;\\n    width: 100%;\\n    height: 100%;\\n  }\\n</style>\\n"],"names":[],"mappings":"AAoJE,iCAAmB,CACjB,QAAQ,CAAE,QAAQ,CAClB,GAAG,CAAE,CAAC,CACN,IAAI,CAAE,CAAC,CACP,KAAK,CAAE,IAAI,CACX,MAAM,CAAE,IACV"}`
 };
 const Pane = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   let _panOnDrag;
@@ -2396,13 +2373,14 @@ const Pane = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   let $$unsubscribe_viewport;
   let $$unsubscribe_nodeLookup;
   let $selectionRect, $$unsubscribe_selectionRect;
+  let $$unsubscribe_connection;
   let $$unsubscribe_elementsSelectable;
   let $panActivationKeyPressed, $$unsubscribe_panActivationKeyPressed;
   let $dragging, $$unsubscribe_dragging;
   let { panOnDrag = void 0 } = $$props;
   let { selectionOnDrag = void 0 } = $$props;
   createEventDispatcher();
-  const { nodes, nodeLookup, edges, viewport, dragging, elementsSelectable, selectionRect, selectionRectMode, selectionKeyPressed, selectionMode, panActivationKeyPressed, unselectNodesAndEdges } = useStore();
+  const { nodes, nodeLookup, edges, viewport, dragging, elementsSelectable, selectionRect, selectionRectMode, selectionKeyPressed, selectionMode, panActivationKeyPressed, unselectNodesAndEdges, connection } = useStore();
   $$unsubscribe_nodeLookup = subscribe(nodeLookup, (value) => value);
   $$unsubscribe_edges = subscribe(edges, (value) => value);
   $$unsubscribe_viewport = subscribe(viewport, (value) => value);
@@ -2413,6 +2391,7 @@ const Pane = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   $$unsubscribe_selectionKeyPressed = subscribe(selectionKeyPressed, (value) => $selectionKeyPressed = value);
   $$unsubscribe_selectionMode = subscribe(selectionMode, (value) => value);
   $$unsubscribe_panActivationKeyPressed = subscribe(panActivationKeyPressed, (value) => $panActivationKeyPressed = value);
+  $$unsubscribe_connection = subscribe(connection, (value) => value);
   let container;
   if ($$props.panOnDrag === void 0 && $$bindings.panOnDrag && panOnDrag !== void 0) $$bindings.panOnDrag(panOnDrag);
   if ($$props.selectionOnDrag === void 0 && $$bindings.selectionOnDrag && selectionOnDrag !== void 0) $$bindings.selectionOnDrag(selectionOnDrag);
@@ -2426,6 +2405,7 @@ const Pane = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   $$unsubscribe_viewport();
   $$unsubscribe_nodeLookup();
   $$unsubscribe_selectionRect();
+  $$unsubscribe_connection();
   $$unsubscribe_elementsSelectable();
   $$unsubscribe_panActivationKeyPressed();
   $$unsubscribe_dragging();
@@ -2466,6 +2446,8 @@ const NodeWrapper = create_ssr_component(($$result, $$props, $$bindings, slots) 
   let nodeComponent;
   let inlineStyleDimensions;
   let $nodeTypes, $$unsubscribe_nodeTypes;
+  let $elementsSelectable, $$unsubscribe_elementsSelectable;
+  let $nodesDraggable, $$unsubscribe_nodesDraggable;
   let $connectableStore, $$unsubscribe_connectableStore;
   let { node } = $$props;
   let { id } = $$props;
@@ -2498,8 +2480,10 @@ const NodeWrapper = create_ssr_component(($$result, $$props, $$bindings, slots) 
   let { nodeClickDistance = void 0 } = $$props;
   let { class: className = "" } = $$props;
   const store = useStore();
-  const { nodeTypes, nodeDragThreshold, selectNodesOnDrag, handleNodeSelection, updateNodeInternals: updateNodeInternals2 } = store;
+  const { nodeTypes, nodeDragThreshold, selectNodesOnDrag, handleNodeSelection, updateNodeInternals: updateNodeInternals2, elementsSelectable, nodesDraggable } = store;
   $$unsubscribe_nodeTypes = subscribe(nodeTypes, (value) => $nodeTypes = value);
+  $$unsubscribe_elementsSelectable = subscribe(elementsSelectable, (value) => $elementsSelectable = value);
+  $$unsubscribe_nodesDraggable = subscribe(nodesDraggable, (value) => $nodesDraggable = value);
   let nodeRef;
   let prevNodeRef = null;
   createEventDispatcher();
@@ -2588,6 +2572,8 @@ const NodeWrapper = create_ssr_component(($$result, $$props, $$bindings, slots) 
     }
   }
   $$unsubscribe_nodeTypes();
+  $$unsubscribe_elementsSelectable();
+  $$unsubscribe_nodesDraggable();
   $$unsubscribe_connectableStore();
   return `    ${!hidden ? `<div${add_attribute("data-id", id, 0)} class="${[
     escape(cc(["svelte-flow__node", `svelte-flow__node-${nodeType}`, className]), true),
@@ -2601,14 +2587,14 @@ const NodeWrapper = create_ssr_component(($$result, $$props, $$bindings, slots) 
     {
       data,
       id,
-      selected,
-      selectable,
-      deletable,
+      selected: selected ?? false,
+      selectable: selectable ?? $elementsSelectable ?? true,
+      deletable: deletable ?? true,
       sourcePosition,
       targetPosition,
       zIndex,
       dragging,
-      draggable,
+      draggable: draggable ?? $nodesDraggable ?? true,
       dragHandle,
       parentId,
       type: nodeType,
@@ -3000,7 +2986,7 @@ const KeyHandler = create_ssr_component(($$result, $$props, $$bindings, slots) =
   let { deleteKey = "Backspace" } = $$props;
   let { panActivationKey = " " } = $$props;
   let { zoomActivationKey = isMacOs() ? "Meta" : "Control" } = $$props;
-  useStore();
+  const { selectionKeyPressed, multiselectionKeyPressed, deleteKeyPressed, panActivationKeyPressed, zoomActivationKeyPressed, selectionRect } = useStore();
   if ($$props.selectionKey === void 0 && $$bindings.selectionKey && selectionKey !== void 0) $$bindings.selectionKey(selectionKey);
   if ($$props.multiSelectionKey === void 0 && $$bindings.multiSelectionKey && multiSelectionKey !== void 0) $$bindings.multiSelectionKey(multiSelectionKey);
   if ($$props.deleteKey === void 0 && $$bindings.deleteKey && deleteKey !== void 0) $$bindings.deleteKey(deleteKey);
@@ -3158,8 +3144,8 @@ function useColorModeClass(colorMode = "light") {
   return colorModeClass;
 }
 const css$1 = {
-  code: ".svelte-flow.svelte-12wlba6{width:100%;height:100%;overflow:hidden;position:relative;z-index:0;background-color:var(--background-color, var(--background-color-default))}:root{--background-color-default:#fff;--background-pattern-color-default:#ddd;--minimap-mask-color-default:rgb(240, 240, 240, 0.6);--minimap-mask-stroke-color-default:none;--minimap-mask-stroke-width-default:1;--controls-button-background-color-default:#fefefe;--controls-button-background-color-hover-default:#f4f4f4;--controls-button-color-default:inherit;--controls-button-color-hover-default:inherit;--controls-button-border-color-default:#eee}",
-  map: `{"version":3,"file":"SvelteFlow.svelte","sources":["SvelteFlow.svelte"],"sourcesContent":["<script>import { onMount, hasContext } from 'svelte';\\nimport { get } from 'svelte/store';\\nimport cc from 'classcat';\\nimport { ConnectionMode, PanOnScrollMode } from '@xyflow/system';\\nimport { Zoom } from '../Zoom';\\nimport { Pane } from '../Pane';\\nimport { Viewport as ViewportComponent } from '../Viewport';\\nimport { NodeRenderer } from '../NodeRenderer';\\nimport { EdgeRenderer } from '../EdgeRenderer';\\nimport { UserSelection } from '../../components/UserSelection';\\nimport { NodeSelection } from '../../components/NodeSelection';\\nimport { KeyHandler } from '../../components/KeyHandler';\\nimport { ConnectionLine } from '../../components/ConnectionLine';\\nimport { Attribution } from '../../components/Attribution';\\nimport { key, useStore, createStoreContext } from '../../store';\\nimport { updateStore, updateStoreByKeys } from './utils';\\nimport { useColorModeClass } from '../../hooks/useColorModeClass';\\nexport let id = '1';\\nexport let nodes;\\nexport let edges;\\nexport let fitView = undefined;\\nexport let fitViewOptions = undefined;\\nexport let minZoom = undefined;\\nexport let maxZoom = undefined;\\nexport let initialViewport = undefined;\\nexport let viewport = undefined;\\nexport let nodeTypes = undefined;\\nexport let edgeTypes = undefined;\\nexport let selectionKey = undefined;\\nexport let selectionMode = undefined;\\nexport let panActivationKey = undefined;\\nexport let multiSelectionKey = undefined;\\nexport let zoomActivationKey = undefined;\\nexport let nodesDraggable = undefined;\\nexport let nodesConnectable = undefined;\\nexport let nodeDragThreshold = undefined;\\nexport let elementsSelectable = undefined;\\nexport let snapGrid = undefined;\\nexport let deleteKey = undefined;\\nexport let connectionRadius = undefined;\\nexport let connectionLineType = undefined;\\nexport let connectionMode = ConnectionMode.Strict;\\nexport let connectionLineStyle = '';\\nexport let connectionLineContainerStyle = '';\\nexport let onMoveStart = undefined;\\nexport let onMove = undefined;\\nexport let onMoveEnd = undefined;\\nexport let isValidConnection = undefined;\\nexport let translateExtent = undefined;\\nexport let nodeExtent = undefined;\\nexport let onlyRenderVisibleElements = undefined;\\nexport let panOnScrollMode = PanOnScrollMode.Free;\\nexport let preventScrolling = true;\\nexport let zoomOnScroll = true;\\nexport let zoomOnDoubleClick = true;\\nexport let zoomOnPinch = true;\\nexport let panOnScroll = false;\\nexport let panOnDrag = true;\\nexport let selectionOnDrag = undefined;\\nexport let autoPanOnConnect = true;\\nexport let autoPanOnNodeDrag = true;\\nexport let onerror = undefined;\\nexport let ondelete = undefined;\\nexport let onedgecreate = undefined;\\nexport let attributionPosition = undefined;\\nexport let proOptions = undefined;\\nexport let defaultEdgeOptions = undefined;\\nexport let width = undefined;\\nexport let height = undefined;\\nexport let colorMode = 'light';\\nexport let onconnect = undefined;\\nexport let onconnectstart = undefined;\\nexport let onconnectend = undefined;\\nexport let onbeforedelete = undefined;\\nexport let oninit = undefined;\\nexport let nodeOrigin = undefined;\\nexport let paneClickDistance = 0;\\nexport let nodeClickDistance = 0;\\nexport let defaultMarkerColor = '#b1b1b7';\\nexport let style = undefined;\\nlet className = undefined;\\nexport { className as class };\\nlet domNode;\\nlet clientWidth;\\nlet clientHeight;\\nconst initViewport = $viewport || initialViewport;\\nconst store = hasContext(key)\\n    ? useStore()\\n    : createStoreContext({\\n        nodes: get(nodes),\\n        edges: get(edges),\\n        width,\\n        height,\\n        fitView,\\n        nodeOrigin,\\n        nodeExtent\\n    });\\nonMount(() => {\\n    store.width.set(clientWidth);\\n    store.height.set(clientHeight);\\n    store.domNode.set(domNode);\\n    store.syncNodeStores(nodes);\\n    store.syncEdgeStores(edges);\\n    store.syncViewport(viewport);\\n    if (fitView !== undefined) {\\n        store.fitViewOnInit.set(fitView);\\n    }\\n    if (fitViewOptions) {\\n        store.fitViewOptions.set(fitViewOptions);\\n    }\\n    updateStore(store, {\\n        nodeTypes,\\n        edgeTypes,\\n        minZoom,\\n        maxZoom,\\n        translateExtent,\\n        paneClickDistance\\n    });\\n    return () => {\\n        store.reset();\\n    };\\n});\\n// Update width & height on resize\\n$: {\\n    if (clientWidth !== undefined && clientHeight !== undefined) {\\n        store.width.set(clientWidth);\\n        store.height.set(clientHeight);\\n    }\\n}\\n// Call oninit once when flow is intialized\\nconst { initialized } = store;\\nlet onInitCalled = false;\\n$: {\\n    if (!onInitCalled && $initialized) {\\n        oninit?.();\\n        onInitCalled = true;\\n    }\\n}\\n// this updates the store for simple changes\\n// where the prop names equals the store name\\n$: {\\n    const updatableProps = {\\n        flowId: id,\\n        connectionLineType,\\n        connectionRadius,\\n        selectionMode,\\n        snapGrid,\\n        defaultMarkerColor,\\n        nodesDraggable,\\n        nodesConnectable,\\n        elementsSelectable,\\n        onlyRenderVisibleElements,\\n        isValidConnection,\\n        autoPanOnConnect,\\n        autoPanOnNodeDrag,\\n        onerror,\\n        ondelete,\\n        onedgecreate,\\n        connectionMode,\\n        nodeDragThreshold,\\n        onconnect,\\n        onconnectstart,\\n        onconnectend,\\n        onbeforedelete,\\n        nodeOrigin\\n    };\\n    updateStoreByKeys(store, updatableProps);\\n}\\n$: updateStore(store, {\\n    nodeTypes,\\n    edgeTypes,\\n    minZoom,\\n    maxZoom,\\n    translateExtent,\\n    paneClickDistance\\n});\\n$: colorModeClass = useColorModeClass(colorMode);\\n<\/script>\\n\\n<div\\n  bind:this={domNode}\\n  bind:clientWidth\\n  bind:clientHeight\\n  {style}\\n  class={cc(['svelte-flow', className, $colorModeClass])}\\n  data-testid=\\"svelte-flow__wrapper\\"\\n  on:dragover\\n  on:drop\\n  {...$$restProps}\\n  role=\\"application\\"\\n>\\n  <KeyHandler\\n    {selectionKey}\\n    {deleteKey}\\n    {panActivationKey}\\n    {multiSelectionKey}\\n    {zoomActivationKey}\\n  />\\n  <Zoom\\n    initialViewport={initViewport}\\n    {onMoveStart}\\n    {onMove}\\n    {onMoveEnd}\\n    panOnScrollMode={panOnScrollMode === undefined ? PanOnScrollMode.Free : panOnScrollMode}\\n    preventScrolling={preventScrolling === undefined ? true : preventScrolling}\\n    zoomOnScroll={zoomOnScroll === undefined ? true : zoomOnScroll}\\n    zoomOnDoubleClick={zoomOnDoubleClick === undefined ? true : zoomOnDoubleClick}\\n    zoomOnPinch={zoomOnPinch === undefined ? true : zoomOnPinch}\\n    panOnScroll={panOnScroll === undefined ? false : panOnScroll}\\n    panOnDrag={panOnDrag === undefined ? true : panOnDrag}\\n    paneClickDistance={paneClickDistance === undefined ? 0 : paneClickDistance}\\n  >\\n    <Pane\\n      on:paneclick\\n      on:panecontextmenu\\n      panOnDrag={panOnDrag === undefined ? true : panOnDrag}\\n      {selectionOnDrag}\\n    >\\n      <ViewportComponent>\\n        <EdgeRenderer\\n          on:edgeclick\\n          on:edgecontextmenu\\n          on:edgemouseenter\\n          on:edgemouseleave\\n          {defaultEdgeOptions}\\n        />\\n        <ConnectionLine\\n          containerStyle={connectionLineContainerStyle}\\n          style={connectionLineStyle}\\n          isCustomComponent={$$slots.connectionLine}\\n        >\\n          <slot name=\\"connectionLine\\" slot=\\"connectionLine\\" />\\n        </ConnectionLine>\\n        <div class=\\"svelte-flow__edgelabel-renderer\\" />\\n        <div class=\\"svelte-flow__viewport-portal\\" />\\n        <NodeRenderer\\n          {nodeClickDistance}\\n          on:nodeclick\\n          on:nodemouseenter\\n          on:nodemousemove\\n          on:nodemouseleave\\n          on:nodedragstart\\n          on:nodedrag\\n          on:nodedragstop\\n          on:nodecontextmenu\\n        />\\n        <NodeSelection\\n          on:selectionclick\\n          on:selectioncontextmenu\\n          on:nodedragstart\\n          on:nodedrag\\n          on:nodedragstop\\n        />\\n      </ViewportComponent>\\n      <UserSelection />\\n    </Pane>\\n  </Zoom>\\n  <Attribution {proOptions} position={attributionPosition} />\\n  <slot />\\n</div>\\n\\n<style>\\n  .svelte-flow {\\n    width: 100%;\\n    height: 100%;\\n    overflow: hidden;\\n    position: relative;\\n    z-index: 0;\\n\\n    background-color: var(--background-color, var(--background-color-default));\\n  }\\n\\n  :root {\\n    --background-color-default: #fff;\\n    --background-pattern-color-default: #ddd;\\n\\n    --minimap-mask-color-default: rgb(240, 240, 240, 0.6);\\n    --minimap-mask-stroke-color-default: none;\\n    --minimap-mask-stroke-width-default: 1;\\n\\n    --controls-button-background-color-default: #fefefe;\\n    --controls-button-background-color-hover-default: #f4f4f4;\\n    --controls-button-color-default: inherit;\\n    --controls-button-color-hover-default: inherit;\\n    --controls-button-border-color-default: #eee;\\n  }\\n</style>\\n"],"names":[],"mappings":"AAsQE,2BAAa,CACX,KAAK,CAAE,IAAI,CACX,MAAM,CAAE,IAAI,CACZ,QAAQ,CAAE,MAAM,CAChB,QAAQ,CAAE,QAAQ,CAClB,OAAO,CAAE,CAAC,CAEV,gBAAgB,CAAE,IAAI,kBAAkB,CAAC,gCAAgC,CAC3E,CAEA,KAAM,CACJ,0BAA0B,CAAE,IAAI,CAChC,kCAAkC,CAAE,IAAI,CAExC,4BAA4B,CAAE,uBAAuB,CACrD,mCAAmC,CAAE,IAAI,CACzC,mCAAmC,CAAE,CAAC,CAEtC,0CAA0C,CAAE,OAAO,CACnD,gDAAgD,CAAE,OAAO,CACzD,+BAA+B,CAAE,OAAO,CACxC,qCAAqC,CAAE,OAAO,CAC9C,sCAAsC,CAAE,IAC1C"}`
+  code: ".svelte-flow.svelte-18e9ir1{width:100%;height:100%;overflow:hidden;position:relative;z-index:0;background-color:var(--background-color, var(--background-color-default))}:root{--background-color-default:#fff;--background-pattern-color-default:#ddd;--minimap-mask-color-default:rgba(240, 240, 240, 0.6);--minimap-mask-stroke-color-default:none;--minimap-mask-stroke-width-default:1;--controls-button-background-color-default:#fefefe;--controls-button-background-color-hover-default:#f4f4f4;--controls-button-color-default:inherit;--controls-button-color-hover-default:inherit;--controls-button-border-color-default:#eee}",
+  map: `{"version":3,"file":"SvelteFlow.svelte","sources":["SvelteFlow.svelte"],"sourcesContent":["<script>import { onMount, hasContext } from 'svelte';\\nimport { get } from 'svelte/store';\\nimport cc from 'classcat';\\nimport { ConnectionMode, PanOnScrollMode } from '@xyflow/system';\\nimport { Zoom } from '../Zoom';\\nimport { Pane } from '../Pane';\\nimport { Viewport as ViewportComponent } from '../Viewport';\\nimport { NodeRenderer } from '../NodeRenderer';\\nimport { EdgeRenderer } from '../EdgeRenderer';\\nimport { UserSelection } from '../../components/UserSelection';\\nimport { NodeSelection } from '../../components/NodeSelection';\\nimport { KeyHandler } from '../../components/KeyHandler';\\nimport { ConnectionLine } from '../../components/ConnectionLine';\\nimport { Attribution } from '../../components/Attribution';\\nimport { key, useStore, createStoreContext } from '../../store';\\nimport { updateStore, updateStoreByKeys } from './utils';\\nimport { useColorModeClass } from '../../hooks/useColorModeClass';\\nexport let id = '1';\\nexport let nodes;\\nexport let edges;\\nexport let fitView = undefined;\\nexport let fitViewOptions = undefined;\\nexport let minZoom = undefined;\\nexport let maxZoom = undefined;\\nexport let initialViewport = undefined;\\nexport let viewport = undefined;\\nexport let nodeTypes = undefined;\\nexport let edgeTypes = undefined;\\nexport let selectionKey = undefined;\\nexport let selectionMode = undefined;\\nexport let panActivationKey = undefined;\\nexport let multiSelectionKey = undefined;\\nexport let zoomActivationKey = undefined;\\nexport let nodesDraggable = undefined;\\nexport let nodesConnectable = undefined;\\nexport let nodeDragThreshold = undefined;\\nexport let elementsSelectable = undefined;\\nexport let snapGrid = undefined;\\nexport let deleteKey = undefined;\\nexport let connectionRadius = undefined;\\nexport let connectionLineType = undefined;\\nexport let connectionMode = ConnectionMode.Strict;\\nexport let connectionLineStyle = '';\\nexport let connectionLineContainerStyle = '';\\nexport let onMoveStart = undefined;\\nexport let onMove = undefined;\\nexport let onMoveEnd = undefined;\\nexport let isValidConnection = undefined;\\nexport let translateExtent = undefined;\\nexport let nodeExtent = undefined;\\nexport let onlyRenderVisibleElements = undefined;\\nexport let panOnScrollMode = PanOnScrollMode.Free;\\nexport let preventScrolling = true;\\nexport let zoomOnScroll = true;\\nexport let zoomOnDoubleClick = true;\\nexport let zoomOnPinch = true;\\nexport let panOnScroll = false;\\nexport let panOnDrag = true;\\nexport let selectionOnDrag = undefined;\\nexport let autoPanOnConnect = true;\\nexport let autoPanOnNodeDrag = true;\\nexport let onerror = undefined;\\nexport let ondelete = undefined;\\nexport let onedgecreate = undefined;\\nexport let attributionPosition = undefined;\\nexport let proOptions = undefined;\\nexport let defaultEdgeOptions = undefined;\\nexport let width = undefined;\\nexport let height = undefined;\\nexport let colorMode = 'light';\\nexport let onconnect = undefined;\\nexport let onconnectstart = undefined;\\nexport let onconnectend = undefined;\\nexport let onbeforedelete = undefined;\\nexport let oninit = undefined;\\nexport let nodeOrigin = undefined;\\nexport let paneClickDistance = 0;\\nexport let nodeClickDistance = 0;\\nexport let defaultMarkerColor = '#b1b1b7';\\nexport let style = undefined;\\nlet className = undefined;\\nexport { className as class };\\nlet domNode;\\nlet clientWidth;\\nlet clientHeight;\\nconst initViewport = $viewport || initialViewport;\\nconst store = hasContext(key)\\n    ? useStore()\\n    : createStoreContext({\\n        nodes: get(nodes),\\n        edges: get(edges),\\n        width,\\n        height,\\n        fitView,\\n        nodeOrigin,\\n        nodeExtent\\n    });\\nonMount(() => {\\n    store.width.set(clientWidth);\\n    store.height.set(clientHeight);\\n    store.domNode.set(domNode);\\n    store.syncNodeStores(nodes);\\n    store.syncEdgeStores(edges);\\n    store.syncViewport(viewport);\\n    if (fitView !== undefined) {\\n        store.fitViewQueued.set(fitView);\\n    }\\n    if (fitViewOptions) {\\n        store.fitViewOptions.set(fitViewOptions);\\n    }\\n    updateStore(store, {\\n        nodeTypes,\\n        edgeTypes,\\n        minZoom,\\n        maxZoom,\\n        translateExtent,\\n        paneClickDistance\\n    });\\n    return () => {\\n        store.reset();\\n    };\\n});\\n// Update width & height on resize\\n$: {\\n    if (clientWidth !== undefined && clientHeight !== undefined) {\\n        store.width.set(clientWidth);\\n        store.height.set(clientHeight);\\n    }\\n}\\n// Call oninit once when flow is intialized\\nconst { initialized } = store;\\nlet onInitCalled = false;\\n$: {\\n    if (!onInitCalled && $initialized) {\\n        oninit?.();\\n        onInitCalled = true;\\n    }\\n}\\n// this updates the store for simple changes\\n// where the prop names equals the store name\\n$: {\\n    const updatableProps = {\\n        flowId: id,\\n        connectionLineType,\\n        connectionRadius,\\n        selectionMode,\\n        snapGrid,\\n        defaultMarkerColor,\\n        nodesDraggable,\\n        nodesConnectable,\\n        elementsSelectable,\\n        onlyRenderVisibleElements,\\n        isValidConnection,\\n        autoPanOnConnect,\\n        autoPanOnNodeDrag,\\n        onerror,\\n        ondelete,\\n        onedgecreate,\\n        connectionMode,\\n        nodeDragThreshold,\\n        onconnect,\\n        onconnectstart,\\n        onconnectend,\\n        onbeforedelete,\\n        nodeOrigin\\n    };\\n    updateStoreByKeys(store, updatableProps);\\n}\\n$: updateStore(store, {\\n    nodeTypes,\\n    edgeTypes,\\n    minZoom,\\n    maxZoom,\\n    translateExtent,\\n    paneClickDistance\\n});\\n$: colorModeClass = useColorModeClass(colorMode);\\n<\/script>\\n\\n<div\\n  bind:this={domNode}\\n  bind:clientWidth\\n  bind:clientHeight\\n  {style}\\n  class={cc(['svelte-flow', className, $colorModeClass])}\\n  data-testid=\\"svelte-flow__wrapper\\"\\n  on:dragover\\n  on:drop\\n  {...$$restProps}\\n  role=\\"application\\"\\n>\\n  <KeyHandler\\n    {selectionKey}\\n    {deleteKey}\\n    {panActivationKey}\\n    {multiSelectionKey}\\n    {zoomActivationKey}\\n  />\\n  <Zoom\\n    initialViewport={initViewport}\\n    {onMoveStart}\\n    {onMove}\\n    {onMoveEnd}\\n    panOnScrollMode={panOnScrollMode === undefined ? PanOnScrollMode.Free : panOnScrollMode}\\n    preventScrolling={preventScrolling === undefined ? true : preventScrolling}\\n    zoomOnScroll={zoomOnScroll === undefined ? true : zoomOnScroll}\\n    zoomOnDoubleClick={zoomOnDoubleClick === undefined ? true : zoomOnDoubleClick}\\n    zoomOnPinch={zoomOnPinch === undefined ? true : zoomOnPinch}\\n    panOnScroll={panOnScroll === undefined ? false : panOnScroll}\\n    panOnDrag={panOnDrag === undefined ? true : panOnDrag}\\n    paneClickDistance={paneClickDistance === undefined ? 0 : paneClickDistance}\\n  >\\n    <Pane\\n      on:paneclick\\n      on:panecontextmenu\\n      panOnDrag={panOnDrag === undefined ? true : panOnDrag}\\n      {selectionOnDrag}\\n    >\\n      <ViewportComponent>\\n        <EdgeRenderer\\n          on:edgeclick\\n          on:edgecontextmenu\\n          on:edgemouseenter\\n          on:edgemouseleave\\n          {defaultEdgeOptions}\\n        />\\n        <ConnectionLine\\n          containerStyle={connectionLineContainerStyle}\\n          style={connectionLineStyle}\\n          isCustomComponent={$$slots.connectionLine}\\n        >\\n          <slot name=\\"connectionLine\\" slot=\\"connectionLine\\" />\\n        </ConnectionLine>\\n        <div class=\\"svelte-flow__edgelabel-renderer\\" />\\n        <div class=\\"svelte-flow__viewport-portal\\" />\\n        <NodeRenderer\\n          {nodeClickDistance}\\n          on:nodeclick\\n          on:nodemouseenter\\n          on:nodemousemove\\n          on:nodemouseleave\\n          on:nodedragstart\\n          on:nodedrag\\n          on:nodedragstop\\n          on:nodecontextmenu\\n        />\\n        <NodeSelection\\n          on:selectionclick\\n          on:selectioncontextmenu\\n          on:nodedragstart\\n          on:nodedrag\\n          on:nodedragstop\\n        />\\n      </ViewportComponent>\\n      <UserSelection />\\n    </Pane>\\n  </Zoom>\\n  <Attribution {proOptions} position={attributionPosition} />\\n  <slot />\\n</div>\\n\\n<style>\\n  .svelte-flow {\\n    width: 100%;\\n    height: 100%;\\n    overflow: hidden;\\n    position: relative;\\n    z-index: 0;\\n\\n    background-color: var(--background-color, var(--background-color-default));\\n  }\\n\\n  :root {\\n    --background-color-default: #fff;\\n    --background-pattern-color-default: #ddd;\\n\\n    --minimap-mask-color-default: rgba(240, 240, 240, 0.6);\\n    --minimap-mask-stroke-color-default: none;\\n    --minimap-mask-stroke-width-default: 1;\\n\\n    --controls-button-background-color-default: #fefefe;\\n    --controls-button-background-color-hover-default: #f4f4f4;\\n    --controls-button-color-default: inherit;\\n    --controls-button-color-hover-default: inherit;\\n    --controls-button-border-color-default: #eee;\\n  }\\n</style>\\n"],"names":[],"mappings":"AAsQE,2BAAa,CACX,KAAK,CAAE,IAAI,CACX,MAAM,CAAE,IAAI,CACZ,QAAQ,CAAE,MAAM,CAChB,QAAQ,CAAE,QAAQ,CAClB,OAAO,CAAE,CAAC,CAEV,gBAAgB,CAAE,IAAI,kBAAkB,CAAC,gCAAgC,CAC3E,CAEA,KAAM,CACJ,0BAA0B,CAAE,IAAI,CAChC,kCAAkC,CAAE,IAAI,CAExC,4BAA4B,CAAE,wBAAwB,CACtD,mCAAmC,CAAE,IAAI,CACzC,mCAAmC,CAAE,CAAC,CAEtC,0CAA0C,CAAE,OAAO,CACnD,gDAAgD,CAAE,OAAO,CACzD,+BAA+B,CAAE,OAAO,CACxC,qCAAqC,CAAE,OAAO,CAC9C,sCAAsC,CAAE,IAC1C"}`
 };
 const SvelteFlow = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   let colorModeClass;
@@ -3236,7 +3222,7 @@ const SvelteFlow = create_ssr_component(($$result, $$props, $$bindings, slots) =
   let { id = "1" } = $$props;
   let { nodes } = $$props;
   let { edges } = $$props;
-  let { fitView: fitView2 = void 0 } = $$props;
+  let { fitView = void 0 } = $$props;
   let { fitViewOptions = void 0 } = $$props;
   let { minZoom = void 0 } = $$props;
   let { maxZoom = void 0 } = $$props;
@@ -3305,7 +3291,7 @@ const SvelteFlow = create_ssr_component(($$result, $$props, $$bindings, slots) =
     edges: get_store_value(edges),
     width,
     height,
-    fitView: fitView2,
+    fitView,
     nodeOrigin,
     nodeExtent
   });
@@ -3315,7 +3301,7 @@ const SvelteFlow = create_ssr_component(($$result, $$props, $$bindings, slots) =
   if ($$props.id === void 0 && $$bindings.id && id !== void 0) $$bindings.id(id);
   if ($$props.nodes === void 0 && $$bindings.nodes && nodes !== void 0) $$bindings.nodes(nodes);
   if ($$props.edges === void 0 && $$bindings.edges && edges !== void 0) $$bindings.edges(edges);
-  if ($$props.fitView === void 0 && $$bindings.fitView && fitView2 !== void 0) $$bindings.fitView(fitView2);
+  if ($$props.fitView === void 0 && $$bindings.fitView && fitView !== void 0) $$bindings.fitView(fitView);
   if ($$props.fitViewOptions === void 0 && $$bindings.fitViewOptions && fitViewOptions !== void 0) $$bindings.fitViewOptions(fitViewOptions);
   if ($$props.minZoom === void 0 && $$bindings.minZoom && minZoom !== void 0) $$bindings.minZoom(minZoom);
   if ($$props.maxZoom === void 0 && $$bindings.maxZoom && maxZoom !== void 0) $$bindings.maxZoom(maxZoom);
@@ -3439,7 +3425,7 @@ const SvelteFlow = create_ssr_component(($$result, $$props, $$bindings, slots) =
       escape_object($$restProps),
       { role: "application" }
     ],
-    { classes: "svelte-12wlba6" }
+    { classes: "svelte-18e9ir1" }
   )}${add_attribute("this", domNode, 0)}>${validate_component(KeyHandler, "KeyHandler").$$render(
     $$result,
     {
@@ -3517,7 +3503,7 @@ const SvelteFlowProvider = create_ssr_component(($$result, $$props, $$bindings, 
   let { initialEdges = void 0 } = $$props;
   let { initialWidth = void 0 } = $$props;
   let { initialHeight = void 0 } = $$props;
-  let { fitView: fitView2 = void 0 } = $$props;
+  let { fitView = void 0 } = $$props;
   let { nodeOrigin = void 0 } = $$props;
   const store = createStore({
     nodes: initialNodes,
@@ -3525,7 +3511,7 @@ const SvelteFlowProvider = create_ssr_component(($$result, $$props, $$bindings, 
     width: initialWidth,
     height: initialHeight,
     nodeOrigin,
-    fitView: fitView2
+    fitView
   });
   setContext(key, { getStore: () => store });
   onDestroy(() => {
@@ -3535,19 +3521,24 @@ const SvelteFlowProvider = create_ssr_component(($$result, $$props, $$bindings, 
   if ($$props.initialEdges === void 0 && $$bindings.initialEdges && initialEdges !== void 0) $$bindings.initialEdges(initialEdges);
   if ($$props.initialWidth === void 0 && $$bindings.initialWidth && initialWidth !== void 0) $$bindings.initialWidth(initialWidth);
   if ($$props.initialHeight === void 0 && $$bindings.initialHeight && initialHeight !== void 0) $$bindings.initialHeight(initialHeight);
-  if ($$props.fitView === void 0 && $$bindings.fitView && fitView2 !== void 0) $$bindings.fitView(fitView2);
+  if ($$props.fitView === void 0 && $$bindings.fitView && fitView !== void 0) $$bindings.fitView(fitView);
   if ($$props.nodeOrigin === void 0 && $$bindings.nodeOrigin && nodeOrigin !== void 0) $$bindings.nodeOrigin(nodeOrigin);
   return `${slots.default ? slots.default({}) : ``}`;
 });
 const ControlButton = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-  let $$restProps = compute_rest_props($$props, ["class"]);
+  let $$restProps = compute_rest_props($$props, ["class", "bgColor", "bgColorHover", "color", "colorHover", "borderColor"]);
   let { class: className = void 0 } = $$props;
-  let bgColor = void 0;
-  let bgColorHover = void 0;
-  let color = void 0;
-  let colorHover = void 0;
-  let borderColor = void 0;
+  let { bgColor = void 0 } = $$props;
+  let { bgColorHover = void 0 } = $$props;
+  let { color = void 0 } = $$props;
+  let { colorHover = void 0 } = $$props;
+  let { borderColor = void 0 } = $$props;
   if ($$props.class === void 0 && $$bindings.class && className !== void 0) $$bindings.class(className);
+  if ($$props.bgColor === void 0 && $$bindings.bgColor && bgColor !== void 0) $$bindings.bgColor(bgColor);
+  if ($$props.bgColorHover === void 0 && $$bindings.bgColorHover && bgColorHover !== void 0) $$bindings.bgColorHover(bgColorHover);
+  if ($$props.color === void 0 && $$bindings.color && color !== void 0) $$bindings.color(color);
+  if ($$props.colorHover === void 0 && $$bindings.colorHover && colorHover !== void 0) $$bindings.colorHover(colorHover);
+  if ($$props.borderColor === void 0 && $$bindings.borderColor && borderColor !== void 0) $$bindings.borderColor(borderColor);
   return `<button${spread(
     [
       { type: "button" },
@@ -3607,7 +3598,7 @@ const Controls$1 = create_ssr_component(($$result, $$props, $$bindings, slots) =
   let { orientation = "vertical" } = $$props;
   let { fitViewOptions = void 0 } = $$props;
   let { class: className = "" } = $$props;
-  const { zoomIn, zoomOut, fitView: fitView2, viewport, minZoom, maxZoom, nodesDraggable, nodesConnectable, elementsSelectable } = useStore();
+  const { zoomIn, zoomOut, fitView, viewport, minZoom, maxZoom, nodesDraggable, nodesConnectable, elementsSelectable } = useStore();
   $$unsubscribe_viewport = subscribe(viewport, (value) => $viewport = value);
   $$unsubscribe_minZoom = subscribe(minZoom, (value) => $minZoom = value);
   $$unsubscribe_maxZoom = subscribe(maxZoom, (value) => $maxZoom = value);
@@ -3790,17 +3781,16 @@ const Background = create_ssr_component(($$result, $$props, $$bindings, slots) =
 });
 const isNode = (element) => isNodeBase(element);
 function useSvelteFlow() {
-  const { zoomIn, zoomOut, fitView: fitView2, onbeforedelete, snapGrid, viewport, width, height, minZoom, maxZoom, panZoom, nodes, edges, domNode, nodeLookup, nodeOrigin, edgeLookup, connectionLookup } = useStore();
+  const { zoomIn, zoomOut, fitView, onbeforedelete, snapGrid, viewport, width, height, minZoom, maxZoom, panZoom, nodes, edges, domNode, nodeLookup, nodeOrigin, edgeLookup, connectionLookup } = useStore();
   const getNodeRect = (node) => {
     const $nodeLookup = get_store_value(nodeLookup);
     const nodeToUse = isNode(node) ? node : $nodeLookup.get(node.id);
     const position = nodeToUse.parentId ? evaluateAbsolutePosition(nodeToUse.position, nodeToUse.measured, nodeToUse.parentId, $nodeLookup, get_store_value(nodeOrigin)) : nodeToUse.position;
     const nodeWithPosition = {
-      id: nodeToUse.id,
+      ...nodeToUse,
       position,
       width: nodeToUse.measured?.width ?? nodeToUse.width,
-      height: nodeToUse.measured?.height ?? nodeToUse.height,
-      data: nodeToUse.data
+      height: nodeToUse.measured?.height ?? nodeToUse.height
     };
     return nodeToRect(nodeWithPosition);
   };
@@ -3863,7 +3853,7 @@ function useSvelteFlow() {
       }, { duration: options?.duration });
       return Promise.resolve(true);
     },
-    fitView: fitView2,
+    fitView,
     fitBounds: async (bounds, options) => {
       const currentPanZoom = get_store_value(panZoom);
       if (!currentPanZoom) {
@@ -4874,8 +4864,8 @@ const Overview = create_ssr_component(($$result, $$props, $$bindings, slots) => 
   createEventDispatcher();
   const i18n = getContext("i18n");
   $$unsubscribe_i18n = subscribe(i18n, (value) => $i18n = value);
-  useStore();
-  const { fitView: fitView2, getViewport } = useSvelteFlow();
+  const { width, height } = useStore();
+  const { fitView } = useSvelteFlow();
   useNodesInitialized();
   let { history } = $$props;
   let selectedMessageId = null;
@@ -4885,9 +4875,9 @@ const Overview = create_ssr_component(($$result, $$props, $$bindings, slots) => 
   const nodeTypes = { custom: Node };
   const focusNode = async () => {
     if (selectedMessageId === null) {
-      await fitView2({ nodes: [{ id: history.currentId }] });
+      await fitView({ nodes: [{ id: history.currentId }] });
     } else {
-      await fitView2({ nodes: [{ id: selectedMessageId }] });
+      await fitView({ nodes: [{ id: selectedMessageId }] });
     }
     selectedMessageId = null;
   };
@@ -5427,7 +5417,7 @@ const Placeholder = create_ssr_component(($$result, $$props, $$bindings, slots) 
           default: () => {
             return `<button><img crossorigin="anonymous"${add_attribute(
               "src",
-              model?.info?.meta?.profile_image_url ?? ($i18n.language === "dg-DG" ? `/doge.png` : `${WEBUI_BASE_URL}/static/favicon.png`),
+              model?.info?.meta?.profile_image_url ?? ($i18n.language === "dg-DG" ? `/doge.png` : `static/favicon.png`),
               0
             )} class="size-9 @sm:size-10 rounded-full border-[1px] border-gray-200 dark:border-none" alt="logo" draggable="false"></button> `;
           }

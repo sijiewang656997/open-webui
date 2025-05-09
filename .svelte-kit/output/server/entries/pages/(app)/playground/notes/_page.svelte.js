@@ -1,4 +1,4 @@
-import { c as create_ssr_component, p as getContext, b as subscribe, g as escape, a as add_attribute, v as validate_component } from "../../../../../chunks/ssr.js";
+import { c as create_ssr_component, p as getContext, b as subscribe, a as add_attribute, v as validate_component, f as escape } from "../../../../../chunks/ssr.js";
 import { R as RichTextInput } from "../../../../../chunks/RichTextInput.js";
 import { M as Mic } from "../../../../../chunks/Mic.js";
 import "../../../../../chunks/Toaster.svelte_svelte_type_style_lang.js";

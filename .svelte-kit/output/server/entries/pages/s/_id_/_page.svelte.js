@@ -1,4 +1,4 @@
-import { c as create_ssr_component, b as subscribe, p as getContext, g as escape, v as validate_component } from "../../../../chunks/ssr.js";
+import { c as create_ssr_component, b as subscribe, p as getContext, f as escape, v as validate_component } from "../../../../chunks/ssr.js";
 import { t as tick } from "../../../../chunks/scheduler.js";
 import { g as goto } from "../../../../chunks/client.js";
 import { p as page } from "../../../../chunks/stores.js";

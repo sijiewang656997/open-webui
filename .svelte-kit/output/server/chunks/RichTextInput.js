@@ -1,4 +1,4 @@
-import { c as create_ssr_component, l as createEventDispatcher, o as onDestroy, g as escape, a as add_attribute } from "./ssr.js";
+import { c as create_ssr_component, l as createEventDispatcher, o as onDestroy, a as add_attribute, f as escape } from "./ssr.js";
 import "marked";
 import TurndownService from "turndown";
 import "./AutoCompletion.js";

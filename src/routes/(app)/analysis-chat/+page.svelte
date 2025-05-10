@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, afterUpdate } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { get, writable } from 'svelte/store';
 	import { user, showSidebar } from '$lib/stores';
@@ -65,16 +65,45 @@
 	let isLoading = false;
 	let error = '';
 	let isDownloading = false;
+	let isToggling = false; // Added to prevent rapid toggle clicks
+	let contentContainer: HTMLElement;
 
-	onMount(async () => {
-		// Initialize API config
+	onMount(() => {
+		// Initialize API config - moved to a separate async function
+		initApiConfig();
+		
+		// Add event listener for window resize to ensure sidebar renders correctly
+		window.addEventListener('resize', handleResize);
+		
+		// Return cleanup function
+		return () => {
+			window.removeEventListener('resize', handleResize);
+		};
+	});
+	
+	// Separate async function for API initialization
+	async function initApiConfig() {
 		try {
 			apiConfig = await getApiConfig(i18n);
 			console.log('API config initialized:', apiConfig);
 		} catch (error) {
 			console.error('Failed to initialize API config:', error);
 		}
-	});
+	}
+	
+	// Utility function to safely extract regex match groups with null checks
+	function safeMatchGroup(text: string, regex: RegExp, groupIndex: number = 1): string {
+		const match = text.match(regex);
+		return match && match[groupIndex] ? match[groupIndex] : '';
+	}
+	
+	// Handle window resize to ensure sidebar renders correctly
+	function handleResize() {
+		if (contentContainer) {
+			// Force layout recalculation
+			contentContainer.getBoundingClientRect();
+		}
+	}
 
 	async function handleSubmit() {
 		if (!input.trim()) return;
@@ -223,37 +252,67 @@
 	}
 
 	function toggleSidebar() {
-		showSidebar.update(value => !value);
+		if (isToggling) return; // Prevent rapid toggling
+		
+		isToggling = true;
+		
+		// Force a layout recalculation
+		if (contentContainer) {
+			contentContainer.getBoundingClientRect();
+		}
+		
+		// Add a tiny delay before updating the store
+		requestAnimationFrame(() => {
+			showSidebar.update(value => !value);
+			
+			// Reset toggle state after animation completes
+			setTimeout(() => { 
+				isToggling = false;
+				
+				// Force another layout recalculation after sidebar animation completes
+				if (contentContainer) {
+					contentContainer.getBoundingClientRect();
+				}
+			}, 300);
+		});
 	}
+	
+	// After each update, ensure layout is recalculated
+	afterUpdate(() => {
+		if (contentContainer) {
+			// Force layout recalculation after DOM updates
+			contentContainer.getBoundingClientRect();
+		}
+	});
 </script>
 
-<div class="flex flex-row w-full h-full max-h-[100dvh]">
-	<div class="flex-1 flex flex-col h-full">
-		<div class="flex items-center justify-between px-4 pt-4 pb-2">
-			<div class="flex items-center gap-4">
+<div class="analysis-container" bind:this={contentContainer}>
+	<div class="analysis-header bg-gray-900 dark:bg-gray-950 text-white">
+		<div class="header-title-row">
+			<div class="header-left">
 				<!-- Sidebar Toggle Button -->
-					<button
-						class="cursor-pointer p-[7px] flex rounded-xl hover:bg-gray-100 dark:hover:bg-gray-900 transition"
-						on:click={toggleSidebar}
-						aria-label="Toggle Sidebar"
-					>
-						<div class="m-auto self-center">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke-width="2"
-								stroke="currentColor"
-								class="size-5"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"
-								/>
-							</svg>
-						</div>
-					</button>
+				<button
+					class="cursor-pointer p-[7px] flex rounded-xl hover:bg-gray-800 dark:hover:bg-gray-800 transition sidebar-toggle"
+					on:click={toggleSidebar}
+					aria-label="Toggle Sidebar"
+				>
+					<div class="m-auto self-center">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke-width="2"
+							stroke="currentColor"
+							class="size-5"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"
+							/>
+						</svg>
+					</div>
+				</button>
 				<h1 class="text-2xl font-bold">Analysis Report</h1>
 			</div>
 
@@ -276,23 +335,25 @@
 				{/if}
 			</button>
 		</div>
+	</div>
 
-		<!-- 下面内容保持不变 -->
+	<div class="analysis-content bg-white dark:bg-gray-900">
+		<!-- Message content area -->
 		<div class="flex-1 overflow-y-auto p-4 space-y-4">
 			{#each messages as message}
 				<div class="bg-white dark:bg-gray-800 rounded-xl p-0 shadow-md overflow-hidden border border-gray-100 dark:border-gray-700 mb-6">
-					<!-- 提取并显示标题 -->
+					<!-- Extract and display title -->
 					{#if message.content.match(/\*\*Analysis for - (.*?)\*\*/)}
 						<div class="bg-gray-50 dark:bg-gray-700 px-5 py-3 border-b border-gray-200 dark:border-gray-700">
 							<h2 class="text-xl font-bold text-gray-800 dark:text-gray-200">
-								{message.content.match(/\*\*Analysis for - (.*?)\*\*/)[1]}
+								{safeMatchGroup(message.content, /\*\*Analysis for - (.*?)\*\*/)}
 							</h2>
 						</div>
 					{/if}
 					
-					<!-- 内容区域 -->
+					<!-- Content area -->
 					<div class="p-0">
-						<!-- Summary 部分 -->
+						<!-- Summary section -->
 						{#if message.content.includes('**Summary')}
 							<div class="px-4 py-4 border-b border-gray-100 dark:border-gray-700">
 								<div class="flex items-start">
@@ -306,9 +367,11 @@
 										<h3 class="font-semibold text-blue-800 dark:text-blue-300 mb-2">Summary</h3>
 										<div class="text-gray-700 dark:text-gray-300">
 											{#if message.content.match(/\*\*Summary\*\*:?\s*(.*?)(?:\n\n\*\*Trends And Insights|\*\*Trends And Insights)/s)}
-												{@html message.content
-													.match(/\*\*Summary\*\*:?\s*(.*?)(?:\n\n\*\*Trends And Insights|\*\*Trends And Insights)/s)[1]
-													.replace(/\*\*(.*?)\*\*/g, '<strong>\$1</strong>')
+												{@html safeMatchGroup(
+													message.content,
+													/\*\*Summary\*\*:?\s*(.*?)(?:\n\n\*\*Trends And Insights|\*\*Trends And Insights)/s
+												)
+													.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
 													.split(';')
 													.map(line => line.trim())
 													.join('<br>')}
@@ -319,7 +382,7 @@
 							</div>
 						{/if}
 						
-						<!-- Trends And Insights 部分 -->
+						<!-- Trends And Insights section -->
 						{#if message.content.includes('**Trends And Insights')}
 							<div class="bg-purple-50 dark:bg-purple-900/10 px-4 py-4 border-b border-gray-100 dark:border-gray-700">
 								<div class="flex items-start">
@@ -333,12 +396,14 @@
 										<div class="text-gray-700 dark:text-gray-300">
 											{#if message.content.match(/\*\*Trends And Insights\*\*:?\s*(.*?)(?:\n\n\*\*Journal Entries|\*\*Journal Entries)/s)}
 												<ul class="list-disc pl-5 space-y-2">
-													{#each message.content
-														.match(/\*\*Trends And Insights\*\*:?\s*(.*?)(?:\n\n\*\*Journal Entries|\*\*Journal Entries)/s)[1]
+													{#each safeMatchGroup(
+														message.content,
+														/\*\*Trends And Insights\*\*:?\s*(.*?)(?:\n\n\*\*Journal Entries|\*\*Journal Entries)/s
+													)
 														.replace(/^\*\s*/, '')
 														.split(/;\s*|\n\*\s*/)
 														.filter(item => item.trim()) as item}
-														<li>{@html item.replace(/\*\*(.*?)\*\*/g, '<strong>\$1</strong>')}</li>
+														<li>{@html item.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</li>
 													{/each}
 												</ul>
 											{/if}
@@ -348,7 +413,7 @@
 							</div>
 						{/if}
 						
-						<!-- Journal Entries Analysis 部分 -->
+						<!-- Journal Entries Analysis section -->
 						{#if message.content.includes('**Journal Entries Analysis')}
 							<div class="bg-green-50 dark:bg-green-900/10 px-4 py-4 border-b border-gray-100 dark:border-gray-700">
 								<div class="flex items-start">
@@ -362,12 +427,14 @@
 										<div class="text-gray-700 dark:text-gray-300">
 											{#if message.content.match(/\*\*Journal Entries Analysis\*\*:?\s*(.*?)(?:\n\n\*\*Recommendations|\*\*Recommendations)/s)}
 												<ul class="list-disc pl-5 space-y-2">
-													{#each message.content
-														.match(/\*\*Journal Entries Analysis\*\*:?\s*(.*?)(?:\n\n\*\*Recommendations|\*\*Recommendations)/s)[1]
+													{#each safeMatchGroup(
+														message.content, 
+														/\*\*Journal Entries Analysis\*\*:?\s*(.*?)(?:\n\n\*\*Recommendations|\*\*Recommendations)/s
+													)
 														.replace(/^\*\s*/, '')
 														.split(/;\s*|\n\*\s*/)
 														.filter(item => item.trim()) as item}
-														<li>{@html item.replace(/\*\*(.*?)\*\*/g, '<strong>\$1</strong>')}</li>
+														<li>{@html item.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</li>
 													{/each}
 												</ul>
 											{/if}
@@ -377,39 +444,41 @@
 							</div>
 						{/if}
 						
-						<!-- Recommendations 部分 -->
+						<!-- Recommendations section -->
 						{#if message.content.includes('**Recommendations')}
-						<div class="bg-amber-50 dark:bg-amber-900/10 px-4 py-4">
-							<div class="flex items-start">
-								<div class="bg-amber-100 dark:bg-amber-800/30 p-2 rounded-lg mr-3">
-									<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-600 dark:text-amber-400" viewBox="0 0 20 20" fill="currentColor">
-										<path d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" />
-									</svg>
-								</div>
-								<div class="flex-1">
-									<h3 class="font-semibold text-amber-800 dark:text-amber-300 mb-2">Recommendations</h3>
-									<div class="text-gray-700 dark:text-gray-300">
-										{#if message.content.match(/\*\*Recommendations\*\*:?\s*(.*?)$/s)}
-											<ul class="list-disc pl-5 space-y-2">
-												{#each message.content
-													.match(/\*\*Recommendations\*\*:?\s*(.*?)$/s)[1]
-													.split(/;\s*|\n\*\s*/)
-													.filter(rec => rec.trim()) as recommendation}
-													<li>{@html recommendation.replace(/\*\*(.*?)\*\*/g, '<strong>\$1</strong>')}</li>
-												{/each}
-											</ul>
-										{/if}
+							<div class="bg-amber-50 dark:bg-amber-900/10 px-4 py-4">
+								<div class="flex items-start">
+									<div class="bg-amber-100 dark:bg-amber-800/30 p-2 rounded-lg mr-3">
+										<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-600 dark:text-amber-400" viewBox="0 0 20 20" fill="currentColor">
+											<path d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" />
+										</svg>
+									</div>
+									<div class="flex-1">
+										<h3 class="font-semibold text-amber-800 dark:text-amber-300 mb-2">Recommendations</h3>
+										<div class="text-gray-700 dark:text-gray-300">
+											{#if message.content.match(/\*\*Recommendations\*\*:?\s*(.*?)$/s)}
+												<ul class="list-disc pl-5 space-y-2">
+													{#each safeMatchGroup(
+														message.content, 
+														/\*\*Recommendations\*\*:?\s*(.*?)$/s
+													)
+														.split(/;\s*|\n\*\s*/)
+														.filter(rec => rec.trim()) as recommendation}
+														<li>{@html recommendation.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</li>
+													{/each}
+												</ul>
+											{/if}
+										</div>
 									</div>
 								</div>
 							</div>
-						</div>
 						{/if}
 						
 						{#if !message.content.includes('**Summary') && !message.content.includes('**Trends And Insights') && 
 							!message.content.includes('**Journal Entries Analysis') && !message.content.includes('**Recommendations')}
 							<div class="px-5 py-4">
 								<div class="prose dark:prose-invert max-w-none">
-									{@html message.content.replace(/;/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>\$1</strong>')}
+									{@html message.content.replace(/;/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}
 								</div>
 							</div>
 						{/if}
@@ -453,65 +522,113 @@
 			{/each}
 		</div>
 
-		<div class="bg-white dark:bg-gray-900">
+		<!-- Input form at bottom -->
+		<div class="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
 			<div class="max-w-6xl px-2.5 mx-auto inset-x-0">
-			  <form on:submit|preventDefault={handleSubmit} class="w-full flex gap-1.5">
-				<div class="flex-1 flex flex-col relative w-full rounded-3xl px-1 bg-gray-600/5 dark:bg-gray-400/5 dark:text-gray-100">
-				  <div class="px-2.5">
-					<input
-					  type="text"
-					  bind:value={input}
-					  placeholder="Send a message starting with @analysis"
-					  class="scrollbar-hidden bg-transparent dark:text-gray-100 outline-hidden w-full pt-3 px-1 resize-none h-fit"
-					  disabled={isLoading}
-					/>
-				  </div>
+				<form on:submit|preventDefault={handleSubmit} class="w-full flex gap-1.5">
+					<div class="flex-1 flex flex-col relative w-full rounded-3xl px-1 bg-gray-600/5 dark:bg-gray-400/5 dark:text-gray-100">
+						<div class="px-2.5">
+							<input
+								type="text"
+								bind:value={input}
+								placeholder="Send a message starting with @analysis"
+								class="scrollbar-hidden bg-transparent dark:text-gray-100 outline-hidden w-full pt-3 px-1 resize-none h-fit"
+								disabled={isLoading}
+							/>
+						</div>
 				  
-				  <div class="flex justify-between mt-1.5 mb-2.5 mx-0.5 max-w-full">
-					<div class="ml-1 self-end gap-0.5 flex items-center flex-1 max-w-[80%]">
-					  <!-- This space can remain empty to match the layout -->
-					</div>
-					
-					<div class="self-end flex space-x-1 mr-1 shrink-0">
-					  <div class="flex items-center">
-						<button
-						  type="submit"
-						  class="{!isLoading 
-							? 'bg-black text-white hover:bg-gray-900 dark:bg-white dark:text-black dark:hover:bg-gray-100' 
-							: 'text-white bg-gray-200 dark:text-gray-900 dark:bg-gray-700'} 
-							transition rounded-full p-1.5 self-center"
-						  disabled={isLoading}
-						>
-						  {#if isLoading}
-							<div class="flex items-center">
-							  <svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-								<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-							  </svg>
-							  <span>Processing...</span>
+						<div class="flex justify-between mt-1.5 mb-2.5 mx-0.5 max-w-full">
+							<div class="ml-1 self-end gap-0.5 flex items-center flex-1 max-w-[80%]">
+								<!-- This space can remain empty to match the layout -->
 							</div>
-						  {:else}
-							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-5">
-							  <path fill-rule="evenodd" d="M8 14a.75.75 0 0 1-.75-.75V4.56L4.03 7.78a.75.75 0 0 1-1.06-1.06l4.5-4.5a.75.75 0 0 1 1.06 0l4.5 4.5a.75.75 0 0 1-1.06 1.06L8.75 4.56v8.69A.75.75 0 0 1 8 14Z" clip-rule="evenodd"/>
-							</svg>
-						  {/if}
-						</button>
-					  </div>
+							
+							<div class="self-end flex space-x-1 mr-1 shrink-0">
+								<div class="flex items-center">
+									<button
+										type="submit"
+										class="{!isLoading 
+											? 'bg-black text-white hover:bg-gray-900 dark:bg-white dark:text-black dark:hover:bg-gray-100' 
+											: 'text-white bg-gray-200 dark:text-gray-900 dark:bg-gray-700'} 
+											transition rounded-full p-1.5 self-center"
+										disabled={isLoading}
+									>
+										{#if isLoading}
+											<div class="flex items-center">
+												<svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+													<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+													<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+												</svg>
+												<span>Processing...</span>
+											</div>
+										{:else}
+											<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-5">
+												<path fill-rule="evenodd" d="M8 14a.75.75 0 0 1-.75-.75V4.56L4.03 7.78a.75.75 0 0 1-1.06-1.06l4.5-4.5a.75.75 0 0 1 1.06 0l4.5 4.5a.75.75 0 0 1-1.06 1.06L8.75 4.56v8.69A.75.75 0 0 1 8 14Z" clip-rule="evenodd"/>
+											</svg>
+										{/if}
+									</button>
+								</div>
+							</div>
+						</div>
 					</div>
-				  </div>
-				</div>
-			  </form>
-			  
-			  {#if error}
-				<p class="mt-2 text-red-500 text-sm">{error}</p>
-			  {/if}
+				</form>
+				
+				{#if error}
+					<p class="mt-2 text-red-500 text-sm">{error}</p>
+				{/if}
 			</div>
-		  </div>
+		</div>
 	</div>
 </div>
 
 
 <style>
+/* Add structured CSS similar to excel-to-sql page */
+.analysis-container {
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
+	width: 100%;
+	position: relative;
+	overflow: hidden;
+}
+
+.analysis-header {
+	padding: 12px 24px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+	z-index: 10;
+	position: relative;
+}
+
+.header-title-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.header-left {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+}
+
+.sidebar-toggle {
+	transition: all 300ms ease-in-out;
+	position: relative;
+	z-index: 11;
+}
+
+.analysis-content {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	overflow: hidden;
+	position: relative;
+}
+
+.analysis-content > div.flex-1 {
+	height: calc(100vh - 130px);
+}
+
 :global(.table-improved) {
 	width: calc(100% + 1rem) !important;
 	max-width: none !important;
@@ -530,5 +647,20 @@
 }
 :global(.table-improved td) {
 	padding: 0.625rem 1rem !important;
+}
+
+/* Fixes for mobile viewports */
+@media (max-width: 768px) {
+	.analysis-header {
+		padding: 10px 16px;
+	}
+	
+	.header-left {
+		gap: 10px;
+	}
+	
+	.analysis-content > div.flex-1 {
+		height: calc(100vh - 120px);
+	}
 }
 </style> 

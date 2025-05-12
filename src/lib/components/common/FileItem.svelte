@@ -1,186 +1,152 @@
 <script lang="ts">
-	// FileItem.svelte 修改
-	import { createEventDispatcher, getContext } from 'svelte';
-	import { formatFileSize } from '$lib/utils';
-
-	import FileItemModal from './FileItemModal.svelte';
-	import GarbageBin from '../icons/GarbageBin.svelte';
-	import Spinner from './Spinner.svelte';
-	import Tooltip from './Tooltip.svelte';
+	import { getContext, onMount } from 'svelte';
+	import { formatFileSize, getLineCount } from '$lib/utils';
 	import { WEBUI_API_BASE_URL } from '$lib/constants';
 
 	const i18n = getContext('i18n');
-	const dispatch = createEventDispatcher();
 
-	export let className = 'w-60';
-	export let colorClassName = 'bg-white dark:bg-gray-850 border border-gray-50 dark:border-white/5';
-	export let url: string | null = null;
+	import Modal from './Modal.svelte';
+	import XMark from '../icons/XMark.svelte';
+	import Info from '../icons/Info.svelte';
+	import Switch from './Switch.svelte';
+	import Tooltip from './Tooltip.svelte';
 
-	export let dismissible = false;
-	export let loading = false;
-
-	export let item = null;
+	export let item;
+	export let show = false;
 	export let edit = false;
-	export let small = false;
 
-	export let name: string;
-	export let type: string;
-	export let size: number;
+	let enableFullContent = false;
 
-	import { deleteFileById } from '$lib/apis/files';
+	let isPdf = false;
+	let isAudio = false;
 
-	let showModal = false;
-	
-	// Function to check if this is an Excel file
-	function isExcelFile(fileName: string) {
-		const excelExtensions = ['.xls', '.xlsx', '.csv', '.ods'];
-		return excelExtensions.some(ext => fileName.toLowerCase().endsWith(ext));
-	}
-	
-	// Function to check if this is a PDF file
-	function isPdfFile(fileName: string) {
-		return fileName.toLowerCase().endsWith('.pdf');
-	}
-	
-	// Determine the file type for icon display
-	const fileType = isExcelFile(name) ? 'excel' : type;
+	$: isPDF =
+		item?.meta?.content_type === 'application/pdf' ||
+		(item?.name && item?.name.toLowerCase().endsWith('.pdf'));
+
+	$: isAudio =
+		item?.meta?.content_type.startsWith('audio/') ||
+		(item?.name && item?.name.toLowerCase().endsWith('.mp3')) ||
+		(item?.name && item?.name.toLowerCase().endsWith('.wav')) ||
+		(item?.name && item?.name.toLowerCase().endsWith('.ogg')) ||
+		(item?.name && item?.name.toLowerCase().endsWith('.m4a')) ||
+		(item?.name && item?.name.toLowerCase().endsWith('.webm'));
+
+	onMount(() => {
+		console.log(item);
+		if (item?.context === 'full') {
+			enableFullContent = true;
+		}
+	});
 </script>
 
-{#if item}
-	<FileItemModal bind:show={showModal} bind:item {edit} />
-{/if}
+<Modal bind:show size="lg">
+	<div class="font-primary px-6 py-5 w-full flex flex-col justify-center dark:text-gray-400">
+		<div class=" pb-2">
+			<div class="flex items-start justify-between">
+				<div>
+					<div class=" font-medium text-lg dark:text-gray-100">
+						<a
+							href="#"
+							class="hover:underline line-clamp-1"
+							on:click|preventDefault={() => {
+								if (!isPDF && item.url) {
+									window.open(
+										item.type === 'file' ? `${item.url}/content` : `${item.url}`,
+										'_blank'
+									);
+								}
+							}}
+						>
+							{item?.name ?? 'File'}
+						</a>
+					</div>
+				</div>
 
-<button
-	class="relative group p-1.5 {className} flex items-center gap-1 {colorClassName} {small
-		? 'rounded-xl'
-		: 'rounded-2xl'} text-left"
-	type="button"
-	on:click={async () => {
-		if (isExcelFile(name) && item?.id) {
-			// Excel文件打开专用的Excel预览页面，而不是直接打开文件
-			// 假设预览页面的路径是 /excel-viewer，并通过查询参数传递文件ID
-			const viewerUrl = `/excel-viewer?fileId=${item.id}&fileName=${encodeURIComponent(name)}`;
-			window.open(viewerUrl, '_blank').focus();
-		} else if (item?.file?.data?.content || isPdfFile(name)) {
-			// PDF文件或有内容的文件使用modal打开
-			showModal = !showModal;
-		} else {
-			// 其他文件如果有URL则在新标签页打开
-			if (url) {
-				if (type === 'file') {
-					window.open(`${url}/content`, '_blank').focus();
-				} else {
-					window.open(`${url}`, '_blank').focus();
-				}
-			}
-		}
-
-		dispatch('click');
-	}}
->
-	{#if !small}
-		<div class="p-3 {isExcelFile(name) ? 'bg-green-600/20 dark:bg-green-500/20 text-green-600 dark:text-green-500' : 'bg-black/20 dark:bg-white/10 text-white'} rounded-xl">
-			{#if !loading}
-				{#if isExcelFile(name)}
-					<!-- Excel Icon -->
-					<svg 
-						xmlns="http://www.w3.org/2000/svg" 
-						viewBox="0 0 24 24" 
-						fill="currentColor" 
-						class="size-5"
+				<div>
+					<button
+						on:click={() => {
+							show = false;
+						}}
 					>
-						<path 
-							fill-rule="evenodd" 
-							d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0 0 16.5 9h-1.875a1.875 1.875 0 0 1-1.875-1.875V5.25A3.75 3.75 0 0 0 9 1.5H5.625ZM7.5 15a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 7.5 15Zm.75 2.25a.75.75 0 0 0 0 1.5H12a.75.75 0 0 0 0-1.5H8.25Z" 
-							clip-rule="evenodd" 
-						/>
-						<path 
-							d="M12.971 1.816A5.23 5.23 0 0 1 14.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 0 1 3.434 1.279 9.768 9.768 0 0 0-6.963-6.963Z" 
-						/>
-					</svg>
-				{:else}
-					<!-- Default document icon -->
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 24 24"
-						fill="currentColor"
-						class="size-5"
-					>
-						<path
-							fill-rule="evenodd"
-							d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0 0 16.5 9h-1.875a1.875 1.875 0 0 1-1.875-1.875V5.25A3.75 3.75 0 0 0 9 1.5H5.625ZM7.5 15a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 7.5 15Zm.75 2.25a.75.75 0 0 0 0 1.5H12a.75.75 0 0 0 0-1.5H8.25Z"
-							clip-rule="evenodd"
-						/>
-						<path
-							d="M12.971 1.816A5.23 5.23 0 0 1 14.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 0 1 3.434 1.279 9.768 9.768 0 0 0-6.963-6.963Z"
-						/>
-					</svg>
-				{/if}
-			{:else}
-				<Spinner />
-			{/if}
-		</div>
-	{/if}
-
-	{#if !small}
-		<div class="flex flex-col justify-center -space-y-0.5 px-2.5 w-full">
-			<div class="dark:text-gray-100 text-sm font-medium line-clamp-1 mb-1">
-				{name}
-			</div>
-
-			<div class="flex justify-between text-gray-500 text-xs line-clamp-1">
-				{#if isExcelFile(name)}
-					{$i18n.t('Excel')}
-				{:else if type === 'file'}
-					{$i18n.t('File')}
-				{:else if type === 'doc'}
-					{$i18n.t('Document')}
-				{:else if type === 'collection'}
-					{$i18n.t('Collection')}
-				{:else}
-					<span class="capitalize line-clamp-1">{type}</span>
-				{/if}
-				{#if size}
-					<span class="capitalize">{formatFileSize(size)}</span>
-				{/if}
-			</div>
-		</div>
-	{:else}
-		<Tooltip content={name} className="flex flex-col w-full" placement="top-start">
-			<div class="flex flex-col justify-center -space-y-0.5 px-2.5 w-full">
-				<div class="dark:text-gray-100 text-sm flex justify-between items-center">
-					{#if loading}
-						<div class="shrink-0 mr-2">
-							<Spinner className="size-4" />
-						</div>
-					{/if}
-					<div class="font-medium line-clamp-1 flex-1">{name}</div>
-					<div class="text-gray-500 text-xs capitalize shrink-0">{formatFileSize(size)}</div>
+						<XMark />
+					</button>
 				</div>
 			</div>
-		</Tooltip>
-	{/if}
 
-	{#if dismissible}
-		<div class="absolute -top-1 -right-1">
-			<button
-				class="bg-white text-black border border-white rounded-full group-hover:visible invisible transition"
-				type="button"
-				on:click|stopPropagation={() => {
-					dispatch('dismiss');
-				}}
-			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					viewBox="0 0 20 20"
-					fill="currentColor"
-					class="w-4 h-4"
-				>
-					<path
-						d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
-					/>
-				</svg>
-			</button>
+			<div>
+				<div class="flex flex-col items-center md:flex-row gap-1 justify-between w-full">
+					<div class=" flex flex-wrap text-sm gap-1 text-gray-500">
+						{#if item.size}
+							<div class="capitalize shrink-0">{formatFileSize(item.size)}</div>
+							•
+						{/if}
+
+						{#if item?.file?.data?.content}
+							<div class="capitalize shrink-0">
+								{getLineCount(item?.file?.data?.content ?? '')} extracted lines
+							</div>
+
+							<div class="flex items-center gap-1 shrink-0">
+								<Info />
+
+								Formatting may be inconsistent from source.
+							</div>
+						{/if}
+					</div>
+
+					{#if edit}
+						<div>
+							<Tooltip
+								content={enableFullContent
+									? $i18n.t(
+											'Inject the entire content as context for comprehensive processing, this is recommended for complex queries.'
+										)
+									: $i18n.t(
+											'Default to segmented retrieval for focused and relevant content extraction, this is recommended for most cases.'
+										)}
+							>
+								<div class="flex items-center gap-1.5 text-xs">
+									{#if enableFullContent}
+										Using Entire Document
+									{:else}
+										Using Focused Retrieval
+									{/if}
+									<Switch
+										bind:state={enableFullContent}
+										on:change={(e) => {
+											item.context = e.detail ? 'full' : undefined;
+										}}
+									/>
+								</div>
+							</Tooltip>
+						</div>
+					{/if}
+				</div>
+			</div>
 		</div>
-	{/if}
-</button>
+
+		<div class="max-h-[75vh] overflow-auto">
+			{#if isPDF}
+				<iframe
+					title={item?.name}
+					src={`${WEBUI_API_BASE_URL}/files/${item.id}/content`}
+					class="w-full h-[70vh] border-0 rounded-lg mt-4"
+				/>
+			{:else}
+				{#if isAudio}
+					<audio
+						src={`${WEBUI_API_BASE_URL}/files/${item.id}/content`}
+						class="w-full border-0 rounded-lg mb-2"
+						controls
+						playsinline
+					/>
+				{/if}
+
+				<div class="max-h-96 overflow-scroll scrollbar-hidden text-xs whitespace-pre-wrap">
+					{item?.file?.data?.content ?? 'No content'}
+				</div>
+			{/if}
+		</div>
+	</div>
+</Modal>

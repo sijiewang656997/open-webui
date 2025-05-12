@@ -59,7 +59,6 @@
 	import PencilSquare from '../icons/PencilSquare.svelte';
 	import Home from '../icons/Home.svelte';
 
-	import FileManagementModal from '../common/FileManagementModal.svelte';
 	import AccountAnalysisModal from '../common/AccountAnalysisModal.svelte';
 	import UploadAnalysisModal from '../common/UploadAnalysisModal.svelte';
 	import ExcelToSqlUploadModal from '../common/ExcelToSqlUploadModal.svelte';
@@ -1199,12 +1198,6 @@
 			</div>
 		</div>
 	</div>
-	<FileManagementModal
-		bind:show={showFileManager}
-		on:change={() => {
-			// 可以在这里添加文件变更后的处理逻辑
-		}}
-	/>
 	<AccountAnalysisModal
 		bind:show={showAccountAnalysis}
 		on:change={() => {

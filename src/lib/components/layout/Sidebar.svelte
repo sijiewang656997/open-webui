@@ -313,32 +313,6 @@
 		draggedOver = false; // Reset draggedOver status after drop
 	};
 
-	// 添加在其他函数附近
-	const syncHandler = async () => {
-		try {
-			isSyncing = true;
-			
-			// 这里添加同步逻辑，比如：
-			toast.info($i18n.t('Syncing chats...'));
-			
-			// 示例：重新获取聊天列表、标签、文件夹等数据
-			await initChannels();
-			await initChatList();
-			await initFolders();
-			
-			// 更新同步时间
-			syncLastTime = new Date().toISOString();
-			localStorage.setItem('lastSyncTime', syncLastTime);
-			
-			toast.success($i18n.t('Sync completed'));
-		} catch (error) {
-			console.error('Sync error:', error);
-			toast.error($i18n.t('Sync failed') + ': ' + error.message);
-		} finally {
-			isSyncing = false;
-		}
-	};
-
 	const excelToSqlUploadHandler = () => {
 		showExcelToSqlUpload = true;
 	};

@@ -1,5 +1,5 @@
-<script>
-  import { onMount, getContext } from 'svelte';
+<script lang="ts">
+  import { onMount, getContext,afterUpdate } from 'svelte';
   import { toast } from 'svelte-sonner';
   import { user, showSidebar } from '$lib/stores';;
   import Spinner from '$lib/components/common/Spinner.svelte';
@@ -20,6 +20,9 @@
   let selectedColumns = [];
   let hasUnsavedChanges = false;
   let isEditMode = false;
+
+  let contentContainer: HTMLElement;
+  let isToggling = false;
   
   // API configuration with fallback defaults
   let base_url = WEBUI_BASE_URL;
@@ -37,8 +40,6 @@
   
   onMount(async () => {
     try {
-
-
       console.log('Loading API configuration...');
       
       // Get API configuration
@@ -402,12 +403,50 @@
     return 'Page';
   }
 
+  onMount(() => {
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  });
+
+  afterUpdate(() => {
+    if (contentContainer) {
+      contentContainer.getBoundingClientRect();
+    }
+  });
+
+  // 统一的resize处理
+  function handleResize() {
+    if (contentContainer) {
+      contentContainer.getBoundingClientRect();
+    }
+  }
+
   function toggleSidebar() {
-		showSidebar.update(value => !value);
-	}
+    if (isToggling) return;
+    isToggling = true;
+
+    // 触发初始布局计算
+    if (contentContainer) {
+      contentContainer.getBoundingClientRect();
+    }
+
+    requestAnimationFrame(() => {
+      showSidebar.update(value => !value);
+
+      // 添加动画完成后的处理
+      setTimeout(() => {
+        isToggling = false;
+        if (contentContainer) {
+          contentContainer.getBoundingClientRect();
+        }
+      }, 300);
+    });
+  }
 </script>
 
-<div class="excel-management-container">
+<div class="excel-management-container" bind:this={contentContainer}>
   <div class="management-header bg-gray-900 dark:bg-gray-950 text-white">
     <div class="header-title-row">
       <div class="header-left">
@@ -776,6 +815,8 @@
     flex-direction: column;
     height: 100vh;
     width: 100%;
+    position: relative;
+    overflow: hidden;
   }
 
   .management-header {
@@ -825,7 +866,8 @@
     display: flex;
     flex-direction: column;
     flex: 1;
-    overflow: auto;
+    overflow: hidden;
+    position: relative;
     padding: 0;
     border-radius: 8px;
     margin: 16px;
@@ -1017,6 +1059,19 @@
 
     .excel-table td[contenteditable="true"]:focus {
       outline-color: #4299e1;
+    }
+  }
+  @media (max-width: 768px) {
+    .management-header {
+      padding: 10px 16px;
+    }
+    
+    .header-left {
+      gap: 10px;
+    }
+    
+    .management-content {
+      margin: 12px;
     }
   }
 </style> 
